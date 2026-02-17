@@ -46,11 +46,11 @@
         });
 
         docker = pkgs.dockerTools.buildLayeredImage {
-          name = "quizzy";
+          name = "quizinart";
           tag = "latest";
           created = "now";
           contents = with pkgs; [ cacert ];
-          config.Cmd = [ "${bin}/bin/quizzy" ];
+          config.Cmd = [ "${bin}/bin/quizinart" ];
           config.Expose = "1414";
         };
       in

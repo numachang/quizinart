@@ -33,7 +33,7 @@
 ### ローカル実行
 
 ```bash
-cd quizzy
+cd quizinart
 
 # ローカルSQLiteで起動（Tursoアカウント不要）
 URL="file:local.db" AUTH_TOKEN="" ADDRESS="127.0.0.1:1414" RUST_LOG=info cargo run
@@ -69,7 +69,7 @@ URL="file:local.db" AUTH_TOKEN="" ADDRESS="127.0.0.1:1414" RUST_LOG=info cargo r
 ## プロジェクト構成
 
 ```
-quizzy/
+quizinart/
 ├── src/
 │   ├── main.rs                # エントリーポイント、ルーティング、認証
 │   ├── db/                    # データベース層
@@ -109,7 +109,7 @@ quizzy/
 
 1. GitHub にプッシュ
 2. [render.com](https://render.com) で **Web Service** を作成
-3. 環境を **Docker** に設定、ルートディレクトリは `quizzy`
+3. 環境を **Docker** に設定、ルートディレクトリは `quizinart`
 4. 環境変数を追加（`URL`, `AUTH_TOKEN`, `ADDRESS=0.0.0.0:1414`）
 
 ### Turso（リモートデータベース）の使用

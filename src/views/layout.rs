@@ -1,6 +1,7 @@
 use maud::{html, Markup, DOCTYPE};
+use rust_i18n::t;
 
-use crate::utils;
+use crate::{names, utils};
 
 fn css() -> Markup {
     html! {
@@ -22,7 +23,14 @@ fn icon() -> Markup {
     }
 }
 
-fn header() -> Markup {
+const LOCALES: &[(&str, &str)] = &[
+    ("en", "layout.lang_toggle_en"),
+    ("ja", "layout.lang_toggle_ja"),
+    ("zh-CN", "layout.lang_toggle_zh_cn"),
+    ("zh-TW", "layout.lang_toggle_zh_tw"),
+];
+
+fn header(locale: &str) -> Markup {
     html! {
         header {
             nav {
@@ -34,6 +42,24 @@ fn header() -> Markup {
                     }
                 }
                 ul {
+                    li."secondary" {
+                        select."lang-select"
+                               name="locale"
+                               hx-post=(names::SET_LOCALE_URL)
+                               hx-ext="json-enc"
+                               hx-include="this"
+                               hx-trigger="change"
+                               hx-swap="none"
+                               aria-label="Language" {
+                            @for &(code, label_key) in LOCALES {
+                                @if code == locale {
+                                    option value=(code) selected { (t!(label_key, locale = locale)) }
+                                } @else {
+                                    option value=(code) { (t!(label_key, locale = locale)) }
+                                }
+                            }
+                        }
+                    }
                     li."secondary" { (utils::VERSION) }
                 }
             }
@@ -47,7 +73,7 @@ fn main(body: Markup) -> Markup {
     }
 }
 
-pub fn page(title: &str, body: Markup) -> Markup {
+pub fn page(title: &str, body: Markup, locale: &str) -> Markup {
     html! {
         (DOCTYPE)
         head {
@@ -63,7 +89,7 @@ pub fn page(title: &str, body: Markup) -> Markup {
         }
 
         body."container" {
-            (header())
+            (header(locale))
             (main(body))
         }
     }

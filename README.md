@@ -33,7 +33,7 @@ Forked from [frectonz/quizzy](https://github.com/frectonz/quizzy) and extended w
 ### Run locally
 
 ```bash
-cd quizzy
+cd quizinart
 
 # Start with local SQLite (no Turso account needed)
 URL="file:local.db" AUTH_TOKEN="" ADDRESS="127.0.0.1:1414" RUST_LOG=info cargo run
@@ -69,7 +69,7 @@ Questions are imported from a single JSON file. Each question has a text, catego
 ## Project Structure
 
 ```
-quizzy/
+quizinart/
 ├── src/
 │   ├── main.rs                # Entry point, routes, auth
 │   ├── db/                    # Database layer
@@ -109,7 +109,7 @@ quizzy/
 
 1. Push to GitHub
 2. Create a **Web Service** on [render.com](https://render.com)
-3. Set environment: **Docker**, root directory: `quizzy`
+3. Set environment: **Docker**, root directory: `quizinart`
 4. Add environment variables (`URL`, `AUTH_TOKEN`, `ADDRESS=0.0.0.0:1414`)
 
 ### Using Turso (remote database)

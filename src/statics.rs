@@ -10,6 +10,7 @@ use warp::{
 };
 
 static STATIC_DIR: Dir = include_dir!("static");
+const STATIC_CACHE_CONTROL: &str = "max-age=3600, must-revalidate";
 
 async fn send_file(path: warp::path::Tail) -> Result<impl warp::Reply, warp::Rejection> {
     let path = Path::new(path.as_str());
@@ -26,7 +27,7 @@ async fn send_file(path: warp::path::Tail) -> Result<impl warp::Reply, warp::Rej
 
     let resp = Response::builder()
         .header(CONTENT_TYPE, content_type)
-        .header(CACHE_CONTROL, "max-age=3600, must-revalidate")
+        .header(CACHE_CONTROL, STATIC_CACHE_CONTROL)
         .body(file.contents())
         .unwrap();
 

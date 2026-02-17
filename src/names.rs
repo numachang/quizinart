@@ -29,3 +29,15 @@ pub fn results_url(session_id: i32) -> String {
 pub fn resume_session_url(session_id: i32, token: &str) -> String {
     format!("/resume-session/{session_id}/{token}")
 }
+
+// Quiz session defaults
+pub const MIN_QUESTION_COUNT: i32 = 5;
+pub const MAX_QUESTION_COUNT: i32 = 30;
+pub const DEFAULT_QUESTION_COUNT: i32 = 10;
+pub const DEFAULT_SELECTION_MODE: &str = "unanswered";
+pub const SELECTION_MODES: &[&str] = &["unanswered", "incorrect", "random"];
+
+// i18n
+pub const LOCALE_COOKIE_NAME: &str = "lang";
+pub const DEFAULT_LOCALE: &str = "en";
+pub const SET_LOCALE_URL: &str = "/set-locale";

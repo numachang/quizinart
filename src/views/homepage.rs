@@ -1,15 +1,16 @@
 use maud::{html, Markup};
+use rust_i18n::t;
 use crate::{db::Quiz, names};
 
-pub fn get_started() -> Markup {
+pub fn get_started(locale: &str) -> Markup {
     html! {
-        h1 { "Welcome to Quizzy!" }
+        h1 { (t!("homepage.welcome", locale = locale)) }
         p {
-            "Seems like this is the first time you are using "
-            mark { "Quizzy" }
-            " for the first time. You will need to set an "
-            strong { "admin password" }
-            " to get started."
+            (t!("homepage.welcome_desc_1", locale = locale))
+            mark { (t!("homepage.quizinart", locale = locale)) }
+            (t!("homepage.welcome_desc_2", locale = locale))
+            strong { (t!("homepage.admin_password", locale = locale)) }
+            (t!("homepage.welcome_desc_3", locale = locale))
         }
         article style="width: fit-content;" {
             form hx-post=(names::GET_STARTED_URL)
@@ -18,16 +19,16 @@ pub fn get_started() -> Markup {
                  hx-disabled-elt="find input[type='password'], find input[type='submit']"
                  hx-swap="innerHTML" {
                 label {
-                    "Admin Password"
+                    (t!("homepage.admin_password", locale = locale))
                     input name="admin_password"
                           type="password"
                           autocomplete="off"
-                          placeholder="Admin Password"
+                          placeholder=(t!("homepage.admin_password", locale = locale))
                           aria-describedby="password-helper"
-                          aria-label="Your Password";
-                    small id="password-helper" { "Be sure not to forget the password." }
+                          aria-label=(t!("homepage.admin_password", locale = locale));
+                    small id="password-helper" { (t!("homepage.password_hint", locale = locale)) }
                 }
-                input type="submit" value="Get Started";
+                input type="submit" value=(t!("homepage.get_started", locale = locale));
             }
         }
     }
@@ -38,11 +39,11 @@ pub enum LoginState {
     IncorrectPassword,
 }
 
-pub fn login(state: LoginState) -> Markup {
+pub fn login(state: LoginState, locale: &str) -> Markup {
     html! {
-        h1 { "Welcome back to Quizzy!" }
+        h1 { (t!("homepage.welcome_back", locale = locale)) }
         p {
-            "Use the admin password you previously set to log back in to your dashboard."
+            (t!("homepage.login_desc", locale = locale))
         }
         article style="width: fit-content;" {
             form hx-post=(names::LOGIN_URL)
@@ -53,41 +54,41 @@ pub fn login(state: LoginState) -> Markup {
                 @match state {
                     LoginState::NoError => {
                         label {
-                            "Admin Password"
+                            (t!("homepage.admin_password", locale = locale))
                             input name="admin_password"
                                   type="password"
                                   autocomplete="off"
-                                  placeholder="Admin Password"
+                                  placeholder=(t!("homepage.admin_password", locale = locale))
                                   aria-describedby="password-helper"
-                                  aria-label="Your Password";
+                                  aria-label=(t!("homepage.admin_password", locale = locale));
                             small id="password-helper" {
-                                "Use the admin password you set when you first used Quizzy."
+                                (t!("homepage.password_hint_login", locale = locale))
                             }
                         }
                     },
                     LoginState::IncorrectPassword => {
                         label {
-                            "Admin Password"
+                            (t!("homepage.admin_password", locale = locale))
                             input name="admin_password"
                                   type="password"
                                   autocomplete="off"
-                                  placeholder="Admin Password"
+                                  placeholder=(t!("homepage.admin_password", locale = locale))
                                   aria-describedby="password-helper"
                                   aria-invalid="true"
-                                  aria-label="Your Password";
-                            small id="password-helper" { "Incorrect password" }
+                                  aria-label=(t!("homepage.admin_password", locale = locale));
+                            small id="password-helper" { (t!("homepage.incorrect_password", locale = locale)) }
                         }
                     }
                 }
-                input type="submit" value="Log In";
+                input type="submit" value=(t!("homepage.log_in", locale = locale));
             }
         }
     }
 }
 
-pub fn dashboard(quizzes: Vec<Quiz>) -> Markup {
+pub fn dashboard(quizzes: Vec<Quiz>, locale: &str) -> Markup {
     html! {
-        h1 { "Dashboard" }
+        h1 { (t!("homepage.dashboard", locale = locale)) }
 
         article style="width: fit-content;" {
             form hx-post=(names::CREATE_QUIZ_URL)
@@ -96,29 +97,29 @@ pub fn dashboard(quizzes: Vec<Quiz>) -> Markup {
                  hx-disabled-elt="find input[type='text'], find input[type='file'], find input[type='submit']"
                  hx-swap="innerHTML" {
                     label {
-                        "Quiz Name"
+                        (t!("homepage.quiz_name", locale = locale))
                         input name="quiz_name"
                               type="text"
                               required="true"
                               autocomplete="off"
-                              placeholder="Quiz Name"
+                              placeholder=(t!("homepage.quiz_name", locale = locale))
                               aria-describedby="quiz-name-helper"
-                              aria-label="Your Quiz Name";
-                        small id="quiz-name-helper" { "What do you want to call this quiz?" }
+                              aria-label=(t!("homepage.quiz_name", locale = locale));
+                        small id="quiz-name-helper" { (t!("homepage.quiz_name_hint", locale = locale)) }
                     }
 
                     label {
-                        "Quiz File"
+                        (t!("homepage.quiz_file", locale = locale))
                         input name="quiz_file"
                               type="file"
                               required="true"
                               aria-describedby="quiz-file-helper"
                               accept="application/json"
-                              aria-label="Your Quiz File";
-                        small id="quiz-file-helper" { "The JSON file that includes the questions in this quiz." }
+                              aria-label=(t!("homepage.quiz_file", locale = locale));
+                        small id="quiz-file-helper" { (t!("homepage.quiz_file_hint", locale = locale)) }
                     }
 
-                    input type="submit" value="Create";
+                    input type="submit" value=(t!("homepage.create", locale = locale));
             }
         }
 
@@ -126,21 +127,21 @@ pub fn dashboard(quizzes: Vec<Quiz>) -> Markup {
             @for quiz in quizzes {
                 article {
                     h3 { (quiz.name) }
-                    p { (quiz.count) " questions." }
+                    p { (quiz.count) (t!("homepage.questions_suffix", locale = locale)) }
                     div role="group" {
                         button
                             hx-trigger="click"
                             hx-target="main"
                             hx-swap="innerHTML"
                             hx-push-url="true"
-                            hx-get=(names::quiz_dashboard_url(quiz.id)) { "View" }
+                            hx-get=(names::quiz_dashboard_url(quiz.id)) { (t!("homepage.view", locale = locale)) }
                         button."contrast"
                             hx-disabled-elt="this"
                             hx-trigger="click"
                             hx-target="closest article"
                             hx-swap="outerHTML"
-                            hx-confirm="Are you sure you want to delete this Quiz?"
-                            hx-delete=(names::delete_quiz_url(quiz.id)) { "Delete" }
+                            hx-confirm=(t!("homepage.delete_confirm", locale = locale))
+                            hx-delete=(names::delete_quiz_url(quiz.id)) { (t!("homepage.delete", locale = locale)) }
                     }
                 }
             }

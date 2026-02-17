@@ -117,3 +117,11 @@ body {
   padding: 0.5rem 1rem !important;
   margin-bottom: 0 !important;
 }
+
+/* 言語切替プルダウン */
+.lang-select {
+  width: auto;
+  margin: 0;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+}

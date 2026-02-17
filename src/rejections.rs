@@ -7,20 +7,45 @@ use warp::{
     reply::Reply,
 };
 
-use crate::views;
+use crate::{names, views};
 
-macro_rules! rejects {
-    ($($name:ident),*) => {
-        $(
-            #[derive(Debug)]
-            pub struct $name;
+#[derive(Debug, thiserror::Error)]
+pub enum AppError {
+    #[error("{0}")]
+    Internal(&'static str),
 
-            impl Reject for $name {}
-        )*
-    };
+    #[error("unauthorized")]
+    Unauthorized,
+
+    #[error("{0}")]
+    Input(&'static str),
 }
 
-rejects!(InternalServerError, Unauthorized, InputError);
+impl Reject for AppError {}
+
+/// Extension trait for ergonomic rejection conversion.
+///
+/// Usage: `db.quiz_name(id).await.reject("could not get quiz name")?`
+pub trait ResultExt<T> {
+    fn reject(self, context: &'static str) -> Result<T, Rejection>;
+    fn reject_input(self, context: &'static str) -> Result<T, Rejection>;
+}
+
+impl<T, E: Into<color_eyre::eyre::Error>> ResultExt<T> for Result<T, E> {
+    fn reject(self, context: &'static str) -> Result<T, Rejection> {
+        self.map_err(|e| {
+            tracing::error!("{context}: {}", e.into());
+            warp::reject::custom(AppError::Internal(context))
+        })
+    }
+
+    fn reject_input(self, context: &'static str) -> Result<T, Rejection> {
+        self.map_err(|e| {
+            tracing::error!("{context}: {}", e.into());
+            warp::reject::custom(AppError::Input(context))
+        })
+    }
+}
 
 pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
     let code;
@@ -35,15 +60,21 @@ pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> 
     {
         code = StatusCode::BAD_REQUEST;
         message = "BAD_REQUEST";
-    } else if let Some(InternalServerError) = err.find() {
-        code = StatusCode::INTERNAL_SERVER_ERROR;
-        message = "INTERNAL_SERVER_ERROR";
-    } else if let Some(Unauthorized) = err.find() {
-        code = StatusCode::UNAUTHORIZED;
-        message = "UNAUTHORIZED";
-    } else if let Some(InputError) = err.find() {
-        code = StatusCode::BAD_REQUEST;
-        message = "INPUT_ERROR";
+    } else if let Some(app_err) = err.find::<AppError>() {
+        match app_err {
+            AppError::Internal(_) => {
+                code = StatusCode::INTERNAL_SERVER_ERROR;
+                message = "INTERNAL_SERVER_ERROR";
+            }
+            AppError::Unauthorized => {
+                code = StatusCode::UNAUTHORIZED;
+                message = "UNAUTHORIZED";
+            }
+            AppError::Input(_) => {
+                code = StatusCode::BAD_REQUEST;
+                message = "INPUT_ERROR";
+            }
+        }
     } else if err.find::<warp::reject::MethodNotAllowed>().is_some() {
         code = StatusCode::METHOD_NOT_ALLOWED;
         message = "METHOD_NOT_ALLOWED";
@@ -68,5 +99,6 @@ fn error_page(message: &str) -> Markup {
         html! {
             h1 { (message) }
         },
+        names::DEFAULT_LOCALE,
     )
 }
