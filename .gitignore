@@ -1,1 +1,30 @@
-/target
+# Rust build artifacts
+/target/
+Cargo.lock
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+local.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+*.log
+
+# Accidental files
+nul
