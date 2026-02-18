@@ -26,18 +26,36 @@
 
 ## クイックスタート
 
-### 前提条件
+### 前提条件（Windows）
 
-- **Rust** 1.70 以上 — [rustup.rs](https://rustup.rs/)
+**管理者権限**のターミナルで実行してください：
+
+```powershell
+# Rust ツールチェーン
+winget install Rustlang.Rustup
+
+# C++ ビルドツール（Rust のリンカに必要）
+winget install Microsoft.VisualStudio.2022.BuildTools --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
+```
+
+インストール後、新しいターミナルを開いて確認：
+
+```powershell
+rustup --version
+cargo --version
+```
 
 ### ローカル実行
 
 ```bash
-cd quizinart
+# 環境設定ファイルをコピー（必要に応じて編集）
+cp .env.example .env
 
-# ローカルSQLiteで起動（Tursoアカウント不要）
-URL="file:local.db" AUTH_TOKEN="" ADDRESS="127.0.0.1:1414" RUST_LOG=info cargo run
+# 起動（.env を自動読み込み）
+cargo run --manifest-path quizinart/Cargo.toml
 ```
+
+`.env.example` にはローカル開発用のデフォルト値（SQLiteファイルDB、ポート1414）が含まれています。
 
 ブラウザで http://127.0.0.1:1414 を開きます。
 
@@ -46,6 +64,19 @@ URL="file:local.db" AUTH_TOKEN="" ADDRESS="127.0.0.1:1414" RUST_LOG=info cargo r
 1. 初回アクセス時に管理者パスワードを設定
 2. **Create Quiz** をクリックし、名前を付けてクイズ JSON ファイルをアップロード
 3. クイズページで名前を入力して学習開始
+
+## サンプルクイズ
+
+`samples/` ディレクトリに一般教育のサンプル問題ファイル（各30問・6カテゴリ）が含まれています：
+
+| ファイル | 言語 |
+|---------|------|
+| `samples/general-education-en.json` | English |
+| `samples/general-education-ja.json` | 日本語 |
+| `samples/general-education-zh-CN.json` | 简体中文 |
+| `samples/general-education-zh-TW.json` | 繁體中文 |
+
+管理者パスワード設定後、**クイズ作成** から名前を付けてこれらのファイルをアップロードすれば、すぐに試せます。
 
 ## クイズ JSON 形式
 
@@ -90,6 +121,7 @@ quizinart/
 │   ├── names.rs               # ルート・Cookie定数
 │   ├── utils.rs               # ヘルパー
 │   └── statics.rs             # 静的ファイル配信
+├── samples/                   # サンプルクイズ JSON ファイル
 ├── static/                    # CSS, JS, 画像
 └── Cargo.toml
 ```

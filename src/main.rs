@@ -10,7 +10,7 @@ struct Args {
     url: String,
 
     /// libSQL authentication token.
-    #[clap(env)]
+    #[clap(env, default_value = "")]
     auth_token: String,
 
     /// The address to bind to.
@@ -21,6 +21,7 @@ struct Args {
 #[tokio::main]
 async fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
+    dotenvy::dotenv().ok();
 
     let filter = std::env::var("RUST_LOG")
         .unwrap_or_else(|_| "tracing=info,warp=debug,quizinart=debug".to_owned());

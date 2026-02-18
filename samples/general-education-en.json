@@ -1,0 +1,332 @@
+[
+  {
+    "question": "Which is the largest continent in the world by area?",
+    "category": "Geography",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "Africa", "isAnswer": false, "explanation": "Africa covers approximately 30.37 million km2, making it the second largest continent in the world." },
+      { "text": "Eurasia", "isAnswer": true, "explanation": "Eurasia covers approximately 54.92 million km2, making it the largest continent in the world. Europe and Asia together form a single landmass." },
+      { "text": "North America", "isAnswer": false, "explanation": "North America covers approximately 24.71 million km2, making it the third largest continent in the world." },
+      { "text": "Antarctica", "isAnswer": false, "explanation": "Antarctica covers approximately 14 million km2, making it the fifth largest continent. Most of it is covered in ice." }
+    ]
+  },
+  {
+    "question": "Select all oceans that are included in the three major oceans of the world.",
+    "category": "Geography",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "Pacific Ocean", "isAnswer": true, "explanation": "The Pacific Ocean is the largest ocean in the world, covering about one-third of the Earth's surface." },
+      { "text": "Atlantic Ocean", "isAnswer": true, "explanation": "The Atlantic Ocean is the second largest ocean in the world, stretching between Europe/Africa and the Americas." },
+      { "text": "Indian Ocean", "isAnswer": true, "explanation": "The Indian Ocean is the third largest ocean in the world, surrounded by Asia, Africa, and Oceania." },
+      { "text": "Arctic Ocean", "isAnswer": false, "explanation": "The Arctic Ocean is the smallest ocean in the world. It is not included in the three major oceans, but it is one of the five oceans." }
+    ]
+  },
+  {
+    "question": "Which continent does the equator pass through?",
+    "category": "Geography",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "Europe", "isAnswer": false, "explanation": "Europe is located in the Northern Hemisphere, and the equator does not pass through it. Its southernmost point is only about 35 degrees north latitude." },
+      { "text": "South America", "isAnswer": true, "explanation": "The equator passes through Brazil, Ecuador, and Colombia, crossing the northern part of the South American continent. The name Ecuador comes from the Spanish word for 'equator.'" },
+      { "text": "Australia", "isAnswer": false, "explanation": "Although Australia is in the Southern Hemisphere, its northernmost point is only about 10 degrees south latitude, so the equator does not pass through it." },
+      { "text": "Antarctica", "isAnswer": false, "explanation": "Antarctica is the continent centered on the South Pole, making it the farthest landmass from the equator." }
+    ]
+  },
+  {
+    "question": "Which is the longest river in the world?",
+    "category": "Geography",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "Amazon River", "isAnswer": false, "explanation": "The Amazon River has the largest drainage basin and water volume in the world, but at approximately 6,400 km, it is generally considered the second longest." },
+      { "text": "Nile River", "isAnswer": true, "explanation": "The Nile River, at approximately 6,650 km, is generally considered the longest river in the world. It flows from eastern Africa to the Mediterranean Sea." },
+      { "text": "Yangtze River", "isAnswer": false, "explanation": "The Yangtze River is approximately 6,300 km long, making it the longest river in Asia and the third longest in the world. It flows east across China." },
+      { "text": "Mississippi River", "isAnswer": false, "explanation": "The Mississippi River is approximately 3,730 km long, making it one of the longest rivers in North America, but it does not rank among the top rivers globally." }
+    ]
+  },
+  {
+    "question": "Select all landlocked countries (countries with no coastline).",
+    "category": "Geography",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "Switzerland", "isAnswer": true, "explanation": "Switzerland is a landlocked country surrounded by France, Germany, Austria, Italy, and Liechtenstein." },
+      { "text": "Mongolia", "isAnswer": true, "explanation": "Mongolia is a landlocked country situated between Russia and China, and it is the second largest landlocked country in the world." },
+      { "text": "Thailand", "isAnswer": false, "explanation": "Thailand borders the Gulf of Thailand and the Andaman Sea, so it is not a landlocked country." },
+      { "text": "Bolivia", "isAnswer": true, "explanation": "Bolivia is a landlocked country in South America. It once had a coastline but lost it to Chile during a 19th-century war." }
+    ]
+  },
+  {
+    "question": "Which massive structure was built during the ancient Egyptian civilization?",
+    "category": "History",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "Colosseum", "isAnswer": false, "explanation": "The Colosseum is an amphitheater built in ancient Rome (Italy). It was completed in 80 AD." },
+      { "text": "Pyramids", "isAnswer": true, "explanation": "The Pyramids were built as tombs for the pharaohs (kings) of ancient Egypt. The Great Pyramid of Giza was constructed around 2560 BC and is one of the Seven Wonders of the Ancient World." },
+      { "text": "Parthenon", "isAnswer": false, "explanation": "The Parthenon is a temple built in Athens during ancient Greece. It was dedicated to the goddess Athena." },
+      { "text": "Great Wall of China", "isAnswer": false, "explanation": "The Great Wall of China is a defensive wall built in China. Its construction began around the 7th century BC." }
+    ]
+  },
+  {
+    "question": "Select all countries that were part of the Allied Powers during World War II.",
+    "category": "History",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "United States", "isAnswer": true, "explanation": "The United States entered the war in 1941 and fought as one of the major Allied Powers." },
+      { "text": "Italy", "isAnswer": false, "explanation": "Italy initially fought on the Axis side alongside Germany and Japan. After surrendering in 1943, it switched to the Allied side, but it is not considered one of the major Allied Powers." },
+      { "text": "Soviet Union", "isAnswer": true, "explanation": "The Soviet Union joined the Allied Powers after Germany's invasion in 1941. It fought fierce battles against the German army on the Eastern Front." },
+      { "text": "United Kingdom", "isAnswer": true, "explanation": "The United Kingdom entered the war in 1939 following Germany's invasion of Poland and served as a central member of the Allied Powers." }
+    ]
+  },
+  {
+    "question": "In what year did the French Revolution begin?",
+    "category": "History",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "1776", "isAnswer": false, "explanation": "1776 was the year of the American Declaration of Independence. While it influenced the French Revolution, the revolution itself did not begin in this year." },
+      { "text": "1789", "isAnswer": true, "explanation": "The storming of the Bastille on July 14, 1789 is considered the beginning of the French Revolution. Its ideals of 'Liberty, Equality, Fraternity' influenced nations around the world." },
+      { "text": "1799", "isAnswer": false, "explanation": "1799 was the year Napoleon Bonaparte seized power through a coup. It is sometimes regarded as the end of the French Revolution." },
+      { "text": "1815", "isAnswer": false, "explanation": "1815 was the year Napoleon was defeated at the Battle of Waterloo, marking the end of the Napoleonic era." }
+    ]
+  },
+  {
+    "question": "Which pairing of an ancient civilization and its region of origin is correct?",
+    "category": "History",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "Mesopotamian Civilization - Nile River Basin", "isAnswer": false, "explanation": "The civilization that flourished in the Nile River Basin was ancient Egypt. Mesopotamian civilization developed in the Tigris-Euphrates river basin." },
+      { "text": "Indus Civilization - Ganges River Basin", "isAnswer": false, "explanation": "The Indus civilization flourished in the Indus River Basin (around present-day Pakistan). Civilizations in the Ganges River Basin emerged in a later period." },
+      { "text": "Egyptian Civilization - Nile River Basin", "isAnswer": true, "explanation": "Egyptian civilization developed in the Nile River Basin. The regular flooding of the Nile supported agriculture and gave rise to cultural achievements such as the pyramids and hieroglyphics." },
+      { "text": "Egyptian Civilization - Tigris River Basin", "isAnswer": false, "explanation": "Egyptian civilization flourished in the Nile River Basin. The Tigris River Basin was the birthplace of Mesopotamian civilization." }
+    ]
+  },
+  {
+    "question": "In what year did humans first land on the Moon?",
+    "category": "History",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "1961", "isAnswer": false, "explanation": "1961 was the year Soviet cosmonaut Yuri Gagarin became the first human to travel to space. It was not the year of the Moon landing." },
+      { "text": "1969", "isAnswer": true, "explanation": "On July 20, 1969, Neil Armstrong and Buzz Aldrin achieved the first human Moon landing aboard NASA's Apollo 11 mission." },
+      { "text": "1957", "isAnswer": false, "explanation": "1957 was the year the Soviet Union launched Sputnik 1, the world's first artificial satellite. It marked the dawn of the Space Age." },
+      { "text": "1975", "isAnswer": false, "explanation": "1975 was the year American and Soviet spacecraft docked for the first time (the Apollo-Soyuz Test Project). It was not a Moon landing." }
+    ]
+  },
+  {
+    "question": "What is the chemical formula for water?",
+    "category": "Science",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "CO2", "isAnswer": false, "explanation": "CO2 is the chemical formula for carbon dioxide. It consists of one carbon atom and two oxygen atoms and is one of the greenhouse gases." },
+      { "text": "H2O", "isAnswer": true, "explanation": "H2O is the chemical formula for water, composed of two hydrogen atoms and one oxygen atom. It is essential for life on Earth." },
+      { "text": "NaCl", "isAnswer": false, "explanation": "NaCl is the chemical formula for sodium chloride (table salt). It is a compound of sodium and chlorine." },
+      { "text": "O2", "isAnswer": false, "explanation": "O2 is the chemical formula for molecular oxygen. It makes up about 21% of the atmosphere and is necessary for respiration." }
+    ]
+  },
+  {
+    "question": "Which is the largest planet in the solar system?",
+    "category": "Science",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "Saturn", "isAnswer": false, "explanation": "Saturn is the second largest planet in the solar system. It is known for its beautiful rings and has a diameter of about 120,000 km." },
+      { "text": "Jupiter", "isAnswer": true, "explanation": "Jupiter is the largest planet in the solar system with a diameter of about 140,000 km. It has roughly 11 times the diameter and 318 times the mass of Earth. It is notable for the Great Red Spot, a giant storm." },
+      { "text": "Neptune", "isAnswer": false, "explanation": "Neptune is the fourth largest planet in the solar system. It has a diameter of about 50,000 km and is characterized by its deep blue color." },
+      { "text": "Uranus", "isAnswer": false, "explanation": "Uranus is the third largest planet in the solar system. Its axis of rotation is tilted about 98 degrees, causing it to rotate on its side." }
+    ]
+  },
+  {
+    "question": "Select all blood vessels in the human circulatory system that carry oxygen-rich blood.",
+    "category": "Science",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "Aorta", "isAnswer": true, "explanation": "The aorta is the largest artery in the body, carrying oxygen-rich blood from the left ventricle of the heart to the rest of the body." },
+      { "text": "Pulmonary artery", "isAnswer": false, "explanation": "The pulmonary artery carries blood from the heart to the lungs, but it contains oxygen-poor, carbon dioxide-rich blood. Despite the name 'artery,' it is an exception because it carries deoxygenated blood." },
+      { "text": "Pulmonary vein", "isAnswer": true, "explanation": "The pulmonary vein carries blood from the lungs back to the heart, and it contains oxygen-rich blood after gas exchange in the lungs. Despite the name 'vein,' it is an exception because it carries oxygenated blood." },
+      { "text": "Vena cava", "isAnswer": false, "explanation": "The vena cava returns blood from the body to the heart, carrying oxygen-poor, carbon dioxide-rich blood." }
+    ]
+  },
+  {
+    "question": "Select all elements required for photosynthesis.",
+    "category": "Science",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "Light energy", "isAnswer": true, "explanation": "Photosynthesis requires light (primarily sunlight). Chlorophyll in the chloroplasts absorbs light energy." },
+      { "text": "Carbon dioxide", "isAnswer": true, "explanation": "Plants absorb carbon dioxide through their stomata and use it as a raw material for photosynthesis. CO2 + H2O -> C6H12O6 + O2" },
+      { "text": "Nitrogen", "isAnswer": false, "explanation": "Nitrogen is a nutrient necessary for plant growth, but it is not directly involved in the photosynthesis reaction." },
+      { "text": "Water", "isAnswer": true, "explanation": "Water is absorbed through the roots and used as a raw material for photosynthesis. During photosynthesis, water is split to produce oxygen." }
+    ]
+  },
+  {
+    "question": "What is the element with atomic number 1 on the periodic table?",
+    "category": "Science",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "Helium", "isAnswer": false, "explanation": "Helium is the element with atomic number 2. It is classified as a noble gas and is used in balloons and deep-sea diving gas mixtures." },
+      { "text": "Hydrogen", "isAnswer": true, "explanation": "Hydrogen (H) is the element with atomic number 1 and is the most abundant element in the universe. It is the lightest element, consisting of one proton and one electron." },
+      { "text": "Lithium", "isAnswer": false, "explanation": "Lithium is the element with atomic number 3. It is the lightest metal and is used in lithium-ion batteries, among other applications." },
+      { "text": "Carbon", "isAnswer": false, "explanation": "Carbon is the element with atomic number 6. It is the fundamental element of organic compounds and the main component of diamond and graphite." }
+    ]
+  },
+  {
+    "question": "What gas makes up approximately 78% of Earth's atmosphere?",
+    "category": "Science",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "Oxygen", "isAnswer": false, "explanation": "Oxygen makes up about 21% of the atmosphere. While it is essential for respiration, it is not the most abundant component." },
+      { "text": "Nitrogen", "isAnswer": true, "explanation": "Nitrogen (N2) makes up about 78% of the atmosphere, making it the most abundant gas. It is chemically stable and is also an essential element for plant growth." },
+      { "text": "Carbon dioxide", "isAnswer": false, "explanation": "Carbon dioxide makes up only about 0.04% of the atmosphere, but it plays a crucial role in maintaining Earth's temperature through the greenhouse effect." },
+      { "text": "Argon", "isAnswer": false, "explanation": "Argon is a noble gas that makes up about 0.93% of the atmosphere. It is the third most abundant atmospheric component, after nitrogen and oxygen." }
+    ]
+  },
+  {
+    "question": "Select all works included in Shakespeare's four great tragedies.",
+    "category": "Arts & Culture",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "Hamlet", "isAnswer": true, "explanation": "Hamlet is a revenge tragedy about the Prince of Denmark, famous for the soliloquy 'To be, or not to be.'" },
+      { "text": "Romeo and Juliet", "isAnswer": false, "explanation": "Romeo and Juliet is a tragic love story, but it is not included in the four great tragedies. The four great tragedies are Hamlet, Othello, King Lear, and Macbeth." },
+      { "text": "Macbeth", "isAnswer": true, "explanation": "Macbeth is a tragedy about a Scottish general driven by ambition to murder the king. It is one of the four great tragedies." },
+      { "text": "King Lear", "isAnswer": true, "explanation": "King Lear is a story about an aging king who divides his kingdom among his three daughters, leading to a tragic fate. It is one of the four great tragedies." }
+    ]
+  },
+  {
+    "question": "Which painting was created by Leonardo da Vinci?",
+    "category": "Arts & Culture",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "The Starry Night", "isAnswer": false, "explanation": "The Starry Night was painted by Vincent van Gogh in 1889. It is known for its swirling night sky." },
+      { "text": "Mona Lisa", "isAnswer": true, "explanation": "The Mona Lisa was painted by Leonardo da Vinci in the early 16th century and is one of the most famous paintings in the world. It is currently housed in the Louvre Museum in Paris." },
+      { "text": "Guernica", "isAnswer": false, "explanation": "Guernica is an anti-war painting created by Pablo Picasso in 1937. It depicts the bombing during the Spanish Civil War." },
+      { "text": "The Scream", "isAnswer": false, "explanation": "The Scream was painted by Edvard Munch in 1893. It is known for its expression symbolizing anxiety." }
+    ]
+  },
+  {
+    "question": "How many notes make up the musical scale 'Do-Re-Mi-Fa-Sol-La-Ti'?",
+    "category": "Arts & Culture",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "5 notes", "isAnswer": false, "explanation": "A five-note structure is the pentatonic scale. It is commonly used in folk music from around the world." },
+      { "text": "7 notes", "isAnswer": true, "explanation": "The scale Do-Re-Mi-Fa-Sol-La-Ti consists of 7 notes and forms the major scale. It is the foundation of Western music." },
+      { "text": "8 notes", "isAnswer": false, "explanation": "Counting from Do to the next Do gives 8 notes, but the scale is made up of 7 distinct pitches. The 8th note is the same as the first, one octave higher." },
+      { "text": "12 notes", "isAnswer": false, "explanation": "12 is the total number of semitones within one octave. On a piano, combining the white and black keys gives 12 notes." }
+    ]
+  },
+  {
+    "question": "What country is the author of 'One Hundred Years of Solitude' from?",
+    "category": "Arts & Culture",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "Mexico", "isAnswer": false, "explanation": "Mexico has famous authors such as Octavio Paz, but none of them wrote One Hundred Years of Solitude." },
+      { "text": "Colombia", "isAnswer": true, "explanation": "One Hundred Years of Solitude is the masterpiece of Colombian author Gabriel Garcia Marquez. He was awarded the Nobel Prize in Literature in 1982. The novel is widely recognized as a landmark of magical realism." },
+      { "text": "Argentina", "isAnswer": false, "explanation": "Argentina has notable authors such as Borges, but One Hundred Years of Solitude is a Colombian work." },
+      { "text": "Chile", "isAnswer": false, "explanation": "Chile has authors such as Pablo Neruda and Isabel Allende, but One Hundred Years of Solitude is a Colombian work." }
+    ]
+  },
+  {
+    "question": "What is the common nickname for Beethoven's Symphony No. 5?",
+    "category": "Arts & Culture",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "Pastoral", "isAnswer": false, "explanation": "The 'Pastoral' is the nickname for Beethoven's Symphony No. 6. It is a work that depicts scenes of nature." },
+      { "text": "Fate", "isAnswer": true, "explanation": "Symphony No. 5 is known by the nickname 'Fate.' The opening four-note motif 'da-da-da-daaa' is extremely famous." },
+      { "text": "Eroica", "isAnswer": false, "explanation": "The 'Eroica' is the nickname for Beethoven's Symphony No. 3. It was originally intended to be dedicated to Napoleon." },
+      { "text": "Choral", "isAnswer": false, "explanation": "The 'Choral' is the nickname for Beethoven's Symphony No. 9. The fourth movement features a choral setting of Schiller's 'Ode to Joy.'" }
+    ]
+  },
+  {
+    "question": "What is the sum of the interior angles of a triangle?",
+    "category": "Mathematics",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "90 degrees", "isAnswer": false, "explanation": "90 degrees is the measure of a right angle. One angle of a right triangle is 90 degrees, but that is not the sum of all interior angles." },
+      { "text": "180 degrees", "isAnswer": true, "explanation": "The sum of the interior angles of a triangle on a flat plane is always 180 degrees. This holds true regardless of the triangle's size or shape and is a fundamental theorem of geometry." },
+      { "text": "270 degrees", "isAnswer": false, "explanation": "270 degrees is not the sum of a triangle's interior angles. For reference, the sum of the interior angles of a quadrilateral is 360 degrees." },
+      { "text": "360 degrees", "isAnswer": false, "explanation": "360 degrees is the sum of the interior angles of a quadrilateral, or the angle of a full rotation. The sum for a triangle is 180 degrees." }
+    ]
+  },
+  {
+    "question": "Which value is closest to pi?",
+    "category": "Mathematics",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "2.718", "isAnswer": false, "explanation": "2.718... is the approximate value of Euler's number (e), the base of natural logarithms. It is a different mathematical constant from pi." },
+      { "text": "3.14159", "isAnswer": true, "explanation": "Pi is approximately 3.14159 and represents the ratio of a circle's circumference to its diameter. It is an irrational number, meaning its decimal expansion continues infinitely." },
+      { "text": "1.414", "isAnswer": false, "explanation": "1.414... is the approximate value of the square root of 2. It relates to the ratio between the diagonal and side of a square." },
+      { "text": "1.618", "isAnswer": false, "explanation": "1.618... is the approximate value of the golden ratio (phi). It appears in art, architecture, and nature." }
+    ]
+  },
+  {
+    "question": "Select all prime numbers.",
+    "category": "Mathematics",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "2", "isAnswer": true, "explanation": "2 is the smallest prime number and the only even prime number. It has no divisors other than 1 and itself." },
+      { "text": "9", "isAnswer": false, "explanation": "9 is not a prime number. Since 9 = 3 x 3, it has 3 as a divisor in addition to 1 and 9." },
+      { "text": "13", "isAnswer": true, "explanation": "13 is a prime number. It has no divisors other than 1 and 13." },
+      { "text": "15", "isAnswer": false, "explanation": "15 is not a prime number. Since 15 = 3 x 5, it has 3 and 5 as divisors in addition to 1 and 15." }
+    ]
+  },
+  {
+    "question": "In a right triangle, if the hypotenuse is 5 and one leg is 3, what is the length of the other leg?",
+    "category": "Mathematics",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "2", "isAnswer": false, "explanation": "Using the Pythagorean theorem a2 + b2 = c2, we get 32 + 22 = 9 + 4 = 13, which does not equal 52 = 25, so 2 is incorrect." },
+      { "text": "4", "isAnswer": true, "explanation": "By the Pythagorean theorem, a2 + b2 = c2. So 32 + b2 = 52, which gives 9 + b2 = 25, thus b2 = 16 and b = 4. The set 3:4:5 is a classic Pythagorean triple." },
+      { "text": "6", "isAnswer": false, "explanation": "Since the hypotenuse (the longest side) is 5, no other side can be 6. In a right triangle, the hypotenuse is always the longest side." },
+      { "text": "Square root of 34", "isAnswer": false, "explanation": "32 + 52 = 34, so the square root of 34 is approximately 5.83. However, this would be the hypotenuse if 3 and 5 were the two legs. The problem states that the hypotenuse is 5." }
+    ]
+  },
+  {
+    "question": "What is the sum of all natural numbers from 1 to 10?",
+    "category": "Mathematics",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "45", "isAnswer": false, "explanation": "45 is the sum of numbers from 1 to 9. Make sure not to forget adding 10." },
+      { "text": "55", "isAnswer": true, "explanation": "1+2+3+...+10 = 55. Using Gauss's formula n(n+1)/2, we get 10 x 11 / 2 = 55." },
+      { "text": "50", "isAnswer": false, "explanation": "50 is incorrect. Using Gauss's formula n(n+1)/2, the answer is 10 x 11 / 2 = 55." },
+      { "text": "100", "isAnswer": false, "explanation": "100 is not the sum of numbers from 1 to 10. Using the formula 1+2+...+n = n(n+1)/2 with n=10, the result is 55." }
+    ]
+  },
+  {
+    "question": "Which country is a permanent member of the United Nations Security Council?",
+    "category": "Society",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "Japan", "isAnswer": false, "explanation": "Japan is a UN member state and has been elected as a non-permanent member of the Security Council multiple times, but it is not a permanent member." },
+      { "text": "Germany", "isAnswer": false, "explanation": "Germany is the largest economy in the EU, but it is not a permanent member of the Security Council." },
+      { "text": "France", "isAnswer": true, "explanation": "France is one of the five permanent members of the UN Security Council. The five permanent members are the United States, the United Kingdom, France, Russia, and China, and they each hold veto power." },
+      { "text": "India", "isAnswer": false, "explanation": "India has the world's largest population, but it is not a permanent member of the Security Council." }
+    ]
+  },
+  {
+    "question": "Select all substances classified as greenhouse gases.",
+    "category": "Society",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "Carbon dioxide (CO2)", "isAnswer": true, "explanation": "Carbon dioxide is a major greenhouse gas. The burning of fossil fuels is its primary source of emissions, and it is considered the leading cause of global warming." },
+      { "text": "Methane (CH4)", "isAnswer": true, "explanation": "Methane has approximately 25 times the global warming potential of carbon dioxide. It is emitted from livestock farming, rice paddies, and natural gas extraction." },
+      { "text": "Nitrogen (N2)", "isAnswer": false, "explanation": "Nitrogen (N2) makes up about 78% of the atmosphere, but it is not a greenhouse gas. It is chemically stable and does not absorb infrared radiation." },
+      { "text": "Nitrous oxide (N2O)", "isAnswer": true, "explanation": "Nitrous oxide is a greenhouse gas with approximately 300 times the global warming potential of carbon dioxide. Agricultural fertilizer use is its primary source of emissions." }
+    ]
+  },
+  {
+    "question": "In what year was the Universal Declaration of Human Rights adopted by the UN General Assembly?",
+    "category": "Society",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "1945", "isAnswer": false, "explanation": "1945 was the year the United Nations was established. The Universal Declaration of Human Rights was adopted three years later." },
+      { "text": "1948", "isAnswer": true, "explanation": "The Universal Declaration of Human Rights was adopted by the UN General Assembly on December 10, 1948. It is a landmark document that defines the fundamental rights inherent to all human beings. This date is observed as Human Rights Day." },
+      { "text": "1955", "isAnswer": false, "explanation": "1955 was the year of the Bandung Conference (Asian-African Conference). The Universal Declaration of Human Rights was adopted earlier, in 1948." },
+      { "text": "1960", "isAnswer": false, "explanation": "1960 is known as the 'Year of Africa,' when many African nations gained independence. The Universal Declaration of Human Rights was adopted earlier, in 1948." }
+    ]
+  },
+  {
+    "question": "Select all sources classified as renewable energy.",
+    "category": "Society",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "Solar power", "isAnswer": true, "explanation": "Solar power converts the sun's light energy into electricity and is a form of renewable energy. Since the resource is inexhaustible, it is a sustainable energy source." },
+      { "text": "Wind power", "isAnswer": true, "explanation": "Wind power converts the kinetic energy of wind into electricity and is a form of renewable energy. Wind turbines are installed both onshore and offshore." },
+      { "text": "Coal-fired power", "isAnswer": false, "explanation": "Coal-fired power uses fossil fuels, so it is not a renewable energy source. It emits large amounts of CO2." },
+      { "text": "Hydroelectric power", "isAnswer": true, "explanation": "Hydroelectric power harnesses the flow of water and is a form of renewable energy. It is one of the oldest forms of renewable energy in use worldwide." }
+    ]
+  }
+]

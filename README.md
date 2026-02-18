@@ -26,18 +26,36 @@ Forked from [frectonz/quizzy](https://github.com/frectonz/quizzy) and extended w
 
 ## Quick Start
 
-### Prerequisites
+### Prerequisites (Windows)
 
-- **Rust** 1.70+ — [rustup.rs](https://rustup.rs/)
+Run in an **administrator** terminal:
+
+```powershell
+# Rust toolchain
+winget install Rustlang.Rustup
+
+# C++ build tools (required by Rust linker)
+winget install Microsoft.VisualStudio.2022.BuildTools --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
+```
+
+After installation, open a new terminal and verify:
+
+```powershell
+rustup --version
+cargo --version
+```
 
 ### Run locally
 
 ```bash
-cd quizinart
+# Copy the env sample and edit if needed
+cp .env.example .env
 
-# Start with local SQLite (no Turso account needed)
-URL="file:local.db" AUTH_TOKEN="" ADDRESS="127.0.0.1:1414" RUST_LOG=info cargo run
+# Start (reads .env automatically)
+cargo run --manifest-path quizinart/Cargo.toml
 ```
+
+The `.env.example` file contains sensible defaults for local development (SQLite file DB, port 1414).
 
 Open http://127.0.0.1:1414 in your browser.
 
@@ -46,6 +64,19 @@ Open http://127.0.0.1:1414 in your browser.
 1. Set an admin password on first visit
 2. Click **Create Quiz**, name it, and upload a quiz JSON file
 3. Go to the quiz page, enter your name, and start
+
+## Sample Quiz
+
+Sample general education quiz files (30 questions each, 6 categories) are included in the `samples/` directory:
+
+| File | Language |
+|------|----------|
+| `samples/general-education-en.json` | English |
+| `samples/general-education-ja.json` | 日本語 |
+| `samples/general-education-zh-CN.json` | 简体中文 |
+| `samples/general-education-zh-TW.json` | 繁體中文 |
+
+After setting up your admin password, click **Create Quiz**, give it a name, and upload one of these files to try it out.
 
 ## Quiz JSON Format
 
@@ -90,6 +121,7 @@ quizinart/
 │   ├── names.rs               # Route & cookie constants
 │   ├── utils.rs               # Helpers
 │   └── statics.rs             # Static file serving
+├── samples/                   # Sample quiz JSON files
 ├── static/                    # CSS, JS, images
 └── Cargo.toml
 ```

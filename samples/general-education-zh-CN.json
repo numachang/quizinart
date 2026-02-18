@@ -1,0 +1,332 @@
+[
+  {
+    "question": "世界上面积最大的大洲是哪个？",
+    "category": "地理",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "非洲", "isAnswer": false, "explanation": "非洲面积约3037万平方公里，是世界第二大洲。" },
+      { "text": "欧亚大陆", "isAnswer": true, "explanation": "欧亚大陆面积约5492万平方公里，是世界上最大的大陆。欧洲和亚洲共同构成了一个完整的大陆板块。" },
+      { "text": "北美洲", "isAnswer": false, "explanation": "北美洲面积约2471万平方公里，是世界第三大洲。" },
+      { "text": "南极洲", "isAnswer": false, "explanation": "南极洲面积约1400万平方公里，是世界第五大洲。大部分地区被冰层覆盖。" }
+    ]
+  },
+  {
+    "question": "请选出世界三大洋中包含的所有选项。",
+    "category": "地理",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "太平洋", "isAnswer": true, "explanation": "太平洋是世界上最大的海洋，约占地球表面积的三分之一。" },
+      { "text": "大西洋", "isAnswer": true, "explanation": "大西洋是世界第二大海洋，位于欧洲、非洲与美洲之间。" },
+      { "text": "印度洋", "isAnswer": true, "explanation": "印度洋是世界第三大海洋，被亚洲、非洲和大洋洲所环绕。" },
+      { "text": "北冰洋", "isAnswer": false, "explanation": "北冰洋是世界上最小的海洋。它不属于三大洋，但属于五大洋之一。" }
+    ]
+  },
+  {
+    "question": "赤道穿过的大洲是以下哪个？",
+    "category": "地理",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "欧洲", "isAnswer": false, "explanation": "欧洲位于北半球，赤道不经过欧洲。其最南端也在北纬约35度。" },
+      { "text": "南美洲", "isAnswer": true, "explanation": "赤道穿过巴西、厄瓜多尔和哥伦比亚，横跨南美洲北部。厄瓜多尔的国名在西班牙语中就是「赤道」的意思。" },
+      { "text": "澳大利亚", "isAnswer": false, "explanation": "澳大利亚虽然位于南半球，但其最北端也在南纬约10度，赤道并不经过。" },
+      { "text": "南极洲", "isAnswer": false, "explanation": "南极洲以南极点为中心，是距离赤道最远的大陆。" }
+    ]
+  },
+  {
+    "question": "世界上最长的河流是哪条？",
+    "category": "地理",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "亚马逊河", "isAnswer": false, "explanation": "亚马逊河的流域面积和水量均为世界之最，但长度约6400公里，一般被认为排在第二位。" },
+      { "text": "尼罗河", "isAnswer": true, "explanation": "尼罗河全长约6650公里，通常被认为是世界上最长的河流。它从非洲东部流向地中海。" },
+      { "text": "长江", "isAnswer": false, "explanation": "长江全长约6300公里，是亚洲最长、世界第三长的河流。它横贯中国东西。" },
+      { "text": "密西西比河", "isAnswer": false, "explanation": "密西西比河全长约3730公里，是北美洲最长的河流之一，但在世界排名中并不靠前。" }
+    ]
+  },
+  {
+    "question": "请选出所有内陆国（不临海的国家）。",
+    "category": "地理",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "瑞士", "isAnswer": true, "explanation": "瑞士是被法国、德国、奥地利、意大利和列支敦士登所包围的内陆国。" },
+      { "text": "蒙古", "isAnswer": true, "explanation": "蒙古夹在俄罗斯和中国之间，是世界第二大内陆国。" },
+      { "text": "泰国", "isAnswer": false, "explanation": "泰国濒临泰国湾和安达曼海，不是内陆国。" },
+      { "text": "玻利维亚", "isAnswer": true, "explanation": "玻利维亚是南美洲的内陆国。它曾经拥有海岸线，但在19世纪的战争中被智利夺去。" }
+    ]
+  },
+  {
+    "question": "古埃及文明建造的巨大建筑是以下哪个？",
+    "category": "历史",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "罗马斗兽场", "isAnswer": false, "explanation": "罗马斗兽场是古罗马（意大利）建造的圆形竞技场，于公元80年建成。" },
+      { "text": "金字塔", "isAnswer": true, "explanation": "金字塔是作为古埃及法老（国王）的陵墓而建造的。吉萨大金字塔建于约公元前2560年，是世界七大奇迹之一。" },
+      { "text": "帕特农神庙", "isAnswer": false, "explanation": "帕特农神庙是建于古希腊雅典的神殿，供奉女神雅典娜。" },
+      { "text": "万里长城", "isAnswer": false, "explanation": "万里长城是中国建造的防御性城墙，始建于约公元前7世纪。" }
+    ]
+  },
+  {
+    "question": "请选出第二次世界大战同盟国中包含的所有国家。",
+    "category": "历史",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "美国", "isAnswer": true, "explanation": "美国于1941年参战，作为同盟国主要成员参加了战争。" },
+      { "text": "意大利", "isAnswer": false, "explanation": "意大利最初与德国、日本一起作为轴心国参战。1943年投降后转向同盟国一方，但不被列入主要同盟国。" },
+      { "text": "苏联", "isAnswer": true, "explanation": "苏联在1941年遭到德国入侵后加入同盟国阵营参战，在东线战场与德军展开了激烈战斗。" },
+      { "text": "英国", "isAnswer": true, "explanation": "英国在1939年德国入侵波兰后参战，是同盟国的核心成员。" }
+    ]
+  },
+  {
+    "question": "法国大革命开始于哪一年？",
+    "category": "历史",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "1776年", "isAnswer": false, "explanation": "1776年是美国发表独立宣言的年份。虽然它影响了法国大革命，但革命本身并非发生在这一年。" },
+      { "text": "1789年", "isAnswer": true, "explanation": "1789年7月14日攻占巴士底狱被视为法国大革命的开端。「自由、平等、博爱」的理念影响了全世界。" },
+      { "text": "1799年", "isAnswer": false, "explanation": "1799年是拿破仑·波拿巴通过政变夺取政权的年份，有时被视为法国大革命的终结。" },
+      { "text": "1815年", "isAnswer": false, "explanation": "1815年是拿破仑在滑铁卢战役中战败的年份，标志着拿破仑时代的结束。" }
+    ]
+  },
+  {
+    "question": "以下古代文明与其发源地的组合中，正确的是哪个？",
+    "category": "历史",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "美索不达米亚文明 - 尼罗河流域", "isAnswer": false, "explanation": "在尼罗河流域繁荣发展的是埃及文明。美索不达米亚文明发源于底格里斯河和幼发拉底河流域。" },
+      { "text": "印度河文明 - 恒河流域", "isAnswer": false, "explanation": "印度河文明繁荣于印度河流域（今巴基斯坦周边）。恒河流域的文明出现在更晚的时期。" },
+      { "text": "埃及文明 - 尼罗河流域", "isAnswer": true, "explanation": "埃及文明是在尼罗河流域发展起来的古代文明。尼罗河定期的泛滥为农业提供了保障，孕育了金字塔和象形文字等灿烂文化。" },
+      { "text": "埃及文明 - 底格里斯河流域", "isAnswer": false, "explanation": "埃及文明繁荣于尼罗河流域。底格里斯河流域是美索不达米亚文明的发源地。" }
+    ]
+  },
+  {
+    "question": "人类首次登上月球是在哪一年？",
+    "category": "历史",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "1961年", "isAnswer": false, "explanation": "1961年是苏联的尤里·加加林完成人类首次载人航天飞行的年份，并非登月。" },
+      { "text": "1969年", "isAnswer": true, "explanation": "1969年7月20日，美国阿波罗11号的尼尔·阿姆斯特朗和巴兹·奥尔德林完成了人类首次登月。" },
+      { "text": "1957年", "isAnswer": false, "explanation": "1957年是苏联发射世界上第一颗人造卫星斯普特尼克1号的年份，开启了太空时代。" },
+      { "text": "1975年", "isAnswer": false, "explanation": "1975年是美国和苏联的宇宙飞船首次进行对接的年份（阿波罗-联盟测试计划），并非登月。" }
+    ]
+  },
+  {
+    "question": "水的化学式是哪个？",
+    "category": "科学",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "CO2", "isAnswer": false, "explanation": "CO2是二氧化碳的化学式，由1个碳原子和2个氧原子组成，是温室气体之一。" },
+      { "text": "H2O", "isAnswer": true, "explanation": "H2O是水的化学式，由2个氢原子和1个氧原子组成。它是地球上生命不可或缺的物质。" },
+      { "text": "NaCl", "isAnswer": false, "explanation": "NaCl是氯化钠（食盐）的化学式，是钠和氯的化合物。" },
+      { "text": "O2", "isAnswer": false, "explanation": "O2是氧分子的化学式。它在大气中约占21%，是呼吸所必需的气体。" }
+    ]
+  },
+  {
+    "question": "太阳系中最大的行星是哪个？",
+    "category": "科学",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "土星", "isAnswer": false, "explanation": "土星是太阳系中第二大行星，以美丽的光环著称，直径约12万公里。" },
+      { "text": "木星", "isAnswer": true, "explanation": "木星是太阳系中最大的行星，直径约14万公里，约为地球直径的11倍、质量的318倍。其标志性特征是被称为大红斑的巨大风暴。" },
+      { "text": "海王星", "isAnswer": false, "explanation": "海王星是太阳系中第四大行星，直径约5万公里，以深蓝色为特征。" },
+      { "text": "天王星", "isAnswer": false, "explanation": "天王星是太阳系中第三大行星。其自转轴倾斜约98度，几乎是横躺着旋转的。" }
+    ]
+  },
+  {
+    "question": "请选出人体血液循环中，流有富含氧气的血液的所有血管。",
+    "category": "科学",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "主动脉", "isAnswer": true, "explanation": "主动脉是从心脏左心室向全身输送含氧血液的最大动脉。" },
+      { "text": "肺动脉", "isAnswer": false, "explanation": "肺动脉是从心脏通往肺部的动脉，但其中流动的是缺氧且富含二氧化碳的血液。虽然名称中带有「动脉」二字，但它是流动缺氧血液的特殊血管。" },
+      { "text": "肺静脉", "isAnswer": true, "explanation": "肺静脉是从肺部通往心脏的静脉，其中流动的是在肺部完成气体交换后富含氧气的血液。虽然名称中带有「静脉」二字，但它是流动富氧血液的特殊血管。" },
+      { "text": "下腔静脉", "isAnswer": false, "explanation": "下腔静脉是将全身血液送回心脏的血管，其中流动的是缺氧且富含二氧化碳的血液。" }
+    ]
+  },
+  {
+    "question": "请选出光合作用所需的所有要素。",
+    "category": "科学",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "光能", "isAnswer": true, "explanation": "光合作用需要光（主要是阳光）。叶绿体中的叶绿素负责吸收光能。" },
+      { "text": "二氧化碳", "isAnswer": true, "explanation": "植物通过气孔吸收二氧化碳作为光合作用的原料。CO2 + H2O -> C6H12O6 + O2" },
+      { "text": "氮气", "isAnswer": false, "explanation": "氮是植物生长所需的营养元素，但不直接参与光合作用的反应。" },
+      { "text": "水", "isAnswer": true, "explanation": "水通过根部吸收，作为光合作用的原料。在光合作用过程中水被分解并释放出氧气。" }
+    ]
+  },
+  {
+    "question": "元素周期表中原子序数为1的元素是什么？",
+    "category": "科学",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "氦", "isAnswer": false, "explanation": "氦的原子序数为2，属于稀有气体，常用于气球和深海潜水的混合气体等。" },
+      { "text": "氢", "isAnswer": true, "explanation": "氢（H）的原子序数为1，是宇宙中含量最丰富的元素。它是最轻的元素，由1个质子和1个电子组成。" },
+      { "text": "锂", "isAnswer": false, "explanation": "锂的原子序数为3，是最轻的金属元素，常用于锂离子电池等。" },
+      { "text": "碳", "isAnswer": false, "explanation": "碳的原子序数为6，是有机化合物的基本元素，也是金刚石和石墨的主要成分。" }
+    ]
+  },
+  {
+    "question": "占地球大气约78%的气体是什么？",
+    "category": "科学",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "氧气", "isAnswer": false, "explanation": "氧气约占大气的21%，虽然是生物呼吸所必需的，但并非含量最多的成分。" },
+      { "text": "氮气", "isAnswer": true, "explanation": "氮气（N2）约占大气的78%，是含量最多的气体。它化学性质稳定，同时也是植物生长所需的元素。" },
+      { "text": "二氧化碳", "isAnswer": false, "explanation": "二氧化碳在大气中仅占约0.04%，含量微少，但通过温室效应在维持地球温度方面发挥着重要作用。" },
+      { "text": "氩气", "isAnswer": false, "explanation": "氩气是一种稀有气体，约占大气的0.93%，是大气中含量第三多的成分，仅次于氮气和氧气。" }
+    ]
+  },
+  {
+    "question": "请选出莎士比亚四大悲剧中包含的所有作品。",
+    "category": "艺术与文化",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "哈姆雷特", "isAnswer": true, "explanation": "「哈姆雷特」是一部关于丹麦王子复仇的悲剧，以「生存还是毁灭」的独白闻名于世。" },
+      { "text": "罗密欧与朱丽叶", "isAnswer": false, "explanation": "「罗密欧与朱丽叶」虽然是一个悲剧性的爱情故事，但不属于四大悲剧。四大悲剧分别是「哈姆雷特」「奥赛罗」「李尔王」和「麦克白」。" },
+      { "text": "麦克白", "isAnswer": true, "explanation": "「麦克白」是一部关于苏格兰将军因野心驱使而弑君的悲剧，是四大悲剧之一。" },
+      { "text": "李尔王", "isAnswer": true, "explanation": "「李尔王」讲述了老国王将国土分给三个女儿后遭遇悲惨命运的故事，是四大悲剧之一。" }
+    ]
+  },
+  {
+    "question": "以下哪幅画是列奥纳多·达·芬奇创作的？",
+    "category": "艺术与文化",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "星月夜", "isAnswer": false, "explanation": "「星月夜」是文森特·梵高于1889年创作的作品，以旋涡状的夜空为特色。" },
+      { "text": "蒙娜丽莎", "isAnswer": true, "explanation": "「蒙娜丽莎」是列奥纳多·达·芬奇在16世纪初创作的世界最著名的画作之一。现收藏于巴黎卢浮宫。" },
+      { "text": "格尔尼卡", "isAnswer": false, "explanation": "「格尔尼卡」是巴勃罗·毕加索于1937年创作的反战画作，以西班牙内战中的轰炸为题材。" },
+      { "text": "呐喊", "isAnswer": false, "explanation": "「呐喊」是爱德华·蒙克于1893年创作的作品，以表现不安的情感而闻名。" }
+    ]
+  },
+  {
+    "question": "音乐中Do-Re-Mi-Fa-Sol-La-Si的音阶由几个音组成？",
+    "category": "艺术与文化",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "5个音", "isAnswer": false, "explanation": "5个音构成的是五声音阶，在世界各地的民歌中广泛使用。" },
+      { "text": "7个音", "isAnswer": true, "explanation": "Do-Re-Mi-Fa-Sol-La-Si由7个音组成，构成了大调音阶。它是西方音乐的基础音阶。" },
+      { "text": "8个音", "isAnswer": false, "explanation": "从Do到高八度的Do算起确实是8个音，但构成音阶的不同音只有7个，第8个音与第一个音相同。" },
+      { "text": "12个音", "isAnswer": false, "explanation": "12个音是一个八度内所有半音的总数。钢琴上的白键和黑键加起来正好是12个音。" }
+    ]
+  },
+  {
+    "question": "「百年孤独」的作者来自哪个国家？",
+    "category": "艺术与文化",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "墨西哥", "isAnswer": false, "explanation": "墨西哥有奥克塔维奥·帕斯等著名作家，但他并非「百年孤独」的作者。" },
+      { "text": "哥伦比亚", "isAnswer": true, "explanation": "「百年孤独」是哥伦比亚作家加夫列尔·加西亚·马尔克斯的代表作。他于1982年获得诺贝尔文学奖。这部作品被誉为魔幻现实主义的经典之作，享誉全球。" },
+      { "text": "阿根廷", "isAnswer": false, "explanation": "阿根廷有博尔赫斯等著名作家，但「百年孤独」是哥伦比亚的作品。" },
+      { "text": "智利", "isAnswer": false, "explanation": "智利有巴勃罗·聂鲁达和伊莎贝尔·阿连德等作家，但「百年孤独」是哥伦比亚的作品。" }
+    ]
+  },
+  {
+    "question": "贝多芬「第五交响曲」的别称是什么？",
+    "category": "艺术与文化",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "田园", "isAnswer": false, "explanation": "「田园」是贝多芬第六交响曲的别称，是一部描绘自然风光的作品。" },
+      { "text": "命运", "isAnswer": true, "explanation": "第五交响曲以「命运」之名广为人知。开头「哒哒哒哒——」四个音符极为著名。" },
+      { "text": "英雄", "isAnswer": false, "explanation": "「英雄」是贝多芬第三交响曲的别称，最初计划献给拿破仑。" },
+      { "text": "合唱", "isAnswer": false, "explanation": "「合唱」是贝多芬第九交响曲的别称。第四乐章中演唱了席勒的「欢乐颂」。" }
+    ]
+  },
+  {
+    "question": "三角形的内角和是多少度？",
+    "category": "数学",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "90度", "isAnswer": false, "explanation": "90度是直角的大小。直角三角形的一个角为90度，但这并非内角之和。" },
+      { "text": "180度", "isAnswer": true, "explanation": "平面上三角形的内角和恒为180度。无论三角形的大小和形状如何，这一基本定理始终成立。" },
+      { "text": "270度", "isAnswer": false, "explanation": "270度不是三角形的内角和。四边形的内角和为360度。" },
+      { "text": "360度", "isAnswer": false, "explanation": "360度是四边形的内角和，也是圆的一周角度。三角形的内角和为180度。" }
+    ]
+  },
+  {
+    "question": "以下哪个最接近圆周率的值？",
+    "category": "数学",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "2.718", "isAnswer": false, "explanation": "2.718...是自然对数的底数e（欧拉数）的近似值，与圆周率是不同的重要数学常数。" },
+      { "text": "3.14159", "isAnswer": true, "explanation": "圆周率（pi）约为3.14159，是圆的周长与直径之比。它是无理数，小数部分无限不循环。" },
+      { "text": "1.414", "isAnswer": false, "explanation": "1.414...是根号2的近似值，与正方形的对角线和边长之比有关。" },
+      { "text": "1.618", "isAnswer": false, "explanation": "1.618...是黄金比例的近似值，在美术、建筑和自然界中广泛存在。" }
+    ]
+  },
+  {
+    "question": "请选出所有素数。",
+    "category": "数学",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "2", "isAnswer": true, "explanation": "2是最小的素数，也是唯一的偶数素数。除了1和2以外没有其他因数。" },
+      { "text": "9", "isAnswer": false, "explanation": "9不是素数。因为9 = 3 x 3，除了1和9以外还有因数3。" },
+      { "text": "13", "isAnswer": true, "explanation": "13是素数，除了1和13以外没有其他因数。" },
+      { "text": "15", "isAnswer": false, "explanation": "15不是素数。因为15 = 3 x 5，除了1和15以外还有因数3和5。" }
+    ]
+  },
+  {
+    "question": "在直角三角形中，斜边长为5，另一条边长为3，那么剩余一条边的长度是多少？",
+    "category": "数学",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "2", "isAnswer": false, "explanation": "根据勾股定理 a² + b² = c² 验证：3² + 2² = 9 + 4 = 13，不等于 25 = 5²，因此2不正确。" },
+      { "text": "4", "isAnswer": true, "explanation": "根据勾股定理：a² + b² = c²，即 3² + b² = 5² -> 9 + b² = 25 -> b² = 16 -> b = 4。3:4:5是经典的勾股数。" },
+      { "text": "6", "isAnswer": false, "explanation": "由于斜边（最长边）为5，其他边不可能为6。在直角三角形中，斜边是最长的边。" },
+      { "text": "根号34", "isAnswer": false, "explanation": "3² + 5² = 34，所以根号34约等于5.83，但这是以3和5为两条直角边时的斜边长度。本题中已明确斜边为5。" }
+    ]
+  },
+  {
+    "question": "从1到10的自然数之和是多少？",
+    "category": "数学",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "45", "isAnswer": false, "explanation": "45是1到9的总和，别忘了还要加上10。" },
+      { "text": "55", "isAnswer": true, "explanation": "1+2+3+...+10 = 55。使用高斯公式 n(n+1)/2 可以简便地计算：10 x 11 / 2 = 55。" },
+      { "text": "50", "isAnswer": false, "explanation": "50不正确。使用高斯公式 n(n+1)/2 计算：10 x 11 / 2 = 55。" },
+      { "text": "100", "isAnswer": false, "explanation": "100不是1到10的总和。根据公式 1+2+...+n = n(n+1)/2，当n=10时结果为55。" }
+    ]
+  },
+  {
+    "question": "联合国安理会常任理事国是以下哪个国家？",
+    "category": "社会",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "日本", "isAnswer": false, "explanation": "日本是联合国成员国，多次当选安理会非常任理事国，但不是常任理事国。" },
+      { "text": "德国", "isAnswer": false, "explanation": "德国是欧盟最大的经济体，但不是常任理事国。" },
+      { "text": "法国", "isAnswer": true, "explanation": "法国是联合国安理会五个常任理事国之一。常任理事国为美国、英国、法国、俄罗斯和中国，拥有否决权。" },
+      { "text": "印度", "isAnswer": false, "explanation": "印度是世界上人口最多的国家，但不是常任理事国。" }
+    ]
+  },
+  {
+    "question": "请选出所有属于温室气体的选项。",
+    "category": "社会",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "二氧化碳（CO2）", "isAnswer": true, "explanation": "二氧化碳是最典型的温室气体。化石燃料燃烧是其主要排放来源，被认为是导致全球变暖的最大原因。" },
+      { "text": "甲烷（CH4）", "isAnswer": true, "explanation": "甲烷的温室效应约为二氧化碳的25倍。畜牧业、水稻种植和天然气开采等是其主要排放来源。" },
+      { "text": "氮气（N2）", "isAnswer": false, "explanation": "氮气（N2）约占大气的78%，但不是温室气体。因为它化学性质稳定，不会吸收红外辐射。" },
+      { "text": "氧化亚氮（N2O）", "isAnswer": true, "explanation": "氧化亚氮是温室气体之一，其温室效应约为二氧化碳的300倍。农业中化肥的使用是其主要排放来源。" }
+    ]
+  },
+  {
+    "question": "「世界人权宣言」是在哪一年被联合国大会通过的？",
+    "category": "社会",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "1945年", "isAnswer": false, "explanation": "1945年是联合国成立的年份。「世界人权宣言」的通过是在其三年之后。" },
+      { "text": "1948年", "isAnswer": true, "explanation": "「世界人权宣言」于1948年12月10日在联合国大会上通过。它是一份规定所有人与生俱来的基本权利的重要文件。这一天被定为「世界人权日」。" },
+      { "text": "1955年", "isAnswer": false, "explanation": "1955年是万隆会议（亚非会议）召开的年份。「世界人权宣言」在此之前的1948年就已通过。" },
+      { "text": "1960年", "isAnswer": false, "explanation": "1960年被称为「非洲之年」，许多非洲国家在这一年获得独立。「世界人权宣言」在此之前的1948年就已通过。" }
+    ]
+  },
+  {
+    "question": "请选出所有属于可再生能源的选项。",
+    "category": "社会",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "太阳能发电", "isAnswer": true, "explanation": "太阳能发电是将太阳的光能转换为电能的可再生能源。由于资源不会枯竭，是一种可持续的能源。" },
+      { "text": "风力发电", "isAnswer": true, "explanation": "风力发电是将风的动能转换为电能的可再生能源。不仅可以在陆地上，也可以在海上设置风力发电设施。" },
+      { "text": "燃煤发电", "isAnswer": false, "explanation": "燃煤发电使用化石燃料，因此不属于可再生能源。它会排放大量的二氧化碳。" },
+      { "text": "水力发电", "isAnswer": true, "explanation": "水力发电是利用水流的可再生能源，是世界上最早被利用的可再生能源之一。" }
+    ]
+  }
+]

@@ -1,0 +1,332 @@
+[
+  {
+    "question": "世界で最も面積が大きい大陸はどれですか？",
+    "category": "地理",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "アフリカ大陸", "isAnswer": false, "explanation": "アフリカ大陸は約3,037万km²で、世界で2番目に大きい大陸です。" },
+      { "text": "ユーラシア大陸", "isAnswer": true, "explanation": "ユーラシア大陸は約5,492万km²で、世界最大の大陸です。ヨーロッパとアジアが一つの大陸塊を形成しています。" },
+      { "text": "北アメリカ大陸", "isAnswer": false, "explanation": "北アメリカ大陸は約2,471万km²で、世界で3番目に大きい大陸です。" },
+      { "text": "南極大陸", "isAnswer": false, "explanation": "南極大陸は約1,400万km²で、世界で5番目に大きい大陸です。大部分が氷で覆われています。" }
+    ]
+  },
+  {
+    "question": "世界三大洋に含まれるものをすべて選んでください。",
+    "category": "地理",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "太平洋", "isAnswer": true, "explanation": "太平洋は世界最大の海洋で、地球の表面積の約3分の1を占めます。" },
+      { "text": "大西洋", "isAnswer": true, "explanation": "大西洋は世界で2番目に大きい海洋で、ヨーロッパ・アフリカとアメリカ大陸の間に広がります。" },
+      { "text": "インド洋", "isAnswer": true, "explanation": "インド洋は世界で3番目に大きい海洋で、アジア・アフリカ・オセアニアに囲まれています。" },
+      { "text": "北極海", "isAnswer": false, "explanation": "北極海は世界で最も小さい海洋です。三大洋には含まれませんが、五大洋の一つです。" }
+    ]
+  },
+  {
+    "question": "赤道が通過する大陸として正しいものはどれですか？",
+    "category": "地理",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "ヨーロッパ", "isAnswer": false, "explanation": "ヨーロッパは北半球に位置しており、赤道は通過しません。最南端でも北緯約35度です。" },
+      { "text": "南アメリカ", "isAnswer": true, "explanation": "赤道はブラジル、エクアドル、コロンビアを通過し、南アメリカ大陸の北部を横切ります。エクアドルの国名はスペイン語で「赤道」を意味します。" },
+      { "text": "オーストラリア", "isAnswer": false, "explanation": "オーストラリアは南半球に位置していますが、最北端でも南緯約10度であり、赤道は通過しません。" },
+      { "text": "南極", "isAnswer": false, "explanation": "南極大陸は南極点を中心とした大陸で、赤道からは最も離れた場所にあります。" }
+    ]
+  },
+  {
+    "question": "世界で最も長い川はどれですか？",
+    "category": "地理",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "アマゾン川", "isAnswer": false, "explanation": "アマゾン川は流域面積と水量では世界最大ですが、長さでは約6,400 kmで2位とされています。" },
+      { "text": "ナイル川", "isAnswer": true, "explanation": "ナイル川は約6,650 kmで、一般的に世界最長の川とされています。アフリカ東部から地中海まで流れます。" },
+      { "text": "長江", "isAnswer": false, "explanation": "長江は約6,300 kmでアジア最長・世界3位の川です。中国を東西に流れます。" },
+      { "text": "ミシシッピ川", "isAnswer": false, "explanation": "ミシシッピ川は約3,730 kmで北米最長級の川ですが、世界ランキングでは上位には入りません。" }
+    ]
+  },
+  {
+    "question": "内陸国（海に面していない国）をすべて選んでください。",
+    "category": "地理",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "スイス", "isAnswer": true, "explanation": "スイスはフランス、ドイツ、オーストリア、イタリア、リヒテンシュタインに囲まれた内陸国です。" },
+      { "text": "モンゴル", "isAnswer": true, "explanation": "モンゴルはロシアと中国に挟まれた内陸国で、世界で2番目に大きい内陸国です。" },
+      { "text": "タイ", "isAnswer": false, "explanation": "タイはタイ湾とアンダマン海に面しており、内陸国ではありません。" },
+      { "text": "ボリビア", "isAnswer": true, "explanation": "ボリビアは南米の内陸国です。かつては海岸線がありましたが、19世紀の戦争でチリに奪われました。" }
+    ]
+  },
+  {
+    "question": "古代エジプト文明で建設された巨大な建造物はどれですか？",
+    "category": "歴史",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "コロッセウム", "isAnswer": false, "explanation": "コロッセウムは古代ローマ（イタリア）に建設された円形闘技場です。紀元80年に完成しました。" },
+      { "text": "ピラミッド", "isAnswer": true, "explanation": "ピラミッドは古代エジプトのファラオ（王）の墓として建設されました。ギザの大ピラミッドは紀元前2560年頃に建てられ、世界七不思議の一つです。" },
+      { "text": "パルテノン神殿", "isAnswer": false, "explanation": "パルテノン神殿は古代ギリシャのアテネに建設された神殿です。女神アテナに捧げられました。" },
+      { "text": "万里の長城", "isAnswer": false, "explanation": "万里の長城は中国で建設された防衛用の壁です。紀元前7世紀頃から建設が始まりました。" }
+    ]
+  },
+  {
+    "question": "第二次世界大戦の連合国に含まれる国をすべて選んでください。",
+    "category": "歴史",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "アメリカ合衆国", "isAnswer": true, "explanation": "アメリカは1941年に参戦し、連合国の主要国として戦争を戦いました。" },
+      { "text": "イタリア", "isAnswer": false, "explanation": "イタリアは当初、ドイツ・日本とともに枢軸国側で参戦しました。1943年に降伏後に連合国側に転じましたが、主要連合国には含まれません。" },
+      { "text": "ソビエト連邦", "isAnswer": true, "explanation": "ソ連は1941年のドイツによる侵攻後、連合国側で参戦しました。東部戦線でドイツ軍と激戦を繰り広げました。" },
+      { "text": "イギリス", "isAnswer": true, "explanation": "イギリスは1939年のドイツによるポーランド侵攻を受けて参戦し、連合国の中心的存在でした。" }
+    ]
+  },
+  {
+    "question": "フランス革命が始まった年はいつですか？",
+    "category": "歴史",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "1776年", "isAnswer": false, "explanation": "1776年はアメリカ独立宣言の年です。フランス革命に影響を与えましたが、革命自体はこの年ではありません。" },
+      { "text": "1789年", "isAnswer": true, "explanation": "1789年7月14日のバスティーユ牢獄襲撃がフランス革命の始まりとされています。「自由・平等・友愛」の理念は世界中に影響を与えました。" },
+      { "text": "1799年", "isAnswer": false, "explanation": "1799年はナポレオン・ボナパルトがクーデターで権力を握った年です。フランス革命の終結とされることもあります。" },
+      { "text": "1815年", "isAnswer": false, "explanation": "1815年はワーテルローの戦いでナポレオンが敗北した年です。ナポレオン時代の終わりを示します。" }
+    ]
+  },
+  {
+    "question": "古代文明とその発祥地域の組み合わせとして正しいものはどれですか？",
+    "category": "歴史",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "メソポタミア文明 — ナイル川流域", "isAnswer": false, "explanation": "ナイル川流域で栄えたのはエジプト文明です。メソポタミア文明はチグリス・ユーフラテス川流域で発展しました。" },
+      { "text": "インダス文明 — ガンジス川流域", "isAnswer": false, "explanation": "インダス文明はインダス川流域（現在のパキスタン周辺）で栄えました。ガンジス川流域の文明はより後の時代です。" },
+      { "text": "エジプト文明 — ナイル川流域", "isAnswer": true, "explanation": "エジプト文明はナイル川流域で発展した古代文明です。ナイル川の定期的な氾濫が農業を支え、ピラミッドやヒエログリフなどの文化を生みました。" },
+      { "text": "エジプト文明 — チグリス川流域", "isAnswer": false, "explanation": "エジプト文明はナイル川流域で栄えました。チグリス川流域はメソポタミア文明の発祥地です。" }
+    ]
+  },
+  {
+    "question": "人類が初めて月面に着陸した年はいつですか？",
+    "category": "歴史",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "1961年", "isAnswer": false, "explanation": "1961年はソ連のユーリ・ガガーリンが人類初の有人宇宙飛行を達成した年です。月面着陸ではありません。" },
+      { "text": "1969年", "isAnswer": true, "explanation": "1969年7月20日、アメリカのアポロ11号でニール・アームストロングとバズ・オルドリンが人類初の月面着陸を達成しました。" },
+      { "text": "1957年", "isAnswer": false, "explanation": "1957年はソ連が世界初の人工衛星スプートニク1号を打ち上げた年です。宇宙時代の幕開けでした。" },
+      { "text": "1975年", "isAnswer": false, "explanation": "1975年はアメリカとソ連の宇宙船が初めてドッキングした年（アポロ・ソユーズテスト計画）です。月面着陸ではありません。" }
+    ]
+  },
+  {
+    "question": "水の化学式はどれですか？",
+    "category": "科学",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "CO2", "isAnswer": false, "explanation": "CO2は二酸化炭素の化学式です。炭素1原子と酸素2原子からなり、温室効果ガスの一つです。" },
+      { "text": "H2O", "isAnswer": true, "explanation": "H2Oは水の化学式で、水素2原子と酸素1原子から構成されています。地球上の生命に不可欠な物質です。" },
+      { "text": "NaCl", "isAnswer": false, "explanation": "NaClは塩化ナトリウム（食塩）の化学式です。ナトリウムと塩素の化合物です。" },
+      { "text": "O2", "isAnswer": false, "explanation": "O2は酸素分子の化学式です。大気中に約21%含まれ、呼吸に必要な気体です。" }
+    ]
+  },
+  {
+    "question": "太陽系の惑星で最も大きいものはどれですか？",
+    "category": "科学",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "土星", "isAnswer": false, "explanation": "土星は太陽系で2番目に大きい惑星です。美しいリング（環）で知られ、直径は約12万kmです。" },
+      { "text": "木星", "isAnswer": true, "explanation": "木星は太陽系最大の惑星で、直径は約14万kmです。地球の約11倍の直径、約318倍の質量を持ちます。大赤斑と呼ばれる巨大な嵐が特徴です。" },
+      { "text": "海王星", "isAnswer": false, "explanation": "海王星は太陽系で4番目に大きい惑星です。直径は約5万kmで、深い青色が特徴です。" },
+      { "text": "天王星", "isAnswer": false, "explanation": "天王星は太陽系で3番目に大きい惑星です。自転軸が約98度傾いており、横倒しで回転しています。" }
+    ]
+  },
+  {
+    "question": "人体の血液循環で、酸素を多く含む血液が流れる血管をすべて選んでください。",
+    "category": "科学",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "大動脈", "isAnswer": true, "explanation": "大動脈は心臓の左心室から全身に酸素を含んだ血液を送り出す最大の動脈です。" },
+      { "text": "肺動脈", "isAnswer": false, "explanation": "肺動脈は心臓から肺へ向かう動脈ですが、酸素が少なく二酸化炭素を多く含む血液が流れます。名前は「動脈」ですが酸素の少ない血液が流れる例外的な血管です。" },
+      { "text": "肺静脈", "isAnswer": true, "explanation": "肺静脈は肺から心臓へ向かう静脈ですが、肺でガス交換を終えた酸素豊富な血液が流れます。名前は「静脈」ですが酸素の多い血液が流れる例外的な血管です。" },
+      { "text": "大静脈", "isAnswer": false, "explanation": "大静脈は全身から心臓に戻る血管で、酸素が少なく二酸化炭素を多く含む血液が流れます。" }
+    ]
+  },
+  {
+    "question": "光合成に必要な要素をすべて選んでください。",
+    "category": "科学",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "光エネルギー", "isAnswer": true, "explanation": "光合成には光（主に太陽光）が必要です。葉緑体のクロロフィルが光エネルギーを吸収します。" },
+      { "text": "二酸化炭素", "isAnswer": true, "explanation": "植物は気孔から二酸化炭素を取り込み、光合成の原料として使います。CO2 + H2O → C6H12O6 + O2" },
+      { "text": "窒素", "isAnswer": false, "explanation": "窒素は植物の成長に必要な栄養素ですが、光合成の直接的な反応には関与しません。" },
+      { "text": "水", "isAnswer": true, "explanation": "水は根から吸収され、光合成の原料として使われます。光合成で水が分解されて酸素が発生します。" }
+    ]
+  },
+  {
+    "question": "元素の周期表で原子番号1の元素は何ですか？",
+    "category": "科学",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "ヘリウム", "isAnswer": false, "explanation": "ヘリウムは原子番号2の元素です。希ガスに分類され、風船や深海潜水の混合ガスなどに使われます。" },
+      { "text": "水素", "isAnswer": true, "explanation": "水素（H）は原子番号1の元素で、宇宙で最も豊富に存在する元素です。最も軽い元素で、陽子1個と電子1個からなります。" },
+      { "text": "リチウム", "isAnswer": false, "explanation": "リチウムは原子番号3の元素です。最も軽い金属で、リチウムイオン電池などに使われます。" },
+      { "text": "炭素", "isAnswer": false, "explanation": "炭素は原子番号6の元素です。有機化合物の基本元素で、ダイヤモンドや黒鉛の主成分です。" }
+    ]
+  },
+  {
+    "question": "地球の大気の約78%を占める気体は何ですか？",
+    "category": "科学",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "酸素", "isAnswer": false, "explanation": "酸素は大気の約21%を占めます。生物の呼吸に必要ですが、最も多い成分ではありません。" },
+      { "text": "窒素", "isAnswer": true, "explanation": "窒素（N2）は大気の約78%を占める最も多い気体です。化学的に安定で、植物の成長に必要な元素でもあります。" },
+      { "text": "二酸化炭素", "isAnswer": false, "explanation": "二酸化炭素は大気中の約0.04%と微量ですが、温室効果で地球の気温維持に重要な役割を果たしています。" },
+      { "text": "アルゴン", "isAnswer": false, "explanation": "アルゴンは大気の約0.93%を占める希ガスです。窒素、酸素に次いで3番目に多い大気成分です。" }
+    ]
+  },
+  {
+    "question": "シェイクスピアの四大悲劇に含まれる作品をすべて選んでください。",
+    "category": "芸術・文化",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "ハムレット", "isAnswer": true, "explanation": "「ハムレット」はデンマーク王子の復讐劇で、「生きるべきか死ぬべきか」の独白で有名です。" },
+      { "text": "ロミオとジュリエット", "isAnswer": false, "explanation": "「ロミオとジュリエット」は悲劇的な恋愛物語ですが、四大悲劇には含まれません。四大悲劇はハムレット、オセロー、リア王、マクベスです。" },
+      { "text": "マクベス", "isAnswer": true, "explanation": "「マクベス」はスコットランドの将軍が野心に駆られて王を殺害する悲劇です。四大悲劇の一つです。" },
+      { "text": "リア王", "isAnswer": true, "explanation": "「リア王」は老王が3人の娘に国を分け与えた結果、悲劇的な運命をたどる物語です。四大悲劇の一つです。" }
+    ]
+  },
+  {
+    "question": "レオナルド・ダ・ヴィンチが描いた絵画はどれですか？",
+    "category": "芸術・文化",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "星月夜", "isAnswer": false, "explanation": "「星月夜」はフィンセント・ファン・ゴッホが1889年に描いた作品です。渦巻く夜空が特徴的です。" },
+      { "text": "モナ・リザ", "isAnswer": true, "explanation": "「モナ・リザ」はレオナルド・ダ・ヴィンチが16世紀初頭に描いた世界で最も有名な絵画の一つです。現在パリのルーヴル美術館に所蔵されています。" },
+      { "text": "ゲルニカ", "isAnswer": false, "explanation": "「ゲルニカ」はパブロ・ピカソが1937年に描いた反戦絵画です。スペイン内戦中の爆撃を題材にしています。" },
+      { "text": "叫び", "isAnswer": false, "explanation": "「叫び」はエドヴァルド・ムンクが1893年に描いた作品です。不安を象徴する表現で知られています。" }
+    ]
+  },
+  {
+    "question": "音楽で「ド・レ・ミ・ファ・ソ・ラ・シ」の音階は何音で構成されていますか？",
+    "category": "芸術・文化",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "5音", "isAnswer": false, "explanation": "5音はペンタトニック（五音音階）の構成です。世界各地の民謡でよく使われます。" },
+      { "text": "7音", "isAnswer": true, "explanation": "ド・レ・ミ・ファ・ソ・ラ・シの7音で構成されるのが長音階（メジャースケール）です。西洋音楽の基礎となる音階です。" },
+      { "text": "8音", "isAnswer": false, "explanation": "ドから次のドまでを数えると8音ですが、音階を構成する異なる音は7つです。8番目の音は最初の音と同じです。" },
+      { "text": "12音", "isAnswer": false, "explanation": "12音は1オクターブ内のすべての半音を含む数です。ピアノの白鍵と黒鍵を合わせると12音になります。" }
+    ]
+  },
+  {
+    "question": "「百年の孤独」の作者はどの国の人ですか？",
+    "category": "芸術・文化",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "メキシコ", "isAnswer": false, "explanation": "メキシコにはオクタビオ・パスなどの有名な作家がいますが、「百年の孤独」の作者ではありません。" },
+      { "text": "コロンビア", "isAnswer": true, "explanation": "「百年の孤独」はコロンビアの作家ガブリエル・ガルシア＝マルケスの代表作です。1982年にノーベル文学賞を受賞しました。マジックリアリズムの傑作として世界的に知られています。" },
+      { "text": "アルゼンチン", "isAnswer": false, "explanation": "アルゼンチンにはボルヘスなどの著名な作家がいますが、「百年の孤独」はコロンビアの作品です。" },
+      { "text": "チリ", "isAnswer": false, "explanation": "チリにはパブロ・ネルーダやイサベル・アジェンデなどの作家がいますが、「百年の孤独」はコロンビアの作品です。" }
+    ]
+  },
+  {
+    "question": "ベートーヴェンの「交響曲第5番」の通称はどれですか？",
+    "category": "芸術・文化",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "田園", "isAnswer": false, "explanation": "「田園」はベートーヴェンの交響曲第6番の通称です。自然の情景を描写した作品です。" },
+      { "text": "運命", "isAnswer": true, "explanation": "交響曲第5番は「運命」の通称で知られています。冒頭の「ダダダダーン」という4つの音が非常に有名です。" },
+      { "text": "英雄", "isAnswer": false, "explanation": "「英雄」はベートーヴェンの交響曲第3番の通称です。当初ナポレオンに献呈される予定でした。" },
+      { "text": "合唱", "isAnswer": false, "explanation": "「合唱」はベートーヴェンの交響曲第9番の通称です。第4楽章でシラーの「歓喜の歌」が合唱されます。" }
+    ]
+  },
+  {
+    "question": "三角形の内角の和は何度ですか？",
+    "category": "数学",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "90度", "isAnswer": false, "explanation": "90度は直角の大きさです。直角三角形の一つの角が90度ですが、内角の和ではありません。" },
+      { "text": "180度", "isAnswer": true, "explanation": "平面上の三角形の内角の和は常に180度です。これは三角形の大きさや形に関係なく成り立つ基本的な定理です。" },
+      { "text": "270度", "isAnswer": false, "explanation": "270度は三角形の内角の和ではありません。四角形の内角の和は360度です。" },
+      { "text": "360度", "isAnswer": false, "explanation": "360度は四角形の内角の和、または円の一周の角度です。三角形の内角の和は180度です。" }
+    ]
+  },
+  {
+    "question": "円周率πの値として最も近いものはどれですか？",
+    "category": "数学",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "2.718", "isAnswer": false, "explanation": "2.718...はネイピア数（自然対数の底）eの近似値です。πとは異なる重要な数学定数です。" },
+      { "text": "3.14159", "isAnswer": true, "explanation": "円周率π（パイ）は約3.14159で、円の直径に対する円周の比率です。無理数であり、小数点以下は無限に続きます。" },
+      { "text": "1.414", "isAnswer": false, "explanation": "1.414...は√2（2の平方根）の近似値です。正方形の対角線と辺の比率に関係します。" },
+      { "text": "1.618", "isAnswer": false, "explanation": "1.618...は黄金比φ（ファイ）の近似値です。美術や建築、自然界に見られる比率です。" }
+    ]
+  },
+  {
+    "question": "素数をすべて選んでください。",
+    "category": "数学",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "2", "isAnswer": true, "explanation": "2は最小の素数であり、唯一の偶数の素数です。1と2以外の約数を持ちません。" },
+      { "text": "9", "isAnswer": false, "explanation": "9は素数ではありません。9 = 3 × 3 なので、1と9以外に3が約数です。" },
+      { "text": "13", "isAnswer": true, "explanation": "13は素数です。1と13以外の約数を持ちません。" },
+      { "text": "15", "isAnswer": false, "explanation": "15は素数ではありません。15 = 3 × 5 なので、1と15以外に3と5が約数です。" }
+    ]
+  },
+  {
+    "question": "直角三角形で、斜辺の長さが5、他の一辺が3のとき、残りの一辺の長さはいくつですか？",
+    "category": "数学",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "2", "isAnswer": false, "explanation": "ピタゴラスの定理 a² + b² = c² で検証すると、3² + 2² = 9 + 4 = 13 ≠ 25 = 5² なので、2は正しくありません。" },
+      { "text": "4", "isAnswer": true, "explanation": "ピタゴラスの定理より、a² + b² = c²。3² + b² = 5² → 9 + b² = 25 → b² = 16 → b = 4。3:4:5は代表的なピタゴラス数です。" },
+      { "text": "6", "isAnswer": false, "explanation": "斜辺（最も長い辺）が5なので、他の辺が6になることはありません。直角三角形では斜辺が最長の辺です。" },
+      { "text": "√34", "isAnswer": false, "explanation": "3² + 5² = 34 なので √34 ≈ 5.83 ですが、これは3と5を直角を挟む2辺とした場合の斜辺の長さです。問題では斜辺は5と指定されています。" }
+    ]
+  },
+  {
+    "question": "1から10までの自然数の合計はいくつですか？",
+    "category": "数学",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "45", "isAnswer": false, "explanation": "45は1から9までの合計です。10を足すのを忘れないようにしましょう。" },
+      { "text": "55", "isAnswer": true, "explanation": "1+2+3+...+10 = 55 です。ガウスの公式 n(n+1)/2 を使うと、10×11÷2 = 55 と簡単に求められます。" },
+      { "text": "50", "isAnswer": false, "explanation": "50は正しくありません。ガウスの公式 n(n+1)/2 で計算すると、10×11÷2 = 55 になります。" },
+      { "text": "100", "isAnswer": false, "explanation": "100は1から10の合計ではありません。1+2+...+n = n(n+1)/2 の公式で、n=10のとき55です。" }
+    ]
+  },
+  {
+    "question": "国際連合の常任理事国はどこですか？",
+    "category": "社会",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "日本", "isAnswer": false, "explanation": "日本は国連加盟国であり安全保障理事会の非常任理事国に何度も選出されていますが、常任理事国ではありません。" },
+      { "text": "ドイツ", "isAnswer": false, "explanation": "ドイツはEU最大の経済大国ですが、常任理事国ではありません。" },
+      { "text": "フランス", "isAnswer": true, "explanation": "フランスは国連安全保障理事会の常任理事国5カ国の一つです。常任理事国はアメリカ、イギリス、フランス、ロシア、中国の5カ国で、拒否権を持ちます。" },
+      { "text": "インド", "isAnswer": false, "explanation": "インドは世界最大の人口を持つ国ですが、常任理事国ではありません。" }
+    ]
+  },
+  {
+    "question": "温室効果ガスに含まれるものをすべて選んでください。",
+    "category": "社会",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "二酸化炭素（CO2）", "isAnswer": true, "explanation": "二酸化炭素は代表的な温室効果ガスです。化石燃料の燃焼が主な排出源で、地球温暖化の最大の原因とされています。" },
+      { "text": "メタン（CH4）", "isAnswer": true, "explanation": "メタンは二酸化炭素の約25倍の温室効果を持つガスです。畜産業や水田、天然ガスの採掘などから排出されます。" },
+      { "text": "窒素（N2）", "isAnswer": false, "explanation": "窒素（N2）は大気の約78%を占めますが、温室効果ガスではありません。化学的に安定で赤外線を吸収しないためです。" },
+      { "text": "亜酸化窒素（N2O）", "isAnswer": true, "explanation": "亜酸化窒素は温室効果ガスの一つで、二酸化炭素の約300倍の温室効果があります。農業での肥料使用が主な排出源です。" }
+    ]
+  },
+  {
+    "question": "「世界人権宣言」が国連総会で採択された年はいつですか？",
+    "category": "社会",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "1945年", "isAnswer": false, "explanation": "1945年は国際連合が設立された年です。世界人権宣言の採択はその3年後でした。" },
+      { "text": "1948年", "isAnswer": true, "explanation": "世界人権宣言は1948年12月10日に国連総会で採択されました。すべての人間が生まれながらに持つ基本的権利を定めた重要な文書です。この日は「世界人権デー」とされています。" },
+      { "text": "1955年", "isAnswer": false, "explanation": "1955年はバンドン会議（アジア・アフリカ会議）が開催された年です。世界人権宣言はこれより前の1948年に採択されています。" },
+      { "text": "1960年", "isAnswer": false, "explanation": "1960年は「アフリカの年」と呼ばれ、多くのアフリカ諸国が独立した年です。世界人権宣言はこれより前の1948年に採択されています。" }
+    ]
+  },
+  {
+    "question": "再生可能エネルギーに分類されるものをすべて選んでください。",
+    "category": "社会",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "太陽光発電", "isAnswer": true, "explanation": "太陽光発電は太陽の光エネルギーを電気に変換する再生可能エネルギーです。資源が枯渇しないため、持続可能なエネルギー源です。" },
+      { "text": "風力発電", "isAnswer": true, "explanation": "風力発電は風の運動エネルギーを電気に変換する再生可能エネルギーです。陸上だけでなく洋上にも設置されています。" },
+      { "text": "石炭火力発電", "isAnswer": false, "explanation": "石炭火力発電は化石燃料を使用するため、再生可能エネルギーではありません。大量のCO2を排出します。" },
+      { "text": "水力発電", "isAnswer": true, "explanation": "水力発電は水の流れを利用する再生可能エネルギーです。世界で最も古くから利用されている再生可能エネルギーの一つです。" }
+    ]
+  }
+]

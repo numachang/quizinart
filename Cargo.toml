@@ -10,6 +10,7 @@ authors = ["frectonz"]
 bytes = "1.6.1"
 clap = { version = "4.5.9", features = ["derive", "env"] }
 color-eyre = "0.6.3"
+dotenvy = "0.15.7"
 futures = "0.3.30"
 include_dir = "0.7.4"
 libsql = { version = "0.6.0", features = ["remote"] }

@@ -1,0 +1,332 @@
+[
+  {
+    "question": "世界上面積最大的大陸是哪一個？",
+    "category": "地理",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "非洲大陸", "isAnswer": false, "explanation": "非洲大陸面積約3,037萬平方公里，是世界第二大的大陸。" },
+      { "text": "歐亞大陸", "isAnswer": true, "explanation": "歐亞大陸面積約5,492萬平方公里，是世界上最大的大陸。歐洲和亞洲共同組成了這片大陸。" },
+      { "text": "北美洲大陸", "isAnswer": false, "explanation": "北美洲大陸面積約2,471萬平方公里，是世界第三大的大陸。" },
+      { "text": "南極大陸", "isAnswer": false, "explanation": "南極大陸面積約1,400萬平方公里，是世界第五大的大陸。大部分地區被冰層所覆蓋。" }
+    ]
+  },
+  {
+    "question": "請選出所有屬於世界三大洋的選項。",
+    "category": "地理",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "太平洋", "isAnswer": true, "explanation": "太平洋是世界上最大的海洋，約佔地球表面積的三分之一。" },
+      { "text": "大西洋", "isAnswer": true, "explanation": "大西洋是世界第二大的海洋，位於歐洲、非洲與美洲大陸之間。" },
+      { "text": "印度洋", "isAnswer": true, "explanation": "印度洋是世界第三大的海洋，被亞洲、非洲和大洋洲所環繞。" },
+      { "text": "北冰洋", "isAnswer": false, "explanation": "北冰洋是世界上最小的海洋。雖然不屬於三大洋，但它是五大洋之一。" }
+    ]
+  },
+  {
+    "question": "赤道通過的大陸，下列何者正確？",
+    "category": "地理",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "歐洲", "isAnswer": false, "explanation": "歐洲位於北半球，赤道並不通過歐洲。歐洲最南端大約在北緯35度左右。" },
+      { "text": "南美洲", "isAnswer": true, "explanation": "赤道通過巴西、厄瓜多和哥倫比亞，橫跨南美洲大陸北部。厄瓜多的國名在西班牙語中就是「赤道」的意思。" },
+      { "text": "澳洲", "isAnswer": false, "explanation": "澳洲雖然位於南半球，但最北端也在南緯約10度左右，赤道並不通過澳洲。" },
+      { "text": "南極洲", "isAnswer": false, "explanation": "南極洲是以南極點為中心的大陸，距離赤道最為遙遠。" }
+    ]
+  },
+  {
+    "question": "世界上最長的河流是哪一條？",
+    "category": "地理",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "亞馬遜河", "isAnswer": false, "explanation": "亞馬遜河的流域面積和水量是世界最大的，但長度約6,400公里，一般被列為世界第二。" },
+      { "text": "尼羅河", "isAnswer": true, "explanation": "尼羅河全長約6,650公里，一般被認為是世界上最長的河流。它從非洲東部流向地中海。" },
+      { "text": "長江", "isAnswer": false, "explanation": "長江全長約6,300公里，是亞洲最長、世界第三長的河流，橫貫中國東西。" },
+      { "text": "密西西比河", "isAnswer": false, "explanation": "密西西比河全長約3,730公里，是北美洲最長的河流之一，但在世界排名中並不位於前列。" }
+    ]
+  },
+  {
+    "question": "請選出所有的內陸國（不鄰海的國家）。",
+    "category": "地理",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "瑞士", "isAnswer": true, "explanation": "瑞士被法國、德國、奧地利、義大利和列支敦士登所包圍，是一個內陸國。" },
+      { "text": "蒙古", "isAnswer": true, "explanation": "蒙古位於俄羅斯和中國之間，是一個內陸國，也是世界第二大的內陸國。" },
+      { "text": "泰國", "isAnswer": false, "explanation": "泰國瀕臨泰國灣和安達曼海，並非內陸國。" },
+      { "text": "玻利維亞", "isAnswer": true, "explanation": "玻利維亞是南美洲的內陸國。它過去曾擁有海岸線，但在19世紀的戰爭中被智利奪走。" }
+    ]
+  },
+  {
+    "question": "古埃及文明中建造的巨大建築物是哪一個？",
+    "category": "歷史",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "羅馬競技場", "isAnswer": false, "explanation": "羅馬競技場是建於古羅馬（義大利）的圓形競技場，於西元80年完工。" },
+      { "text": "金字塔", "isAnswer": true, "explanation": "金字塔是作為古埃及法老（國王）的陵墓而建造的。吉薩大金字塔約建於西元前2560年，是古代世界七大奇蹟之一。" },
+      { "text": "帕德嫩神殿", "isAnswer": false, "explanation": "帕德嫩神殿是建於古希臘雅典的神殿，獻給女神雅典娜。" },
+      { "text": "萬里長城", "isAnswer": false, "explanation": "萬里長城是在中國建造的防禦工事，約從西元前7世紀開始建設。" }
+    ]
+  },
+  {
+    "question": "請選出所有屬於第二次世界大戰同盟國的國家。",
+    "category": "歷史",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "美國", "isAnswer": true, "explanation": "美國於1941年參戰，作為同盟國的主要成員國參與了這場戰爭。" },
+      { "text": "義大利", "isAnswer": false, "explanation": "義大利最初與德國、日本一同以軸心國身份參戰。雖然在1943年投降後轉向同盟國陣營，但不被列為主要同盟國。" },
+      { "text": "蘇聯", "isAnswer": true, "explanation": "蘇聯在1941年遭德國入侵後，以同盟國身份參戰，在東線戰場與德軍展開激烈戰鬥。" },
+      { "text": "英國", "isAnswer": true, "explanation": "英國在1939年德國入侵波蘭後參戰，是同盟國的核心成員。" }
+    ]
+  },
+  {
+    "question": "法國大革命開始於哪一年？",
+    "category": "歷史",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "1776年", "isAnswer": false, "explanation": "1776年是美國獨立宣言發表的年份。雖然它對法國大革命產生了影響，但革命本身並非發生在這一年。" },
+      { "text": "1789年", "isAnswer": true, "explanation": "1789年7月14日攻占巴士底監獄被視為法國大革命的開端。「自由、平等、博愛」的理念對全世界產生了深遠的影響。" },
+      { "text": "1799年", "isAnswer": false, "explanation": "1799年是拿破崙・波拿巴透過政變奪取政權的年份，有時被視為法國大革命的結束。" },
+      { "text": "1815年", "isAnswer": false, "explanation": "1815年是拿破崙在滑鐵盧戰役中戰敗的年份，標誌著拿破崙時代的終結。" }
+    ]
+  },
+  {
+    "question": "古代文明與其發源地區的配對，下列何者正確？",
+    "category": "歷史",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "美索不達米亞文明 — 尼羅河流域", "isAnswer": false, "explanation": "在尼羅河流域繁榮發展的是埃及文明。美索不達米亞文明發源於底格里斯河與幼發拉底河流域。" },
+      { "text": "印度河文明 — 恆河流域", "isAnswer": false, "explanation": "印度河文明發源於印度河流域（現今巴基斯坦一帶）。恆河流域的文明屬於較晚期的時代。" },
+      { "text": "埃及文明 — 尼羅河流域", "isAnswer": true, "explanation": "埃及文明是在尼羅河流域發展起來的古代文明。尼羅河定期的氾濫支撐了農業發展，並孕育出金字塔和象形文字等文化。" },
+      { "text": "埃及文明 — 底格里斯河流域", "isAnswer": false, "explanation": "埃及文明發源於尼羅河流域。底格里斯河流域是美索不達米亞文明的發源地。" }
+    ]
+  },
+  {
+    "question": "人類首次登陸月球是在哪一年？",
+    "category": "歷史",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "1961年", "isAnswer": false, "explanation": "1961年是蘇聯的尤里・加加林完成人類首次載人太空飛行的年份，並非月球登陸。" },
+      { "text": "1969年", "isAnswer": true, "explanation": "1969年7月20日，美國阿波羅11號的尼爾・阿姆斯壯和巴茲・奧德林完成了人類首次登陸月球的壯舉。" },
+      { "text": "1957年", "isAnswer": false, "explanation": "1957年是蘇聯發射世界上第一顆人造衛星史普尼克1號的年份，開啟了太空時代。" },
+      { "text": "1975年", "isAnswer": false, "explanation": "1975年是美國和蘇聯的太空船首次進行對接的年份（阿波羅-聯盟測試計畫），並非月球登陸。" }
+    ]
+  },
+  {
+    "question": "水的化學式是哪一個？",
+    "category": "科學",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "CO2", "isAnswer": false, "explanation": "CO2是二氧化碳的化學式，由1個碳原子和2個氧原子組成，是溫室氣體之一。" },
+      { "text": "H2O", "isAnswer": true, "explanation": "H2O是水的化學式，由2個氫原子和1個氧原子組成，是地球上生命不可或缺的物質。" },
+      { "text": "NaCl", "isAnswer": false, "explanation": "NaCl是氯化鈉（食鹽）的化學式，是鈉和氯的化合物。" },
+      { "text": "O2", "isAnswer": false, "explanation": "O2是氧氣分子的化學式。大氣中約含21%的氧氣，是呼吸所需的氣體。" }
+    ]
+  },
+  {
+    "question": "太陽系中最大的行星是哪一顆？",
+    "category": "科學",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "土星", "isAnswer": false, "explanation": "土星是太陽系中第二大的行星，以美麗的光環著稱，直徑約12萬公里。" },
+      { "text": "木星", "isAnswer": true, "explanation": "木星是太陽系中最大的行星，直徑約14萬公里，約為地球的11倍，質量約為地球的318倍。其特徵是被稱為大紅斑的巨大風暴。" },
+      { "text": "海王星", "isAnswer": false, "explanation": "海王星是太陽系中第四大的行星，直徑約5萬公里，以深藍色為特徵。" },
+      { "text": "天王星", "isAnswer": false, "explanation": "天王星是太陽系中第三大的行星，自轉軸傾斜約98度，幾乎是橫躺著旋轉。" }
+    ]
+  },
+  {
+    "question": "在人體血液循環中，請選出所有流有富含氧氣血液的血管。",
+    "category": "科學",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "主動脈", "isAnswer": true, "explanation": "主動脈是從心臟左心室將含氧血液輸送至全身的最大動脈。" },
+      { "text": "肺動脈", "isAnswer": false, "explanation": "肺動脈是從心臟通往肺部的動脈，但其中流動的是含氧量低、二氧化碳含量高的血液。雖然名為「動脈」，卻是流有缺氧血液的例外血管。" },
+      { "text": "肺靜脈", "isAnswer": true, "explanation": "肺靜脈是從肺部通往心臟的靜脈，其中流動的是在肺部完成氣體交換後富含氧氣的血液。雖然名為「靜脈」，卻是流有含氧血液的例外血管。" },
+      { "text": "大靜脈", "isAnswer": false, "explanation": "大靜脈是將血液從全身送回心臟的血管，其中流動的是含氧量低、二氧化碳含量高的血液。" }
+    ]
+  },
+  {
+    "question": "請選出所有光合作用所需的要素。",
+    "category": "科學",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "光能", "isAnswer": true, "explanation": "光合作用需要光（主要是陽光）。葉綠體中的葉綠素會吸收光能。" },
+      { "text": "二氧化碳", "isAnswer": true, "explanation": "植物透過氣孔吸收二氧化碳，作為光合作用的原料。CO2 + H2O → C6H12O6 + O2" },
+      { "text": "氮氣", "isAnswer": false, "explanation": "氮氣雖然是植物生長所需的營養素，但並不直接參與光合作用的反應。" },
+      { "text": "水", "isAnswer": true, "explanation": "水由根部吸收，作為光合作用的原料。在光合作用過程中，水被分解並釋放出氧氣。" }
+    ]
+  },
+  {
+    "question": "元素週期表中原子序數為1的元素是什麼？",
+    "category": "科學",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "氦", "isAnswer": false, "explanation": "氦是原子序數為2的元素，屬於惰性氣體，常用於氣球及深海潛水的混合氣體等。" },
+      { "text": "氫", "isAnswer": true, "explanation": "氫（H）是原子序數為1的元素，也是宇宙中含量最豐富的元素。它是最輕的元素，由1個質子和1個電子組成。" },
+      { "text": "鋰", "isAnswer": false, "explanation": "鋰是原子序數為3的元素，是最輕的金屬，常用於鋰離子電池等。" },
+      { "text": "碳", "isAnswer": false, "explanation": "碳是原子序數為6的元素，是有機化合物的基本元素，也是鑽石和石墨的主要成分。" }
+    ]
+  },
+  {
+    "question": "佔地球大氣約78%的氣體是什麼？",
+    "category": "科學",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "氧氣", "isAnswer": false, "explanation": "氧氣約佔大氣的21%，雖然是生物呼吸所需，但並非含量最多的成分。" },
+      { "text": "氮氣", "isAnswer": true, "explanation": "氮氣（N2）約佔大氣的78%，是含量最多的氣體。化學性質穩定，也是植物生長所需的元素。" },
+      { "text": "二氧化碳", "isAnswer": false, "explanation": "二氧化碳在大氣中約佔0.04%，雖然含量微少，但在溫室效應中對維持地球溫度扮演重要角色。" },
+      { "text": "氬氣", "isAnswer": false, "explanation": "氬氣約佔大氣的0.93%，屬於惰性氣體，是大氣中含量第三多的成分，僅次於氮氣和氧氣。" }
+    ]
+  },
+  {
+    "question": "請選出所有屬於莎士比亞四大悲劇的作品。",
+    "category": "藝術與文化",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "哈姆雷特", "isAnswer": true, "explanation": "「哈姆雷特」是一齣丹麥王子復仇的悲劇，以「生存還是毀滅」的獨白聞名。" },
+      { "text": "羅密歐與茱麗葉", "isAnswer": false, "explanation": "「羅密歐與茱麗葉」雖然是悲劇性的愛情故事，但不屬於四大悲劇。四大悲劇是哈姆雷特、奧賽羅、李爾王和馬克白。" },
+      { "text": "馬克白", "isAnswer": true, "explanation": "「馬克白」是一齣關於蘇格蘭將軍受野心驅使而弒君的悲劇，是四大悲劇之一。" },
+      { "text": "李爾王", "isAnswer": true, "explanation": "「李爾王」講述一位年邁國王將王國分給三個女兒後，走向悲劇命運的故事，是四大悲劇之一。" }
+    ]
+  },
+  {
+    "question": "下列哪一幅畫作是李奧納多・達文西所繪？",
+    "category": "藝術與文化",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "星夜", "isAnswer": false, "explanation": "「星夜」是文森・梵谷於1889年所繪的作品，以旋渦狀的夜空為特色。" },
+      { "text": "蒙娜麗莎", "isAnswer": true, "explanation": "「蒙娜麗莎」是李奧納多・達文西於16世紀初所繪，是世界上最著名的畫作之一，目前收藏於巴黎羅浮宮。" },
+      { "text": "格爾尼卡", "isAnswer": false, "explanation": "「格爾尼卡」是巴勃羅・畢卡索於1937年所繪的反戰畫作，以西班牙內戰中的轟炸為題材。" },
+      { "text": "吶喊", "isAnswer": false, "explanation": "「吶喊」是愛德華・孟克於1893年所繪的作品，以象徵不安的表現手法聞名。" }
+    ]
+  },
+  {
+    "question": "音樂中Do、Re、Mi、Fa、Sol、La、Si的音階由幾個音組成？",
+    "category": "藝術與文化",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "5個音", "isAnswer": false, "explanation": "5個音是五聲音階的組成，常見於世界各地的民謠中。" },
+      { "text": "7個音", "isAnswer": true, "explanation": "Do、Re、Mi、Fa、Sol、La、Si共7個音組成的是大調音階。這是西方音樂的基礎音階。" },
+      { "text": "8個音", "isAnswer": false, "explanation": "從Do數到下一個Do確實是8個音，但組成音階的不同音只有7個，第8個音與第1個音相同。" },
+      { "text": "12個音", "isAnswer": false, "explanation": "12個音是一個八度內所有半音的數量。鋼琴的白鍵和黑鍵加起來共有12個音。" }
+    ]
+  },
+  {
+    "question": "「百年孤寂」的作者來自哪個國家？",
+    "category": "藝術與文化",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "墨西哥", "isAnswer": false, "explanation": "墨西哥雖有奧克塔維奧・帕斯等著名作家，但並非「百年孤寂」的作者。" },
+      { "text": "哥倫比亞", "isAnswer": true, "explanation": "「百年孤寂」是哥倫比亞作家加布列爾・賈西亞・馬奎斯的代表作。他在1982年獲得諾貝爾文學獎。這部作品是魔幻寫實主義的經典傑作，享譽全球。" },
+      { "text": "阿根廷", "isAnswer": false, "explanation": "阿根廷雖有波赫士等著名作家，但「百年孤寂」是哥倫比亞的作品。" },
+      { "text": "智利", "isAnswer": false, "explanation": "智利雖有巴勃羅・聶魯達和伊莎貝・阿言德等作家，但「百年孤寂」是哥倫比亞的作品。" }
+    ]
+  },
+  {
+    "question": "貝多芬「第五號交響曲」的通稱是什麼？",
+    "category": "藝術與文化",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "田園", "isAnswer": false, "explanation": "「田園」是貝多芬第六號交響曲的通稱，是一部描繪自然風景的作品。" },
+      { "text": "命運", "isAnswer": true, "explanation": "第五號交響曲以「命運」的通稱聞名。開頭「噠噠噠噠～」的四個音非常著名。" },
+      { "text": "英雄", "isAnswer": false, "explanation": "「英雄」是貝多芬第三號交響曲的通稱，最初原打算獻給拿破崙。" },
+      { "text": "合唱", "isAnswer": false, "explanation": "「合唱」是貝多芬第九號交響曲的通稱。第四樂章演唱了席勒的「快樂頌」。" }
+    ]
+  },
+  {
+    "question": "三角形的內角和是幾度？",
+    "category": "數學",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "90度", "isAnswer": false, "explanation": "90度是直角的大小。直角三角形有一個角是90度，但並非內角和。" },
+      { "text": "180度", "isAnswer": true, "explanation": "平面上三角形的內角和恆為180度。無論三角形的大小或形狀如何，這個基本定理都成立。" },
+      { "text": "270度", "isAnswer": false, "explanation": "270度並非三角形的內角和。四邊形的內角和是360度。" },
+      { "text": "360度", "isAnswer": false, "explanation": "360度是四邊形的內角和，或是圓的一周角度。三角形的內角和是180度。" }
+    ]
+  },
+  {
+    "question": "下列何者最接近圓周率 π 的值？",
+    "category": "數學",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "2.718", "isAnswer": false, "explanation": "2.718...是自然對數的底數 e（尤拉數）的近似值，與 π 是不同的重要數學常數。" },
+      { "text": "3.14159", "isAnswer": true, "explanation": "圓周率 π 約為3.14159，是圓的周長與直徑的比值。它是無理數，小數點後無限延續不循環。" },
+      { "text": "1.414", "isAnswer": false, "explanation": "1.414...是 √2（2的平方根）的近似值，與正方形對角線和邊長的比值有關。" },
+      { "text": "1.618", "isAnswer": false, "explanation": "1.618...是黃金比例 φ 的近似值，在美術、建築和大自然中都能看到這個比例。" }
+    ]
+  },
+  {
+    "question": "請選出所有的質數。",
+    "category": "數學",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "2", "isAnswer": true, "explanation": "2是最小的質數，也是唯一的偶數質數。除了1和2之外沒有其他因數。" },
+      { "text": "9", "isAnswer": false, "explanation": "9不是質數。因為 9 = 3 × 3，所以除了1和9之外，3也是它的因數。" },
+      { "text": "13", "isAnswer": true, "explanation": "13是質數，除了1和13之外沒有其他因數。" },
+      { "text": "15", "isAnswer": false, "explanation": "15不是質數。因為 15 = 3 × 5，所以除了1和15之外，3和5也是它的因數。" }
+    ]
+  },
+  {
+    "question": "在直角三角形中，斜邊長度為5、另一邊為3時，剩餘的一邊長度是多少？",
+    "category": "數學",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "2", "isAnswer": false, "explanation": "以畢氏定理 a² + b² = c² 驗證，3² + 2² = 9 + 4 = 13 ≠ 25 = 5²，因此2不是正確答案。" },
+      { "text": "4", "isAnswer": true, "explanation": "根據畢氏定理，a² + b² = c²。3² + b² = 5² → 9 + b² = 25 → b² = 16 → b = 4。3:4:5是經典的畢氏三元組。" },
+      { "text": "6", "isAnswer": false, "explanation": "斜邊（最長邊）為5，因此其他邊不可能是6。在直角三角形中，斜邊一定是最長的邊。" },
+      { "text": "√34", "isAnswer": false, "explanation": "3² + 5² = 34，所以 √34 ≈ 5.83，但這是將3和5作為直角兩邊時的斜邊長度。題目已指定斜邊為5。" }
+    ]
+  },
+  {
+    "question": "1到10的自然數總和是多少？",
+    "category": "數學",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "45", "isAnswer": false, "explanation": "45是1到9的總和，別忘了還要加上10。" },
+      { "text": "55", "isAnswer": true, "explanation": "1+2+3+...+10 = 55。使用高斯公式 n(n+1)/2 可以快速計算：10×11÷2 = 55。" },
+      { "text": "50", "isAnswer": false, "explanation": "50並非正確答案。利用高斯公式 n(n+1)/2 計算，10×11÷2 = 55。" },
+      { "text": "100", "isAnswer": false, "explanation": "100並非1到10的總和。根據公式 1+2+...+n = n(n+1)/2，當 n=10 時結果為55。" }
+    ]
+  },
+  {
+    "question": "聯合國的常任理事國是哪個國家？",
+    "category": "社會",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "日本", "isAnswer": false, "explanation": "日本是聯合國會員國，曾多次當選安全理事會的非常任理事國，但並非常任理事國。" },
+      { "text": "德國", "isAnswer": false, "explanation": "德國是歐盟最大的經濟體，但並非常任理事國。" },
+      { "text": "法國", "isAnswer": true, "explanation": "法國是聯合國安全理事會5個常任理事國之一。常任理事國包括美國、英國、法國、俄羅斯和中國，均擁有否決權。" },
+      { "text": "印度", "isAnswer": false, "explanation": "印度是全球人口最多的國家，但並非常任理事國。" }
+    ]
+  },
+  {
+    "question": "請選出所有屬於溫室氣體的選項。",
+    "category": "社會",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "二氧化碳（CO2）", "isAnswer": true, "explanation": "二氧化碳是最具代表性的溫室氣體。化石燃料的燃燒是其主要排放來源，被認為是全球暖化的最大原因。" },
+      { "text": "甲烷（CH4）", "isAnswer": true, "explanation": "甲烷的溫室效應約為二氧化碳的25倍。主要來自畜牧業、稻田和天然氣開採等。" },
+      { "text": "氮氣（N2）", "isAnswer": false, "explanation": "氮氣（N2）約佔大氣的78%，但並非溫室氣體。因為其化學性質穩定，不會吸收紅外線。" },
+      { "text": "氧化亞氮（N2O）", "isAnswer": true, "explanation": "氧化亞氮是溫室氣體之一，其溫室效應約為二氧化碳的300倍。農業肥料的使用是其主要排放來源。" }
+    ]
+  },
+  {
+    "question": "「世界人權宣言」在聯合國大會通過是哪一年？",
+    "category": "社會",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "1945年", "isAnswer": false, "explanation": "1945年是聯合國成立的年份。世界人權宣言的通過是在三年之後。" },
+      { "text": "1948年", "isAnswer": true, "explanation": "世界人權宣言於1948年12月10日在聯合國大會通過。這是一份確立所有人與生俱來之基本權利的重要文件。這一天被定為「世界人權日」。" },
+      { "text": "1955年", "isAnswer": false, "explanation": "1955年是萬隆會議（亞非會議）召開的年份。世界人權宣言在此之前的1948年就已通過。" },
+      { "text": "1960年", "isAnswer": false, "explanation": "1960年被稱為「非洲之年」，許多非洲國家在這一年獨立。世界人權宣言在此之前的1948年就已通過。" }
+    ]
+  },
+  {
+    "question": "請選出所有屬於再生能源的選項。",
+    "category": "社會",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "太陽能發電", "isAnswer": true, "explanation": "太陽能發電是將太陽的光能轉換為電能的再生能源。由於資源不會枯竭，是一種可持續的能源。" },
+      { "text": "風力發電", "isAnswer": true, "explanation": "風力發電是將風的動能轉換為電能的再生能源。不僅設置在陸地上，也有設置在海上的。" },
+      { "text": "燃煤火力發電", "isAnswer": false, "explanation": "燃煤火力發電使用化石燃料，因此不屬於再生能源，且會排放大量二氧化碳。" },
+      { "text": "水力發電", "isAnswer": true, "explanation": "水力發電是利用水流的再生能源，是世界上最早被使用的再生能源之一。" }
+    ]
+  }
+]
