@@ -45,7 +45,8 @@ fn minimal_questions() -> Vec<Question> {
 
 #[tokio::test]
 async fn test_db_connection() {
-    let _db = create_test_db().await;
+    let db = create_test_db().await;
+    assert!(db.migration_applied("V1").await.unwrap());
 }
 
 #[tokio::test]
@@ -66,7 +67,10 @@ async fn test_admin_password() {
 async fn test_quiz_crud() {
     let db = create_test_db().await;
 
-    let quiz_id = db.load_quiz("Test Quiz".to_string(), sample_questions()).await.unwrap();
+    let quiz_id = db
+        .load_quiz("Test Quiz".to_string(), sample_questions())
+        .await
+        .unwrap();
     assert!(quiz_id > 0);
 
     let quizzes = db.quizzes().await.unwrap();
@@ -85,8 +89,14 @@ async fn test_quiz_crud() {
 async fn test_session_creation() {
     let db = create_test_db().await;
 
-    let quiz_id = db.load_quiz("Quiz".to_string(), minimal_questions()).await.unwrap();
-    let token = db.create_session("session-1", quiz_id, 5, "random").await.unwrap();
+    let quiz_id = db
+        .load_quiz("Quiz".to_string(), minimal_questions())
+        .await
+        .unwrap();
+    let token = db
+        .create_session("session-1", quiz_id, 5, "random")
+        .await
+        .unwrap();
     assert!(!token.is_empty());
 
     let session = db.get_session(&token).await.unwrap();
@@ -98,8 +108,13 @@ async fn test_session_creation() {
 async fn test_duplicate_session_name() {
     let db = create_test_db().await;
 
-    let quiz_id = db.load_quiz("Quiz".to_string(), minimal_questions()).await.unwrap();
-    db.create_session("dupe", quiz_id, 5, "random").await.unwrap();
+    let quiz_id = db
+        .load_quiz("Quiz".to_string(), minimal_questions())
+        .await
+        .unwrap();
+    db.create_session("dupe", quiz_id, 5, "random")
+        .await
+        .unwrap();
 
     // Same name, same quiz -> should fail
     let result = db.create_session("dupe", quiz_id, 5, "random").await;
@@ -111,7 +126,10 @@ async fn test_duplicate_session_name() {
 async fn test_session_count() {
     let db = create_test_db().await;
 
-    let quiz_id = db.load_quiz("Quiz".to_string(), minimal_questions()).await.unwrap();
+    let quiz_id = db
+        .load_quiz("Quiz".to_string(), minimal_questions())
+        .await
+        .unwrap();
     assert_eq!(db.sessions_count(quiz_id).await.unwrap(), 0);
 
     db.create_session("s1", quiz_id, 5, "random").await.unwrap();
