@@ -138,3 +138,71 @@ async fn test_session_count() {
     db.create_session("s2", quiz_id, 5, "random").await.unwrap();
     assert_eq!(db.sessions_count(quiz_id).await.unwrap(), 2);
 }
+
+#[tokio::test]
+async fn test_delete_session() {
+    let db = create_test_db().await;
+
+    let quiz_id = db
+        .load_quiz("Quiz".to_string(), minimal_questions())
+        .await
+        .unwrap();
+    let token = db
+        .create_session("to-delete", quiz_id, 5, "random")
+        .await
+        .unwrap();
+    let session = db.get_session(&token).await.unwrap();
+
+    assert_eq!(db.sessions_count(quiz_id).await.unwrap(), 1);
+
+    db.delete_session(session.id).await.unwrap();
+    assert_eq!(db.sessions_count(quiz_id).await.unwrap(), 0);
+
+    // Session should no longer be retrievable
+    assert!(db.get_session(&token).await.is_err());
+}
+
+#[tokio::test]
+async fn test_rename_session() {
+    let db = create_test_db().await;
+
+    let quiz_id = db
+        .load_quiz("Quiz".to_string(), minimal_questions())
+        .await
+        .unwrap();
+    let token = db
+        .create_session("old-name", quiz_id, 5, "random")
+        .await
+        .unwrap();
+    let session = db.get_session(&token).await.unwrap();
+
+    db.rename_session(session.id, "new-name", quiz_id)
+        .await
+        .unwrap();
+
+    let renamed = db.get_session_by_id(session.id).await.unwrap();
+    assert_eq!(renamed.name, "new-name");
+}
+
+#[tokio::test]
+async fn test_rename_session_duplicate() {
+    let db = create_test_db().await;
+
+    let quiz_id = db
+        .load_quiz("Quiz".to_string(), minimal_questions())
+        .await
+        .unwrap();
+    db.create_session("existing", quiz_id, 5, "random")
+        .await
+        .unwrap();
+    let token2 = db
+        .create_session("to-rename", quiz_id, 5, "random")
+        .await
+        .unwrap();
+    let session2 = db.get_session(&token2).await.unwrap();
+
+    // Renaming to an existing name should fail
+    let result = db.rename_session(session2.id, "existing", quiz_id).await;
+    assert!(result.is_err());
+    assert!(result.unwrap_err().to_string().contains("already in use"));
+}

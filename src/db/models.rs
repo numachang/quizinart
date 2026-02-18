@@ -64,6 +64,13 @@ pub struct QuizOverallStats {
     pub total_answered: i32,
 }
 
+pub struct SessionCategoryAccuracy {
+    pub session_id: i32,
+    pub session_name: String,
+    pub category: String,
+    pub accuracy: f64,
+}
+
 pub struct QuizCategoryOverallStats {
     pub category: String,
     pub total_in_category: i32,

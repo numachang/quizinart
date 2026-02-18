@@ -7,10 +7,7 @@ pub use dashboard::dashboard;
 use serde::Deserialize;
 use warp::Filter;
 
-use crate::{
-    db::Db,
-    is_authorized, is_htmx, names, with_locale, with_state,
-};
+use crate::{db::Db, is_authorized, is_htmx, names, with_locale, with_state};
 
 /// Deserialize a value that may be either a JSON number or a string containing a number.
 /// HTML forms via htmx json-enc always send values as strings.
@@ -21,8 +18,12 @@ fn deserialize_string_or_i32<'de, D: serde::Deserializer<'de>>(d: D) -> Result<i
         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             f.write_str("number or numeric string")
         }
-        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<i32, E> { Ok(v as i32) }
-        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<i32, E> { Ok(v as i32) }
+        fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<i32, E> {
+            Ok(v as i32)
+        }
+        fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<i32, E> {
+            Ok(v as i32)
+        }
         fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<i32, E> {
             v.parse().map_err(E::custom)
         }
@@ -33,7 +34,10 @@ fn deserialize_string_or_i32<'de, D: serde::Deserializer<'de>>(d: D) -> Result<i
 #[derive(Deserialize)]
 struct StartSessionBody {
     name: String,
-    #[serde(default = "default_question_count", deserialize_with = "deserialize_string_or_i32")]
+    #[serde(
+        default = "default_question_count",
+        deserialize_with = "deserialize_string_or_i32"
+    )]
     question_count: i32,
     #[serde(default = "default_selection_mode")]
     selection_mode: String,
@@ -53,6 +57,11 @@ struct SubmitAnswerBody {
     option: Option<String>,
     #[serde(default)]
     options: Vec<String>,
+}
+
+#[derive(Deserialize)]
+struct RenameSessionBody {
+    name: String,
 }
 
 #[derive(Deserialize)]
@@ -125,6 +134,19 @@ pub fn route(
         .and(with_locale())
         .and_then(session::retry_incorrect);
 
+    let delete_session = warp::delete()
+        .and(with_state(conn.clone()))
+        .and(warp::path!("session" / i32 / "delete"))
+        .and(with_locale())
+        .and_then(session::delete_session);
+
+    let rename_session = warp::patch()
+        .and(with_state(conn.clone()))
+        .and(warp::path!("session" / i32 / "rename"))
+        .and(warp::body::json::<RenameSessionBody>())
+        .and(with_locale())
+        .and_then(session::rename_session);
+
     quiz_dashboard
         .or(quiz_page)
         .or(start_session)
@@ -133,4 +155,6 @@ pub fn route(
         .or(resume_session)
         .or(navigate_question)
         .or(retry_incorrect)
+        .or(delete_session)
+        .or(rename_session)
 }

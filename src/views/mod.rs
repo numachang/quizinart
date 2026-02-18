@@ -1,5 +1,5 @@
-pub mod layout;
 pub mod homepage;
+pub mod layout;
 pub mod quiz;
 
 // Re-export commonly used functions from layout

@@ -2,8 +2,10 @@ use color_eyre::{eyre::OptionExt, Result};
 use futures::{future, StreamExt, TryStreamExt};
 use libsql::params;
 
+use super::models::{
+    QuestionModel, QuestionOptionModel, QuizCategoryOverallStats, QuizOverallStats,
+};
 use super::Db;
-use super::models::{QuestionModel, QuestionOptionModel, QuizOverallStats, QuizCategoryOverallStats};
 
 impl Db {
     pub async fn get_question(&self, question_id: i32) -> Result<QuestionModel> {
@@ -39,7 +41,11 @@ impl Db {
             .collect::<Vec<_>>()
             .await;
 
-        Ok(QuestionModel { question, is_multiple_choice, options })
+        Ok(QuestionModel {
+            question,
+            is_multiple_choice,
+            options,
+        })
     }
 
     pub async fn question_id_from_idx(&self, quiz_id: i32, question_idx: i32) -> Result<i32> {
@@ -154,7 +160,10 @@ impl Db {
         }
     }
 
-    pub async fn get_quiz_category_stats(&self, quiz_id: i32) -> Result<Vec<QuizCategoryOverallStats>> {
+    pub async fn get_quiz_category_stats(
+        &self,
+        quiz_id: i32,
+    ) -> Result<Vec<QuizCategoryOverallStats>> {
         let conn = self.db.connect()?;
         Ok(conn
             .query(

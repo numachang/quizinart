@@ -30,6 +30,14 @@ pub fn resume_session_url(session_id: i32, token: &str) -> String {
     format!("/resume-session/{session_id}/{token}")
 }
 
+pub fn delete_session_url(session_id: i32) -> String {
+    format!("/session/{session_id}/delete")
+}
+
+pub fn rename_session_url(session_id: i32) -> String {
+    format!("/session/{session_id}/rename")
+}
+
 // Quiz session defaults
 pub const MIN_QUESTION_COUNT: i32 = 5;
 pub const MAX_QUESTION_COUNT: i32 = 30;

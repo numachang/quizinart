@@ -40,7 +40,9 @@ pub fn is_authorized(
 ) -> impl Filter<Extract = ((),), Error = warp::reject::Rejection> + Clone {
     warp::any()
         .and(with_state(db.clone()))
-        .and(warp::cookie::optional::<String>(names::ADMIN_SESSION_COOKIE_NAME))
+        .and(warp::cookie::optional::<String>(
+            names::ADMIN_SESSION_COOKIE_NAME,
+        ))
         .and_then(authorized)
 }
 

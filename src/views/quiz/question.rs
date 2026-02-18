@@ -1,6 +1,6 @@
+use crate::{db::QuestionModel, names};
 use maud::{html, Markup};
 use rust_i18n::t;
-use crate::{db::QuestionModel, names};
 
 pub struct QuestionData {
     pub quiz_name: String,

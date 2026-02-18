@@ -2,8 +2,8 @@ use color_eyre::{eyre::OptionExt, Result};
 use futures::{future, StreamExt, TryStreamExt};
 use libsql::params;
 
-use super::Db;
 use super::models::Quiz;
+use super::Db;
 use crate::models::{Question, Questions};
 
 impl Db {
@@ -20,7 +20,13 @@ impl Db {
             .ok_or_eyre("could not get quiz id")?
             .get::<i32>(0)?;
 
-        for Question { question, category, is_multiple_choice, options } in questions {
+        for Question {
+            question,
+            category,
+            is_multiple_choice,
+            options,
+        } in questions
+        {
             let question_id = conn
                 .query(
                     "INSERT INTO questions (question, category, is_multiple_choice, quiz_id) VALUES (?, ?, ?, ?) RETURNING id",

@@ -1,13 +1,15 @@
-use maud::{html, Markup};
-use rust_i18n::t;
+use std::collections::{BTreeMap, BTreeSet};
+
+use super::selection_mode_label;
 use crate::{
     db::{
-        AnswerModel, CategoryStats, QuizCategoryOverallStats,
-        QuizOverallStats, SessionReportModel,
+        AnswerModel, CategoryStats, QuizCategoryOverallStats, QuizOverallStats,
+        SessionCategoryAccuracy, SessionReportModel,
     },
     names,
 };
-use super::selection_mode_label;
+use maud::{html, Markup, PreEscaped};
+use rust_i18n::t;
 
 pub struct DashboardData {
     pub quiz_name: String,
@@ -16,6 +18,7 @@ pub struct DashboardData {
     pub sessions: Vec<SessionReportModel>,
     pub overall: QuizOverallStats,
     pub cat_stats: Vec<QuizCategoryOverallStats>,
+    pub trends: Vec<SessionCategoryAccuracy>,
 }
 
 pub struct SessionResultData {
@@ -117,6 +120,16 @@ pub fn dashboard(data: DashboardData, locale: &str) -> Markup {
             }
         }
 
+        @if !data.trends.is_empty() {
+            article {
+                h4 { (t!("dashboard.progress_graph", locale = locale)) }
+                div style="position: relative; width: 100%; max-height: 400px;" {
+                    canvas id="progress-chart" {}
+                }
+                (progress_chart_script(&data.trends, locale))
+            }
+        }
+
         @if !data.sessions.is_empty() {
             article {
                 h4 { (t!("dashboard.session_history", locale = locale)) }
@@ -127,6 +140,7 @@ pub fn dashboard(data: DashboardData, locale: &str) -> Markup {
                         th { (t!("dashboard.progress", locale = locale)) }
                         th { (t!("dashboard.score", locale = locale)) }
                         th { (t!("dashboard.status", locale = locale)) }
+                        th { (t!("dashboard.actions", locale = locale)) }
                     } }
                     tbody {
                         @for s in &data.sessions {
@@ -167,12 +181,104 @@ pub fn dashboard(data: DashboardData, locale: &str) -> Markup {
                                         span style="color: #6c757d; font-weight: 500;" { (t!("dashboard.in_progress", locale = locale)) }
                                     }
                                 }
+                                td style="white-space: nowrap;" {
+                                    @let safe_name = serde_json::to_string(&s.name).unwrap_or_default();
+                                    @let prompt_label = serde_json::to_string(&t!("dashboard.rename_prompt", locale = locale).to_string()).unwrap_or_default();
+                                    @let rename_js = format!(
+                                        "var n=prompt({},{});if(n)htmx.ajax('PATCH','{}',{{target:'main',swap:'innerHTML',values:{{name:n}}}})",
+                                        prompt_label, safe_name, names::rename_session_url(s.id),
+                                    );
+                                    button onclick=(rename_js)
+                                           style="width:fit-content;padding:0.25rem 0.5rem;font-size:0.8rem;margin-right:0.25rem;" {
+                                        (t!("dashboard.rename_btn", locale = locale))
+                                    }
+                                    button hx-delete=(names::delete_session_url(s.id))
+                                           hx-target="main"
+                                           hx-swap="innerHTML"
+                                           hx-confirm=(t!("dashboard.delete_session_confirm", locale = locale))
+                                           style="width:fit-content;padding:0.25rem 0.5rem;font-size:0.8rem;background-color:#dc3545;color:white;" {
+                                        (t!("dashboard.delete_btn", locale = locale))
+                                    }
+                                }
                              }
                         }
                     }
                 }
             }
         }
+    }
+}
+
+const CHART_COLORS: &[&str] = &[
+    "#4e79a7", "#f28e2b", "#e15759", "#76b7b2", "#59a14f", "#edc948", "#b07aa1", "#ff9da7",
+    "#9c755f", "#bab0ac",
+];
+
+fn progress_chart_script(trends: &[SessionCategoryAccuracy], locale: &str) -> Markup {
+    // Collect ordered session labels and categories
+    let mut session_labels: Vec<String> = Vec::new();
+    let mut session_id_order: Vec<i32> = Vec::new();
+    let mut categories: BTreeSet<String> = BTreeSet::new();
+
+    for t in trends {
+        if !session_id_order.contains(&t.session_id) {
+            session_id_order.push(t.session_id);
+            session_labels.push(t.session_name.clone());
+        }
+        categories.insert(t.category.clone());
+    }
+
+    // Build lookup: (session_id, category) -> accuracy
+    let mut lookup: BTreeMap<(i32, &str), f64> = BTreeMap::new();
+    for t in trends {
+        lookup.insert((t.session_id, &t.category), t.accuracy);
+    }
+
+    // Build datasets JSON
+    let labels_json = serde_json::to_string(&session_labels).unwrap_or_default();
+    let mut datasets_json = String::from("[");
+    for (i, cat) in categories.iter().enumerate() {
+        let color = CHART_COLORS[i % CHART_COLORS.len()];
+        let data_points: Vec<String> = session_id_order
+            .iter()
+            .map(|sid| match lookup.get(&(*sid, cat.as_str())) {
+                Some(v) => format!("{v}"),
+                None => "null".to_string(),
+            })
+            .collect();
+        let cat_json = serde_json::to_string(cat).unwrap_or_default();
+        if i > 0 {
+            datasets_json.push(',');
+        }
+        datasets_json.push_str(&format!(
+            "{{label:{cat_json},data:[{}],borderColor:'{color}',backgroundColor:'{color}',tension:0.3,spanGaps:true}}",
+            data_points.join(",")
+        ));
+    }
+    datasets_json.push(']');
+
+    let y_label =
+        serde_json::to_string(&t!("dashboard.progress_graph_yaxis", locale = locale).to_string())
+            .unwrap_or_default();
+    let session_label =
+        serde_json::to_string(&t!("dashboard.progress_graph_session", locale = locale).to_string())
+            .unwrap_or_default();
+
+    let script = format!(
+        r#"(function(){{
+var s=document.createElement('script');
+s.src='/static/chart.min.js';
+s.onload=function(){{
+var ctx=document.getElementById('progress-chart');
+if(!ctx)return;
+new Chart(ctx,{{type:'line',data:{{labels:{labels_json},datasets:{datasets_json}}},options:{{responsive:true,plugins:{{legend:{{position:'bottom'}}}},scales:{{y:{{min:0,max:100,title:{{display:true,text:{y_label}}}}},x:{{title:{{display:true,text:{session_label}}}}}}}}}}});
+}};
+document.head.appendChild(s);
+}})()"#
+    );
+
+    html! {
+        (PreEscaped(format!("<script>{script}</script>")))
     }
 }
 

@@ -2,9 +2,9 @@ mod dashboard;
 mod question;
 mod session;
 
-pub use dashboard::{DashboardData, SessionResultData, dashboard, session_result};
-pub use question::{AnswerData, QuestionData, answer, question};
-pub use session::{StartPageData, session_name_error_page, start_page};
+pub use dashboard::{dashboard, session_result, DashboardData, SessionResultData};
+pub use question::{answer, question, AnswerData, QuestionData};
+pub use session::{session_name_error_page, start_page, StartPageData};
 
 use rust_i18n::t;
 

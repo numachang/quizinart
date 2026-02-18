@@ -1,6 +1,6 @@
+use crate::names;
 use maud::{html, Markup, PreEscaped};
 use rust_i18n::t;
-use crate::names;
 
 pub struct StartPageData {
     pub quiz_name: String,

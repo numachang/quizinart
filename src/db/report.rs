@@ -2,8 +2,8 @@ use color_eyre::Result;
 use futures::{future, StreamExt, TryStreamExt};
 use libsql::params;
 
+use super::models::{QuestionStatsModel, SessionCategoryAccuracy, SessionReportModel};
 use super::Db;
-use super::models::{QuestionStatsModel, SessionReportModel};
 
 impl Db {
     pub async fn get_questions_report(&self, quiz_id: i32) -> Result<Vec<QuestionStatsModel>> {
@@ -32,10 +32,7 @@ impl Db {
             .await)
     }
 
-    pub async fn get_sessions_report(
-        &self,
-        quiz_id: i32,
-    ) -> Result<Vec<SessionReportModel>> {
+    pub async fn get_sessions_report(&self, quiz_id: i32) -> Result<Vec<SessionReportModel>> {
         let conn = self.db.connect()?;
         Ok(conn
             .query(
@@ -68,6 +65,38 @@ impl Db {
                 is_complete: r.get::<bool>(6).unwrap_or(false),
                 question_count: r.get::<Option<i32>>(7).ok().flatten(),
                 selection_mode: r.get::<Option<String>>(8).ok().flatten(),
+            })
+            .filter_map(|r| future::ready(r.ok()))
+            .collect::<Vec<_>>()
+            .await)
+    }
+
+    pub async fn get_session_category_trends(
+        &self,
+        quiz_id: i32,
+    ) -> Result<Vec<SessionCategoryAccuracy>> {
+        let conn = self.db.connect()?;
+        Ok(conn
+            .query(
+                r#"
+            SELECT s.id, s.name, q.category,
+                   ROUND(CAST(SUM(CASE WHEN sq.is_correct = 1 THEN 1 ELSE 0 END) AS REAL) * 100.0 / COUNT(*), 1) AS accuracy
+            FROM session_questions sq
+            JOIN quiz_sessions s ON s.id = sq.session_id
+            JOIN questions q ON q.id = sq.question_id
+            WHERE s.quiz_id = ? AND q.category IS NOT NULL AND sq.is_correct IS NOT NULL
+            GROUP BY s.id, q.category
+            ORDER BY s.id ASC
+                "#,
+                params![quiz_id],
+            )
+            .await?
+            .into_stream()
+            .map_ok(|r| SessionCategoryAccuracy {
+                session_id: r.get::<i32>(0).expect("failed to get session id"),
+                session_name: r.get::<String>(1).expect("failed to get session name"),
+                category: r.get::<String>(2).expect("failed to get category"),
+                accuracy: r.get::<f64>(3).unwrap_or(0.0),
             })
             .filter_map(|r| future::ready(r.ok()))
             .collect::<Vec<_>>()

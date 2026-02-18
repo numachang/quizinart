@@ -25,7 +25,9 @@ pub fn route(
     let homepage = warp::path::end()
         .and(warp::get())
         .and(with_state(conn.clone()))
-        .and(warp::cookie::optional::<String>(names::ADMIN_SESSION_COOKIE_NAME))
+        .and(warp::cookie::optional::<String>(
+            names::ADMIN_SESSION_COOKIE_NAME,
+        ))
         .and(with_locale())
         .and_then(homepage);
 
@@ -84,13 +86,28 @@ async fn homepage(
 
     if session_exists {
         let quizzes = db.quizzes().await.reject("could not get quizzes")?;
-        Ok(views::page("Dashboard", homepage_views::dashboard(quizzes, &locale), &locale))
+        Ok(views::page(
+            "Dashboard",
+            homepage_views::dashboard(quizzes, &locale),
+            &locale,
+        ))
     } else {
-        let admin_password = db.admin_password().await.reject("could not get admin password")?;
+        let admin_password = db
+            .admin_password()
+            .await
+            .reject("could not get admin password")?;
 
         match admin_password {
-            Some(_) => Ok(views::page("Welcome Back", homepage_views::login(homepage_views::LoginState::NoError, &locale), &locale)),
-            None => Ok(views::page("Get Started", homepage_views::get_started(&locale), &locale)),
+            Some(_) => Ok(views::page(
+                "Welcome Back",
+                homepage_views::login(homepage_views::LoginState::NoError, &locale),
+                &locale,
+            )),
+            None => Ok(views::page(
+                "Get Started",
+                homepage_views::get_started(&locale),
+                &locale,
+            )),
         }
     }
 }
@@ -109,7 +126,10 @@ async fn get_started_post(
         .await
         .reject("could not set admin password")?;
 
-    let session = db.create_admin_session().await.reject("could not create admin session")?;
+    let session = db
+        .create_admin_session()
+        .await
+        .reject("could not create admin session")?;
 
     let cookie = utils::cookie(names::ADMIN_SESSION_COOKIE_NAME, &session);
     let quizzes = db.quizzes().await.reject("could not get quizzes")?;
@@ -126,22 +146,39 @@ struct LoginPost {
     admin_password: String,
 }
 
-async fn login_post(db: Db, body: LoginPost, locale: String) -> Result<impl warp::Reply, warp::Rejection> {
-    let admin_password = db.admin_password().await.reject("could not get admin password")?;
+async fn login_post(
+    db: Db,
+    body: LoginPost,
+    locale: String,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let admin_password = db
+        .admin_password()
+        .await
+        .reject("could not get admin password")?;
 
     if admin_password == Some(body.admin_password) {
-        let session = db.create_admin_session().await.reject("could not create admin session")?;
+        let session = db
+            .create_admin_session()
+            .await
+            .reject("could not create admin session")?;
 
         let cookie = utils::cookie(names::ADMIN_SESSION_COOKIE_NAME, &session);
         let quizzes = db.quizzes().await.reject("could not get quizzes")?;
         let resp = Response::builder()
             .header(SET_COOKIE, cookie)
-            .body(views::titled("Dashboard", homepage_views::dashboard(quizzes, &locale)).into_string())
+            .body(
+                views::titled("Dashboard", homepage_views::dashboard(quizzes, &locale))
+                    .into_string(),
+            )
             .unwrap();
 
         Ok(resp.into_response())
     } else {
-        Ok(views::titled("Welcome Back", homepage_views::login(homepage_views::LoginState::IncorrectPassword, &locale)).into_response())
+        Ok(views::titled(
+            "Welcome Back",
+            homepage_views::login(homepage_views::LoginState::IncorrectPassword, &locale),
+        )
+        .into_response())
     }
 }
 
@@ -185,12 +222,19 @@ async fn create_quiz(
     let questions = serde_json::from_str::<models::Questions>(&quiz_file)
         .reject_input("failed to decode quiz file")?;
 
-    let quiz_id = db.load_quiz(quiz_name, questions).await.reject_input("failed to load quiz")?;
+    let quiz_id = db
+        .load_quiz(quiz_name, questions)
+        .await
+        .reject_input("failed to load quiz")?;
 
     let resp = Response::builder()
         .header("HX-Replace-Url", names::quiz_dashboard_url(quiz_id))
         .body(
-            views::titled("Quiz Dashboard", quiz::dashboard(&db, quiz_id, &locale).await?).into_string(),
+            views::titled(
+                "Quiz Dashboard",
+                quiz::dashboard(&db, quiz_id, &locale).await?,
+            )
+            .into_string(),
         )
         .unwrap();
 
@@ -198,7 +242,9 @@ async fn create_quiz(
 }
 
 async fn delete_quiz(_: (), db: Db, quiz_id: i32) -> Result<impl warp::Reply, warp::Rejection> {
-    db.delete_quiz(quiz_id).await.reject("failed to delete quiz")?;
+    db.delete_quiz(quiz_id)
+        .await
+        .reject("failed to delete quiz")?;
 
     Ok(html!())
 }

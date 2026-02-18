@@ -5,6 +5,7 @@ use warp::{
     reject::Rejection,
 };
 
+use super::StartSessionBody;
 use crate::{
     db::Db,
     names,
@@ -12,7 +13,6 @@ use crate::{
     utils, views,
     views::quiz as quiz_views,
 };
-use super::StartSessionBody;
 
 pub(crate) async fn start_session(
     db: Db,
@@ -20,7 +20,9 @@ pub(crate) async fn start_session(
     body: StartSessionBody,
     locale: String,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let question_count = body.question_count.clamp(names::MIN_QUESTION_COUNT, names::MAX_QUESTION_COUNT);
+    let question_count = body
+        .question_count
+        .clamp(names::MIN_QUESTION_COUNT, names::MAX_QUESTION_COUNT);
 
     let selection_mode = if names::SELECTION_MODES.contains(&body.selection_mode.as_str()) {
         body.selection_mode.as_str()
@@ -51,17 +53,25 @@ pub(crate) async fn start_session(
         }
         Err(e) => {
             tracing::error!("could not create session for quiz={quiz_id}: {e}");
-            return Err(warp::reject::custom(AppError::Internal("could not create session")));
+            return Err(warp::reject::custom(AppError::Internal(
+                "could not create session",
+            )));
         }
     };
 
-    let session = db.get_session(&session_token).await
+    let session = db
+        .get_session(&session_token)
+        .await
         .reject("could not get session")?;
 
-    let quiz_name = db.quiz_name(quiz_id).await
+    let quiz_name = db
+        .quiz_name(quiz_id)
+        .await
         .reject("could not get quiz name")?;
 
-    let question_idx = db.current_question_index(session.id).await
+    let question_idx = db
+        .current_question_index(session.id)
+        .await
         .reject("could not get current question index")?;
 
     let page = views::titled(
@@ -83,25 +93,35 @@ pub(crate) async fn resume_session(
     token: String,
     locale: String,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    tracing::info!(
-        "Resuming session {} with token {}",
-        session_id,
-        token
-    );
+    tracing::info!("Resuming session {} with token {}", session_id, token);
 
-    let session = db.get_session(&token).await
+    let session = db
+        .get_session(&token)
+        .await
         .reject("could not get session")?;
 
-    let quiz_name = db.quiz_name(session.quiz_id).await
+    let quiz_name = db
+        .quiz_name(session.quiz_id)
+        .await
         .reject("could not get quiz name")?;
 
-    let question_idx = db.current_question_index(session.id).await
+    let question_idx = db
+        .current_question_index(session.id)
+        .await
         .reject("could not get current question index")?;
 
     let is_resuming = question_idx > 0;
     let page = views::titled(
         &quiz_name,
-        super::question::question(&db, session.id, session.quiz_id, question_idx, is_resuming, &locale).await?,
+        super::question::question(
+            &db,
+            session.id,
+            session.quiz_id,
+            question_idx,
+            is_resuming,
+            &locale,
+        )
+        .await?,
     );
     let cookie_header = utils::cookie(names::QUIZ_SESSION_COOKIE_NAME, &token);
 
@@ -118,24 +138,29 @@ pub(crate) async fn retry_incorrect(
     session_id: i32,
     locale: String,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let session = db.get_session_by_id(session_id).await
+    let session = db
+        .get_session_by_id(session_id)
+        .await
         .reject("could not get session")?;
 
-    let incorrect_ids = db.get_incorrect_questions(session_id).await
+    let incorrect_ids = db
+        .get_incorrect_questions(session_id)
+        .await
         .reject("could not get incorrect questions")?;
 
     if incorrect_ids.is_empty() {
-        let page = views::titled("Results", html! {
-            p { (t!("result.no_incorrect", locale = &locale)) }
-            button hx-get=(names::results_url(session_id))
-                   hx-push-url="true"
-                   hx-target="main" {
-                (t!("result.back_to_results", locale = &locale))
-            }
-        });
-        return Ok(Response::builder()
-            .body(page.into_string())
-            .unwrap());
+        let page = views::titled(
+            "Results",
+            html! {
+                p { (t!("result.no_incorrect", locale = &locale)) }
+                button hx-get=(names::results_url(session_id))
+                       hx-push-url="true"
+                       hx-target="main" {
+                    (t!("result.back_to_results", locale = &locale))
+                }
+            },
+        );
+        return Ok(Response::builder().body(page.into_string()).unwrap());
     }
 
     let suffix = &ulid::Ulid::new().to_string()[..6];
@@ -146,10 +171,14 @@ pub(crate) async fn retry_incorrect(
         .await
         .reject("could not create retry session")?;
 
-    let new_session = db.get_session(&token).await
+    let new_session = db
+        .get_session(&token)
+        .await
         .reject("could not get new session")?;
 
-    let quiz_name = db.quiz_name(session.quiz_id).await
+    let quiz_name = db
+        .quiz_name(session.quiz_id)
+        .await
         .reject("could not get quiz name")?;
 
     let page = views::titled(
@@ -164,16 +193,66 @@ pub(crate) async fn retry_incorrect(
         .unwrap())
 }
 
+pub(crate) async fn delete_session(
+    db: Db,
+    session_id: i32,
+    locale: String,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let session = db
+        .get_session_by_id(session_id)
+        .await
+        .reject("could not get session")?;
+    let quiz_id = session.quiz_id;
+
+    db.delete_session(session_id)
+        .await
+        .reject("could not delete session")?;
+
+    Ok(views::titled(
+        "Quiz Dashboard",
+        super::dashboard::dashboard(&db, quiz_id, &locale).await?,
+    ))
+}
+
+pub(crate) async fn rename_session(
+    db: Db,
+    session_id: i32,
+    body: super::RenameSessionBody,
+    locale: String,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    let session = db
+        .get_session_by_id(session_id)
+        .await
+        .reject("could not get session")?;
+    let quiz_id = session.quiz_id;
+
+    if let Err(e) = db.rename_session(session_id, &body.name, quiz_id).await {
+        tracing::warn!("could not rename session {session_id}: {e}");
+    }
+
+    Ok(views::titled(
+        "Quiz Dashboard",
+        super::dashboard::dashboard(&db, quiz_id, &locale).await?,
+    ))
+}
+
 pub(crate) async fn page(db: &Db, quiz_id: i32, locale: &str) -> Result<Markup, Rejection> {
-    let quiz_name = db.quiz_name(quiz_id).await
+    let quiz_name = db
+        .quiz_name(quiz_id)
+        .await
         .reject("could not get quiz name")?;
 
-    let total_questions = db.questions_count(quiz_id).await
+    let total_questions = db
+        .questions_count(quiz_id)
+        .await
         .reject("could not get question count")?;
 
-    Ok(quiz_views::start_page(quiz_views::StartPageData {
-        quiz_name,
-        total_questions,
-        quiz_id,
-    }, locale))
+    Ok(quiz_views::start_page(
+        quiz_views::StartPageData {
+            quiz_name,
+            total_questions,
+            quiz_id,
+        },
+        locale,
+    ))
 }

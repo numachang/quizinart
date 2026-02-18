@@ -1,6 +1,6 @@
+use crate::{db::Quiz, names};
 use maud::{html, Markup};
 use rust_i18n::t;
-use crate::{db::Quiz, names};
 
 pub fn get_started(locale: &str) -> Markup {
     html! {

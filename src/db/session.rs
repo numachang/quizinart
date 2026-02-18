@@ -1,13 +1,13 @@
 use color_eyre::{eyre::OptionExt, Result};
 use futures::{future, StreamExt, TryStreamExt};
 use libsql::params;
-use rand::seq::SliceRandom;
 use rand::rngs::StdRng;
+use rand::seq::SliceRandom;
 use rand::SeedableRng;
 use ulid::Ulid;
 
-use super::Db;
 use super::models::QuizSessionModel;
+use super::Db;
 
 impl Db {
     pub async fn session_name_exists(&self, name: &str, quiz_id: i32) -> Result<bool> {
@@ -303,6 +303,39 @@ impl Db {
         Ok(session_token)
     }
 
+    pub async fn delete_session(&self, session_id: i32) -> Result<()> {
+        let conn = self.db.connect()?;
+        conn.execute(
+            "DELETE FROM quiz_sessions WHERE id = ?",
+            params![session_id],
+        )
+        .await?;
+        tracing::info!("deleted session {session_id}");
+        Ok(())
+    }
+
+    pub async fn rename_session(
+        &self,
+        session_id: i32,
+        new_name: &str,
+        quiz_id: i32,
+    ) -> Result<()> {
+        if self.session_name_exists(new_name, quiz_id).await? {
+            return Err(color_eyre::eyre::eyre!(
+                "Session name '{}' is already in use for this quiz.",
+                new_name
+            ));
+        }
+        let conn = self.db.connect()?;
+        conn.execute(
+            "UPDATE quiz_sessions SET name = ? WHERE id = ?",
+            params![new_name, session_id],
+        )
+        .await?;
+        tracing::info!("renamed session {session_id} to '{new_name}'");
+        Ok(())
+    }
+
     pub async fn find_incomplete_session(
         &self,
         name: &str,
@@ -322,7 +355,8 @@ impl Db {
 
             tracing::info!(
                 "Found incomplete session {} for user '{}'",
-                session_id, name
+                session_id,
+                name
             );
             return Ok(Some((session_id, session_token)));
         }

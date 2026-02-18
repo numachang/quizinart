@@ -4,6 +4,7 @@ use warp::{
     reject::Rejection,
 };
 
+use super::{NavigateQuestionQuery, SubmitAnswerBody};
 use crate::{
     db::Db,
     names,
@@ -11,7 +12,6 @@ use crate::{
     utils, views,
     views::quiz as quiz_views,
 };
-use super::{SubmitAnswerBody, NavigateQuestionQuery};
 
 pub(crate) async fn quiz_page(
     is_htmx: bool,
@@ -26,9 +26,19 @@ pub(crate) async fn quiz_page(
 
             match res {
                 Ok(session) => {
-                    let question_idx = db.current_question_index(session.id).await
+                    let question_idx = db
+                        .current_question_index(session.id)
+                        .await
                         .reject("could not get current question index")?;
-                    question(&db, session.id, session.quiz_id, question_idx, false, &locale).await?
+                    question(
+                        &db,
+                        session.id,
+                        session.quiz_id,
+                        question_idx,
+                        false,
+                        &locale,
+                    )
+                    .await?
                 }
                 Err(e) => {
                     tracing::error!("could not get session for {token}: {e}");
@@ -52,8 +62,8 @@ pub(crate) async fn submit_answer_raw(
     body_bytes: bytes::Bytes,
     locale: String,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let body_str = String::from_utf8(body_bytes.to_vec())
-        .reject_input("failed to parse body as UTF-8")?;
+    let body_str =
+        String::from_utf8(body_bytes.to_vec()).reject_input("failed to parse body as UTF-8")?;
 
     let mut option: Option<String> = None;
     let mut options: Vec<String> = Vec::new();
@@ -87,7 +97,9 @@ async fn submit_answer(
     body: SubmitAnswerBody,
     locale: &str,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let session = db.get_session(&token).await
+    let session = db
+        .get_session(&token)
+        .await
         .reject("could not get session")?;
 
     let selected_ids: Vec<i32> = if !body.options.is_empty() {
@@ -96,24 +108,33 @@ async fn submit_answer(
             .filter_map(|s| s.parse::<i32>().ok())
             .collect()
     } else if let Some(option) = body.option {
-        vec![option.parse::<i32>()
+        vec![option
+            .parse::<i32>()
             .reject_input("failed to parse option id")?]
     } else {
         tracing::error!("no options provided");
         return Err(warp::reject::custom(AppError::Input("no options provided")));
     };
 
-    let question_idx = db.current_question_index(session.id).await
+    let question_idx = db
+        .current_question_index(session.id)
+        .await
         .reject("could not get current question index")?;
 
-    let question_id = db.get_question_by_idx(session.id, question_idx).await
+    let question_id = db
+        .get_question_by_idx(session.id, question_idx)
+        .await
         .reject("could not get question id")?;
 
-    let question_data = db.get_question(question_id).await
+    let question_data = db
+        .get_question(question_id)
+        .await
         .reject("could not get question")?;
 
     let is_correct = {
-        let correct_ids = db.get_correct_option_ids(question_id).await
+        let correct_ids = db
+            .get_correct_option_ids(question_id)
+            .await
             .reject("could not get correct option ids")?;
 
         if question_data.is_multiple_choice {
@@ -145,7 +166,9 @@ async fn submit_answer(
         .await
         .reject("could not update question result")?;
 
-    let questions_count = db.questions_count_for_session(session.id).await
+    let questions_count = db
+        .questions_count_for_session(session.id)
+        .await
         .reject("could not get question count")?;
 
     let is_final = question_idx + 1 == questions_count;
@@ -182,20 +205,30 @@ pub(crate) async fn navigate_question(
     query: NavigateQuestionQuery,
     locale: String,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let session = db.get_session_by_id(session_id).await
+    let session = db
+        .get_session_by_id(session_id)
+        .await
         .reject("could not get session")?;
 
-    let quiz_name = db.quiz_name(session.quiz_id).await
+    let quiz_name = db
+        .quiz_name(session.quiz_id)
+        .await
         .reject("could not get quiz name")?;
 
-    let question_id = db.get_question_by_idx(session_id, query.question_idx).await
+    let question_id = db
+        .get_question_by_idx(session_id, query.question_idx)
+        .await
         .reject("could not get question id")?;
 
-    let is_answered = db.is_question_answered(session_id, question_id).await
+    let is_answered = db
+        .is_question_answered(session_id, question_id)
+        .await
         .reject("could not check if question is answered")?;
 
     let page = if is_answered {
-        let selected_answers = db.get_selected_answers(session_id, question_id).await
+        let selected_answers = db
+            .get_selected_answers(session_id, question_id)
+            .await
             .reject("could not get selected answers")?;
 
         answer(
@@ -234,34 +267,49 @@ pub async fn question(
     is_resuming: bool,
     locale: &str,
 ) -> Result<Markup, Rejection> {
-    let quiz_name = db.quiz_name(quiz_id).await
+    let quiz_name = db
+        .quiz_name(quiz_id)
+        .await
         .reject("could not get quiz name")?;
 
-    let question_id = db.get_question_by_idx(session_id, question_idx).await
+    let question_id = db
+        .get_question_by_idx(session_id, question_idx)
+        .await
         .reject("could not get question id")?;
 
-    let question_data = db.get_question(question_id).await
+    let question_data = db
+        .get_question(question_id)
+        .await
         .reject("could not get question")?;
 
-    let questions_count = db.questions_count_for_session(session_id).await
+    let questions_count = db
+        .questions_count_for_session(session_id)
+        .await
         .reject("could not get question count")?;
 
-    let is_answered = db.is_question_answered(session_id, question_id).await
+    let is_answered = db
+        .is_question_answered(session_id, question_id)
+        .await
         .reject("could not check if question is answered")?;
 
-    let selected_answers = db.get_selected_answers(session_id, question_id).await
+    let selected_answers = db
+        .get_selected_answers(session_id, question_id)
+        .await
         .reject("could not get selected answers")?;
 
-    Ok(quiz_views::question(quiz_views::QuestionData {
-        quiz_name,
-        question: question_data,
-        question_idx,
-        questions_count,
-        is_answered,
-        selected_answers,
-        is_resuming,
-        session_id,
-    }, locale))
+    Ok(quiz_views::question(
+        quiz_views::QuestionData {
+            quiz_name,
+            question: question_data,
+            question_idx,
+            questions_count,
+            is_answered,
+            selected_answers,
+            is_resuming,
+            session_id,
+        },
+        locale,
+    ))
 }
 
 pub async fn answer(
@@ -274,27 +322,38 @@ pub async fn answer(
     current_idx: Option<i32>,
     locale: &str,
 ) -> Result<Markup, Rejection> {
-    let quiz_name = db.quiz_name(quiz_id).await
+    let quiz_name = db
+        .quiz_name(quiz_id)
+        .await
         .reject("could not get quiz name")?;
 
-    let question_id = db.get_question_by_idx(session_id, question_idx).await
+    let question_id = db
+        .get_question_by_idx(session_id, question_idx)
+        .await
         .reject("could not get question id")?;
 
-    let question_data = db.get_question(question_id).await
+    let question_data = db
+        .get_question(question_id)
+        .await
         .reject("could not get question")?;
 
-    let questions_count = db.questions_count_for_session(session_id).await
+    let questions_count = db
+        .questions_count_for_session(session_id)
+        .await
         .reject("could not get question count")?;
 
-    Ok(quiz_views::answer(quiz_views::AnswerData {
-        quiz_name,
-        question: question_data,
-        question_idx,
-        questions_count,
-        session_id,
-        quiz_id,
-        selected,
-        from_context,
-        current_idx,
-    }, locale))
+    Ok(quiz_views::answer(
+        quiz_views::AnswerData {
+            quiz_name,
+            question: question_data,
+            question_idx,
+            questions_count,
+            session_id,
+            quiz_id,
+            selected,
+            from_context,
+            current_idx,
+        },
+        locale,
+    ))
 }

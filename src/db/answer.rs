@@ -2,8 +2,8 @@ use color_eyre::{eyre::OptionExt, Result};
 use futures::{future, StreamExt, TryStreamExt};
 use libsql::params;
 
-use super::Db;
 use super::models::{AnswerModel, CategoryStats};
+use super::Db;
 
 impl Db {
     pub async fn is_question_answered(&self, session_id: i32, question_id: i32) -> Result<bool> {
@@ -22,7 +22,11 @@ impl Db {
         Ok(result > 0)
     }
 
-    pub async fn get_selected_answers(&self, session_id: i32, question_id: i32) -> Result<Vec<i32>> {
+    pub async fn get_selected_answers(
+        &self,
+        session_id: i32,
+        question_id: i32,
+    ) -> Result<Vec<i32>> {
         let conn = self.db.connect()?;
         let mut rows = conn
             .query(
@@ -55,9 +59,7 @@ impl Db {
             )
             .await?;
 
-        tracing::info!(
-            "answer created for session={session_id} question={question_id}: {rows:?}"
-        );
+        tracing::info!("answer created for session={session_id} question={question_id}: {rows:?}");
 
         Ok(())
     }
