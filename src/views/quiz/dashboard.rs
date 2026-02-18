@@ -285,6 +285,7 @@ document.head.appendChild(s);
 pub fn session_result(data: SessionResultData, locale: &str) -> Markup {
     let mode_label = selection_mode_label(&data.selection_mode, locale);
     let incorrect_count = data.answers.iter().filter(|a| !a.is_correct).count();
+    let bookmarked_count = data.answers.iter().filter(|a| a.is_bookmarked).count();
     let percentage = if data.answered_count > 0 {
         data.correct_answers as f64 * 100.0 / data.answered_count as f64
     } else {
@@ -350,6 +351,25 @@ pub fn session_result(data: SessionResultData, locale: &str) -> Markup {
             }
         }
 
+        @if bookmarked_count > 0 && data.is_complete {
+            article style="width: fit-content;" {
+                h4 { (t!("result.retry_bookmarked_title", locale = locale)) }
+                p {
+                    (t!("result.bookmarked_count_1", locale = locale))
+                    (bookmarked_count)
+                    (t!("result.bookmarked_count_2", locale = locale))
+                }
+                button hx-post=(format!("/retry-bookmarked/{}", data.session_id))
+                       hx-target="main"
+                       hx-swap="innerHTML"
+                       style="width: fit-content; background-color: #f0ad4e; color: white; font-weight: 500;" {
+                    (t!("result.retry_bookmarked_btn_1", locale = locale))
+                    (bookmarked_count)
+                    (t!("result.retry_bookmarked_btn_2", locale = locale))
+                }
+            }
+        }
+
         @if !data.category_stats.is_empty() {
             article {
                 h4 { (t!("result.category_perf", locale = locale)) }
@@ -379,6 +399,7 @@ pub fn session_result(data: SessionResultData, locale: &str) -> Markup {
                     th { (t!("result.question_hash", locale = locale)) }
                     th { (t!("result.question_col", locale = locale)) }
                     th { (t!("result.correct_col", locale = locale)) }
+                    th { (t!("result.bookmark_col", locale = locale)) }
                 } }
                 tbody {
                     @for a in &data.answers {
@@ -394,6 +415,7 @@ pub fn session_result(data: SessionResultData, locale: &str) -> Markup {
                             td { (a.question_idx + 1) }
                             td { (a.question) }
                             td { (if a.is_correct { "\u{1F7E2}" } else { "\u{1F534}" }) }
+                            td { @if a.is_bookmarked { "\u{1F516}" } }
                          }
                     }
                 }

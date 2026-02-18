@@ -1,43 +1,55 @@
+use axum::extract::{Path, State};
 use maud::Markup;
-use warp::reject::Rejection;
 
-use crate::{db::Db, rejections::ResultExt, views, views::quiz as quiz_views};
+use crate::{
+    extractors::{AuthGuard, IsHtmx, Locale},
+    rejections::{AppError, ResultExt},
+    views,
+    views::quiz as quiz_views,
+    AppState,
+};
 
 pub(crate) async fn quiz_dashboard(
-    _: (),
-    is_htmx: bool,
-    db: Db,
-    quiz_id: i32,
-    locale: String,
-) -> Result<impl warp::Reply, warp::Rejection> {
+    _guard: AuthGuard,
+    IsHtmx(is_htmx): IsHtmx,
+    State(state): State<AppState>,
+    Path(quiz_id): Path<i32>,
+    Locale(locale): Locale,
+) -> Result<Markup, AppError> {
     Ok(if is_htmx {
-        views::titled("Quiz Dashboard", dashboard(&db, quiz_id, &locale).await?)
+        views::titled(
+            "Quiz Dashboard",
+            dashboard(&state.db, quiz_id, &locale).await?,
+        )
     } else {
         views::page(
             "Quiz Dashboard",
-            dashboard(&db, quiz_id, &locale).await?,
+            dashboard(&state.db, quiz_id, &locale).await?,
             &locale,
         )
     })
 }
 
 pub(crate) async fn session_result(
-    db: Db,
-    is_htmx: bool,
-    session_id: i32,
-    locale: String,
-) -> Result<impl warp::Reply, warp::Rejection> {
-    let session = db
+    State(state): State<AppState>,
+    IsHtmx(is_htmx): IsHtmx,
+    Path(session_id): Path<i32>,
+    Locale(locale): Locale,
+) -> Result<Markup, AppError> {
+    let session = state
+        .db
         .get_session_by_id(session_id)
         .await
         .reject("could not get session")?;
 
-    let questions_count = db
+    let questions_count = state
+        .db
         .questions_count_for_session(session.id)
         .await
         .reject("could not get question count")?;
 
-    let current_idx = db
+    let current_idx = state
+        .db
         .current_question_index(session.id)
         .await
         .reject("could not get current question index")?;
@@ -45,22 +57,26 @@ pub(crate) async fn session_result(
     let is_complete = current_idx >= questions_count;
     let answered_count = current_idx;
 
-    let correct_answers = db
+    let correct_answers = state
+        .db
         .correct_answers(session.id)
         .await
         .reject("could not get correct answer count")?;
 
-    let answers = db
+    let answers = state
+        .db
         .get_answers(session.id)
         .await
         .reject("could not get answers")?;
 
-    let quiz_name = db
+    let quiz_name = state
+        .db
         .quiz_name(session.quiz_id)
         .await
         .reject("could not get quiz name")?;
 
-    let category_stats = db
+    let category_stats = state
+        .db
         .get_category_stats(session.id)
         .await
         .reject("could not get category stats")?;
@@ -91,7 +107,7 @@ pub(crate) async fn session_result(
     })
 }
 
-pub async fn dashboard(db: &Db, quiz_id: i32, locale: &str) -> Result<Markup, Rejection> {
+pub async fn dashboard(db: &crate::db::Db, quiz_id: i32, locale: &str) -> Result<Markup, AppError> {
     let quiz_name = db
         .quiz_name(quiz_id)
         .await

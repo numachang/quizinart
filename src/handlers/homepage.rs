@@ -1,98 +1,60 @@
 use std::collections::HashMap;
 
+use axum::{
+    extract::{Multipart, State},
+    http::{header::SET_COOKIE, HeaderMap},
+    response::IntoResponse,
+    routing::{delete, get, post},
+    Json, Router,
+};
+use axum_extra::extract::CookieJar;
+use maud::html;
+use serde::Deserialize;
+
 use crate::{
-    db::Db,
+    extractors::{AuthGuard, Locale},
     handlers::quiz,
-    is_authorized, models, names,
+    models, names,
     rejections::{AppError, ResultExt},
-    utils, views, with_locale, with_state, FutureOptionExt,
+    utils, views, AppState,
 };
 
 use crate::views::homepage as homepage_views;
-use futures::FutureExt;
-use maud::html;
-use serde::Deserialize;
-use warp::{
-    filters::multipart::FormData,
-    http::{header::SET_COOKIE, Response},
-    reply::Reply,
-    Filter,
-};
 
-pub fn route(
-    conn: Db,
-) -> impl warp::Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
-    let homepage = warp::path::end()
-        .and(warp::get())
-        .and(with_state(conn.clone()))
-        .and(warp::cookie::optional::<String>(
-            names::ADMIN_SESSION_COOKIE_NAME,
-        ))
-        .and(with_locale())
-        .and_then(homepage);
-
-    let get_started_post = warp::path("start")
-        .and(warp::post())
-        .and(with_state(conn.clone()))
-        .and(warp::body::json::<GetStartedPost>())
-        .and(with_locale())
-        .and_then(get_started_post);
-
-    let login_post = warp::path("login")
-        .and(warp::post())
-        .and(with_state(conn.clone()))
-        .and(warp::body::json::<LoginPost>())
-        .and(with_locale())
-        .and_then(login_post);
-
-    let create_quiz = warp::path("create-quiz")
-        .and(warp::post())
-        .and(is_authorized(conn.clone()))
-        .and(with_state(conn.clone()))
-        .and(warp::multipart::form())
-        .and(with_locale())
-        .and_then(create_quiz);
-
-    let delete_quiz = is_authorized(conn.clone())
-        .and(with_state(conn.clone()))
-        .and(warp::delete())
-        .and(warp::path!("delete-quiz" / i32))
-        .and_then(delete_quiz);
-
-    let set_locale = warp::path("set-locale")
-        .and(warp::post())
-        .and(warp::body::json::<SetLocaleBody>())
-        .and_then(set_locale);
-
-    homepage
-        .or(get_started_post)
-        .or(login_post)
-        .or(create_quiz)
-        .or(delete_quiz)
-        .or(set_locale)
+pub fn routes() -> Router<AppState> {
+    Router::new()
+        .route("/", get(homepage))
+        .route("/start", post(get_started_post))
+        .route("/login", post(login_post))
+        .route("/create-quiz", post(create_quiz))
+        .route("/delete-quiz/{id}", delete(delete_quiz))
+        .route("/set-locale", post(set_locale))
 }
 
 async fn homepage(
-    db: Db,
-    session: Option<String>,
-    locale: String,
-) -> Result<impl warp::Reply, warp::Rejection> {
-    let session_exists = session
-        .map(|s| db.admin_session_exists(s).map(|res| res.ok()))
-        .to_future()
-        .await
-        .flatten()
-        .unwrap_or_default();
+    State(state): State<AppState>,
+    jar: CookieJar,
+    Locale(locale): Locale,
+) -> Result<maud::Markup, AppError> {
+    let session = jar
+        .get(names::ADMIN_SESSION_COOKIE_NAME)
+        .map(|c| c.value().to_string());
+
+    let session_exists = match session {
+        Some(s) => state.db.admin_session_exists(s).await.unwrap_or(false),
+        None => false,
+    };
 
     if session_exists {
-        let quizzes = db.quizzes().await.reject("could not get quizzes")?;
+        let quizzes = state.db.quizzes().await.reject("could not get quizzes")?;
         Ok(views::page(
             "Dashboard",
             homepage_views::dashboard(quizzes, &locale),
             &locale,
         ))
     } else {
-        let admin_password = db
+        let admin_password = state
+            .db
             .admin_password()
             .await
             .reject("could not get admin password")?;
@@ -118,27 +80,32 @@ struct GetStartedPost {
 }
 
 async fn get_started_post(
-    db: Db,
-    body: GetStartedPost,
-    locale: String,
-) -> Result<impl warp::Reply, warp::Rejection> {
-    db.set_admin_password(body.admin_password)
+    State(state): State<AppState>,
+    Locale(locale): Locale,
+    Json(body): Json<GetStartedPost>,
+) -> Result<impl IntoResponse, AppError> {
+    state
+        .db
+        .set_admin_password(body.admin_password)
         .await
         .reject("could not set admin password")?;
 
-    let session = db
+    let session = state
+        .db
         .create_admin_session()
         .await
         .reject("could not create admin session")?;
 
     let cookie = utils::cookie(names::ADMIN_SESSION_COOKIE_NAME, &session);
-    let quizzes = db.quizzes().await.reject("could not get quizzes")?;
-    let resp = Response::builder()
-        .header(SET_COOKIE, cookie)
-        .body(views::titled("Dashboard", homepage_views::dashboard(quizzes, &locale)).into_string())
-        .unwrap();
+    let quizzes = state.db.quizzes().await.reject("could not get quizzes")?;
 
-    Ok(resp)
+    let mut headers = HeaderMap::new();
+    headers.insert(SET_COOKIE, cookie.parse().unwrap());
+
+    Ok((
+        headers,
+        views::titled("Dashboard", homepage_views::dashboard(quizzes, &locale)),
+    ))
 }
 
 #[derive(Deserialize)]
@@ -147,32 +114,34 @@ struct LoginPost {
 }
 
 async fn login_post(
-    db: Db,
-    body: LoginPost,
-    locale: String,
-) -> Result<impl warp::Reply, warp::Rejection> {
-    let admin_password = db
+    State(state): State<AppState>,
+    Locale(locale): Locale,
+    Json(body): Json<LoginPost>,
+) -> Result<axum::response::Response, AppError> {
+    let admin_password = state
+        .db
         .admin_password()
         .await
         .reject("could not get admin password")?;
 
     if admin_password == Some(body.admin_password) {
-        let session = db
+        let session = state
+            .db
             .create_admin_session()
             .await
             .reject("could not create admin session")?;
 
         let cookie = utils::cookie(names::ADMIN_SESSION_COOKIE_NAME, &session);
-        let quizzes = db.quizzes().await.reject("could not get quizzes")?;
-        let resp = Response::builder()
-            .header(SET_COOKIE, cookie)
-            .body(
-                views::titled("Dashboard", homepage_views::dashboard(quizzes, &locale))
-                    .into_string(),
-            )
-            .unwrap();
+        let quizzes = state.db.quizzes().await.reject("could not get quizzes")?;
 
-        Ok(resp.into_response())
+        let mut headers = HeaderMap::new();
+        headers.insert(SET_COOKIE, cookie.parse().unwrap());
+
+        Ok((
+            headers,
+            views::titled("Dashboard", homepage_views::dashboard(quizzes, &locale)),
+        )
+            .into_response())
     } else {
         Ok(views::titled(
             "Welcome Back",
@@ -183,66 +152,65 @@ async fn login_post(
 }
 
 async fn create_quiz(
-    _: (),
-    db: Db,
-    form: FormData,
-    locale: String,
-) -> Result<impl warp::Reply, warp::Rejection> {
-    use bytes::BufMut;
-    use futures::TryStreamExt;
+    _guard: AuthGuard,
+    State(state): State<AppState>,
+    Locale(locale): Locale,
+    mut multipart: Multipart,
+) -> Result<impl IntoResponse, AppError> {
+    let mut field_names: HashMap<String, String> = HashMap::new();
 
-    let mut field_names: HashMap<_, _> = form
-        .and_then(|mut field| async move {
-            let mut bytes: Vec<u8> = Vec::new();
-
-            while let Some(content) = field.data().await {
-                let content = content.unwrap();
-                bytes.put(content);
-            }
-            Ok((
-                field.name().to_string(),
-                String::from_utf8_lossy(&bytes).to_string(),
-            ))
-        })
-        .try_collect()
-        .await
-        .map_err(|e| {
-            tracing::error!("failed to decode form data: {e}");
-            warp::reject::custom(AppError::Input("failed to decode form data"))
+    while let Some(field) = multipart.next_field().await.map_err(|e| {
+        tracing::error!("failed to read multipart field: {e}");
+        AppError::Input("failed to read multipart field")
+    })? {
+        let name = field.name().unwrap_or_default().to_string();
+        let text = field.text().await.map_err(|e| {
+            tracing::error!("failed to read field data: {e}");
+            AppError::Input("failed to read field data")
         })?;
+        field_names.insert(name, text);
+    }
 
     let quiz_name = field_names
         .remove("quiz_name")
-        .ok_or_else(|| warp::reject::custom(AppError::Input("missing quiz_name field")))?;
+        .ok_or(AppError::Input("missing quiz_name field"))?;
 
     let quiz_file = field_names
         .remove("quiz_file")
-        .ok_or_else(|| warp::reject::custom(AppError::Input("missing quiz_file field")))?;
+        .ok_or(AppError::Input("missing quiz_file field"))?;
 
     let questions = serde_json::from_str::<models::Questions>(&quiz_file)
         .reject_input("failed to decode quiz file")?;
 
-    let quiz_id = db
+    let quiz_id = state
+        .db
         .load_quiz(quiz_name, questions)
         .await
         .reject_input("failed to load quiz")?;
 
-    let resp = Response::builder()
-        .header("HX-Replace-Url", names::quiz_dashboard_url(quiz_id))
-        .body(
-            views::titled(
-                "Quiz Dashboard",
-                quiz::dashboard(&db, quiz_id, &locale).await?,
-            )
-            .into_string(),
-        )
-        .unwrap();
+    let mut headers = HeaderMap::new();
+    headers.insert(
+        "HX-Replace-Url",
+        names::quiz_dashboard_url(quiz_id).parse().unwrap(),
+    );
 
-    Ok(resp)
+    Ok((
+        headers,
+        views::titled(
+            "Quiz Dashboard",
+            quiz::dashboard(&state.db, quiz_id, &locale).await?,
+        ),
+    ))
 }
 
-async fn delete_quiz(_: (), db: Db, quiz_id: i32) -> Result<impl warp::Reply, warp::Rejection> {
-    db.delete_quiz(quiz_id)
+async fn delete_quiz(
+    _guard: AuthGuard,
+    State(state): State<AppState>,
+    axum::extract::Path(quiz_id): axum::extract::Path<i32>,
+) -> Result<maud::Markup, AppError> {
+    state
+        .db
+        .delete_quiz(quiz_id)
         .await
         .reject("failed to delete quiz")?;
 
@@ -254,7 +222,7 @@ struct SetLocaleBody {
     locale: String,
 }
 
-async fn set_locale(body: SetLocaleBody) -> Result<impl warp::Reply, warp::Rejection> {
+async fn set_locale(Json(body): Json<SetLocaleBody>) -> Result<impl IntoResponse, AppError> {
     let locale = match body.locale.as_str() {
         "ja" => "ja",
         "zh-CN" => "zh-CN",
@@ -262,9 +230,9 @@ async fn set_locale(body: SetLocaleBody) -> Result<impl warp::Reply, warp::Rejec
         _ => "en",
     };
     let cookie = utils::cookie(names::LOCALE_COOKIE_NAME, locale);
-    Ok(Response::builder()
-        .header(SET_COOKIE, cookie)
-        .header("HX-Refresh", "true")
-        .body("")
-        .unwrap())
+    let mut headers = HeaderMap::new();
+    headers.insert(SET_COOKIE, cookie.parse().unwrap());
+    headers.insert("HX-Refresh", "true".parse().unwrap());
+
+    Ok((headers, ""))
 }

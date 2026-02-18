@@ -2,7 +2,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
 
 body {
-  font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 main {
@@ -43,7 +44,7 @@ header nav ul {
   --option-neutral-subtext: #6c757d;
 }
 
-[data-theme="dark"] {
+[data-theme='dark'] {
   --option-correct-bg: #193529;
   --option-correct-border: #4ccb75;
   --option-correct-text: #b7f5c7;
@@ -215,8 +216,35 @@ header nav ul {
   font-size: 0.85rem;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--pico-color) 15%, transparent);
-  background: color-mix(in srgb, var(--pico-background-color) 84%, var(--pico-muted-color));
+  background: color-mix(
+    in srgb,
+    var(--pico-background-color) 84%,
+    var(--pico-muted-color)
+  );
   box-shadow: none;
+}
+
+/* ブックマークボタン */
+.bookmark-btn {
+  all: unset;
+  cursor: pointer;
+  font-size: 1.3rem;
+  line-height: 1;
+  opacity: 0.3;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.bookmark-btn:hover {
+  opacity: 0.6;
+  transform: scale(1.15);
+}
+
+.bookmark-btn.active {
+  opacity: 1;
+}
+
+.bookmark-btn.active:hover {
+  opacity: 0.8;
 }
 
 .theme-select {
@@ -226,6 +254,10 @@ header nav ul {
   font-size: 0.85rem;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--pico-primary) 22%, transparent);
-  background: color-mix(in srgb, var(--pico-primary-background) 24%, var(--pico-background-color));
+  background: color-mix(
+    in srgb,
+    var(--pico-primary-background) 24%,
+    var(--pico-background-color)
+  );
   box-shadow: none;
 }

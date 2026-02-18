@@ -1,11 +1,5 @@
-use std::convert::Infallible;
-
-use maud::{html, Markup};
-use warp::{
-    http::StatusCode,
-    reject::{Reject, Rejection},
-    reply::Reply,
-};
+use axum::{http::StatusCode, response::IntoResponse};
+use maud::html;
 
 use crate::{names, views};
 
@@ -21,84 +15,44 @@ pub enum AppError {
     Input(&'static str),
 }
 
-impl Reject for AppError {}
+impl IntoResponse for AppError {
+    fn into_response(self) -> axum::response::Response {
+        let (status, message) = match &self {
+            AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR"),
+            AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "UNAUTHORIZED"),
+            AppError::Input(_) => (StatusCode::BAD_REQUEST, "INPUT_ERROR"),
+        };
+        let body = views::page(
+            "Error",
+            html! {
+                h1 { (message) }
+            },
+            names::DEFAULT_LOCALE,
+        );
+        (status, body).into_response()
+    }
+}
 
-/// Extension trait for ergonomic rejection conversion.
+/// Extension trait for ergonomic error conversion.
 ///
 /// Usage: `db.quiz_name(id).await.reject("could not get quiz name")?`
 pub trait ResultExt<T> {
-    fn reject(self, context: &'static str) -> Result<T, Rejection>;
-    fn reject_input(self, context: &'static str) -> Result<T, Rejection>;
+    fn reject(self, context: &'static str) -> Result<T, AppError>;
+    fn reject_input(self, context: &'static str) -> Result<T, AppError>;
 }
 
 impl<T, E: Into<color_eyre::eyre::Error>> ResultExt<T> for Result<T, E> {
-    fn reject(self, context: &'static str) -> Result<T, Rejection> {
+    fn reject(self, context: &'static str) -> Result<T, AppError> {
         self.map_err(|e| {
             tracing::error!("{context}: {}", e.into());
-            warp::reject::custom(AppError::Internal(context))
+            AppError::Internal(context)
         })
     }
 
-    fn reject_input(self, context: &'static str) -> Result<T, Rejection> {
+    fn reject_input(self, context: &'static str) -> Result<T, AppError> {
         self.map_err(|e| {
             tracing::error!("{context}: {}", e.into());
-            warp::reject::custom(AppError::Input(context))
+            AppError::Input(context)
         })
     }
-}
-
-pub async fn handle_rejection(err: Rejection) -> Result<impl Reply, Infallible> {
-    let code;
-    let message;
-
-    if err.is_not_found() {
-        code = StatusCode::NOT_FOUND;
-        message = "NOT_FOUND";
-    } else if err
-        .find::<warp::filters::body::BodyDeserializeError>()
-        .is_some()
-    {
-        code = StatusCode::BAD_REQUEST;
-        message = "BAD_REQUEST";
-    } else if let Some(app_err) = err.find::<AppError>() {
-        match app_err {
-            AppError::Internal(_) => {
-                code = StatusCode::INTERNAL_SERVER_ERROR;
-                message = "INTERNAL_SERVER_ERROR";
-            }
-            AppError::Unauthorized => {
-                code = StatusCode::UNAUTHORIZED;
-                message = "UNAUTHORIZED";
-            }
-            AppError::Input(_) => {
-                code = StatusCode::BAD_REQUEST;
-                message = "INPUT_ERROR";
-            }
-        }
-    } else if err.find::<warp::reject::MethodNotAllowed>().is_some() {
-        code = StatusCode::METHOD_NOT_ALLOWED;
-        message = "METHOD_NOT_ALLOWED";
-    } else if err
-        .find::<warp::reject::InvalidHeader>()
-        .is_some_and(|e| e.name() == warp::http::header::COOKIE)
-    {
-        code = StatusCode::BAD_REQUEST;
-        message = "COOKIE_NOT_AVAILABLE";
-    } else {
-        tracing::error!("unhandled rejection: {:?}", err);
-        code = StatusCode::INTERNAL_SERVER_ERROR;
-        message = "UNHANDLED_REJECTION";
-    }
-
-    Ok(warp::reply::with_status(error_page(message), code))
-}
-
-fn error_page(message: &str) -> Markup {
-    views::page(
-        "Error",
-        html! {
-            h1 { (message) }
-        },
-        names::DEFAULT_LOCALE,
-    )
 }

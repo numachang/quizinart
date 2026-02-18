@@ -10,6 +10,7 @@ pub use models::*;
 // Internal modules
 mod admin;
 mod answer;
+pub mod helpers;
 mod migrations;
 mod question;
 mod quiz;

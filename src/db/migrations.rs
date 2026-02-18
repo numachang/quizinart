@@ -6,10 +6,16 @@ struct Migration {
     sql: &'static str,
 }
 
-const MIGRATIONS: &[Migration] = &[Migration {
-    version: "V1",
-    sql: include_str!("../../migrations/V1__init.sql"),
-}];
+const MIGRATIONS: &[Migration] = &[
+    Migration {
+        version: "V1",
+        sql: include_str!("../../migrations/V1__init.sql"),
+    },
+    Migration {
+        version: "V2",
+        sql: include_str!("../../migrations/V2__add_bookmarks.sql"),
+    },
+];
 
 pub async fn run(conn: &libsql::Connection) -> Result<()> {
     conn.execute(

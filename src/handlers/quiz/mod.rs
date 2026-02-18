@@ -4,10 +4,13 @@ mod session;
 
 pub use dashboard::dashboard;
 
+use axum::{
+    routing::{delete, get, patch, post},
+    Router,
+};
 use serde::Deserialize;
-use warp::Filter;
 
-use crate::{db::Db, is_authorized, is_htmx, names, with_locale, with_state};
+use crate::{names, AppState};
 
 /// Deserialize a value that may be either a JSON number or a string containing a number.
 /// HTML forms via htmx json-enc always send values as strings.
@@ -73,88 +76,21 @@ struct NavigateQuestionQuery {
     current_idx: Option<i32>,
 }
 
-pub fn route(
-    conn: Db,
-) -> impl warp::Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
-    let quiz_dashboard = is_authorized(conn.clone())
-        .and(is_htmx())
-        .and(with_state(conn.clone()))
-        .and(warp::get())
-        .and(warp::path!("quiz" / i32 / "dashboard"))
-        .and(with_locale())
-        .and_then(dashboard::quiz_dashboard);
-
-    let quiz_page = warp::get()
-        .and(is_htmx())
-        .and(with_state(conn.clone()))
-        .and(warp::path!("quiz" / i32))
-        .and(warp::cookie::optional(names::QUIZ_SESSION_COOKIE_NAME))
-        .and(with_locale())
-        .and_then(question::quiz_page);
-
-    let start_session = warp::post()
-        .and(with_state(conn.clone()))
-        .and(warp::path!("start-session" / i32))
-        .and(warp::body::json::<StartSessionBody>())
-        .and(with_locale())
-        .and_then(session::start_session);
-
-    let submit_answer = warp::post()
-        .and(with_state(conn.clone()))
-        .and(warp::path!("submit-answer"))
-        .and(warp::cookie(names::QUIZ_SESSION_COOKIE_NAME))
-        .and(warp::body::bytes())
-        .and(with_locale())
-        .and_then(question::submit_answer_raw);
-
-    let session_result = warp::get()
-        .and(with_state(conn.clone()))
-        .and(is_htmx())
-        .and(warp::path!("results" / i32))
-        .and(with_locale())
-        .and_then(dashboard::session_result);
-
-    let resume_session = warp::get()
-        .and(with_state(conn.clone()))
-        .and(warp::path!("resume-session" / i32 / String))
-        .and(with_locale())
-        .and_then(session::resume_session);
-
-    let navigate_question = warp::get()
-        .and(with_state(conn.clone()))
-        .and(is_htmx())
-        .and(warp::path!("question" / i32))
-        .and(warp::query::<NavigateQuestionQuery>())
-        .and(with_locale())
-        .and_then(question::navigate_question);
-
-    let retry_incorrect = warp::post()
-        .and(with_state(conn.clone()))
-        .and(warp::path!("retry-incorrect" / i32))
-        .and(with_locale())
-        .and_then(session::retry_incorrect);
-
-    let delete_session = warp::delete()
-        .and(with_state(conn.clone()))
-        .and(warp::path!("session" / i32 / "delete"))
-        .and(with_locale())
-        .and_then(session::delete_session);
-
-    let rename_session = warp::patch()
-        .and(with_state(conn.clone()))
-        .and(warp::path!("session" / i32 / "rename"))
-        .and(warp::body::json::<RenameSessionBody>())
-        .and(with_locale())
-        .and_then(session::rename_session);
-
-    quiz_dashboard
-        .or(quiz_page)
-        .or(start_session)
-        .or(submit_answer)
-        .or(session_result)
-        .or(resume_session)
-        .or(navigate_question)
-        .or(retry_incorrect)
-        .or(delete_session)
-        .or(rename_session)
+pub fn routes() -> Router<AppState> {
+    Router::new()
+        .route("/quiz/{id}/dashboard", get(dashboard::quiz_dashboard))
+        .route("/quiz/{id}", get(question::quiz_page))
+        .route("/start-session/{id}", post(session::start_session))
+        .route("/submit-answer", post(question::submit_answer_raw))
+        .route("/results/{id}", get(dashboard::session_result))
+        .route("/resume-session/{id}/{token}", get(session::resume_session))
+        .route("/question/{id}", get(question::navigate_question))
+        .route("/retry-incorrect/{id}", post(session::retry_incorrect))
+        .route("/retry-bookmarked/{id}", post(session::retry_bookmarked))
+        .route(
+            "/toggle-bookmark/{session_id}/{question_id}",
+            post(question::toggle_bookmark),
+        )
+        .route("/session/{id}/delete", delete(session::delete_session))
+        .route("/session/{id}/rename", patch(session::rename_session))
 }

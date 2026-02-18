@@ -1,5 +1,8 @@
 // Database model structs
 
+use serde::Deserialize;
+
+#[derive(Deserialize)]
 pub struct Quiz {
     pub id: i32,
     pub name: String,
@@ -12,6 +15,7 @@ pub struct QuestionModel {
     pub options: Vec<QuestionOptionModel>,
 }
 
+#[derive(Deserialize)]
 pub struct QuestionOptionModel {
     pub id: i32,
     pub is_answer: bool,
@@ -19,6 +23,7 @@ pub struct QuestionOptionModel {
     pub explanation: Option<String>,
 }
 
+#[derive(Deserialize)]
 pub struct QuizSessionModel {
     pub id: i32,
     pub quiz_id: i32,
@@ -27,17 +32,21 @@ pub struct QuizSessionModel {
     pub selection_mode: Option<String>,
 }
 
+#[derive(Deserialize)]
 pub struct AnswerModel {
     pub question: String,
     pub is_correct: bool,
     pub question_idx: i32,
+    pub is_bookmarked: bool,
 }
 
+#[derive(Deserialize)]
 pub struct QuestionStatsModel {
     pub question: String,
     pub correct_answers: i32,
 }
 
+#[derive(Deserialize)]
 pub struct SessionReportModel {
     pub id: i32,
     pub name: String,
@@ -50,6 +59,7 @@ pub struct SessionReportModel {
     pub selection_mode: Option<String>,
 }
 
+#[derive(Deserialize)]
 pub struct CategoryStats {
     pub category: String,
     pub total: i32,
@@ -57,6 +67,7 @@ pub struct CategoryStats {
     pub accuracy: f64,
 }
 
+#[derive(Deserialize)]
 pub struct QuizOverallStats {
     pub total_questions: i32,
     pub unique_asked: i32,
@@ -64,6 +75,7 @@ pub struct QuizOverallStats {
     pub total_answered: i32,
 }
 
+#[derive(Deserialize)]
 pub struct SessionCategoryAccuracy {
     pub session_id: i32,
     pub session_name: String,
@@ -71,6 +83,7 @@ pub struct SessionCategoryAccuracy {
     pub accuracy: f64,
 }
 
+#[derive(Deserialize)]
 pub struct QuizCategoryOverallStats {
     pub category: String,
     pub total_in_category: i32,

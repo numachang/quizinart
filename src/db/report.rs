@@ -1,47 +1,37 @@
 use color_eyre::Result;
-use futures::{future, StreamExt, TryStreamExt};
 use libsql::params;
 
+use super::helpers;
 use super::models::{QuestionStatsModel, SessionCategoryAccuracy, SessionReportModel};
 use super::Db;
 
 impl Db {
     pub async fn get_questions_report(&self, quiz_id: i32) -> Result<Vec<QuestionStatsModel>> {
         let conn = self.db.connect()?;
-        Ok(conn
-            .query(
-                r#"
-            SELECT q.question, COUNT(*) as correct_count
+        helpers::query_all(
+            &conn,
+            r#"
+            SELECT q.question AS question, COUNT(*) AS correct_answers
             FROM questions q
             JOIN session_questions sq ON sq.question_id = q.id AND sq.is_correct = 1
             WHERE q.quiz_id = ?
             GROUP BY q.question
-                "#,
-                params![quiz_id],
-            )
-            .await?
-            .into_stream()
-            .map_ok(|r| QuestionStatsModel {
-                question: r.get::<String>(0).expect("failed to get question"),
-                correct_answers: r
-                    .get::<i32>(1)
-                    .expect("failed to get correct answers count"),
-            })
-            .filter_map(|r| future::ready(r.ok()))
-            .collect::<Vec<_>>()
-            .await)
+            "#,
+            params![quiz_id],
+        )
+        .await
     }
 
     pub async fn get_sessions_report(&self, quiz_id: i32) -> Result<Vec<SessionReportModel>> {
         let conn = self.db.connect()?;
-        Ok(conn
-            .query(
-                r#"
+        helpers::query_all(
+            &conn,
+            r#"
             SELECT
-                session_id,
+                session_id AS id,
                 name,
                 session_token,
-                correct_answers,
+                correct_answers AS score,
                 total_questions,
                 answered_questions,
                 is_complete,
@@ -50,25 +40,10 @@ impl Db {
             FROM session_stats
             WHERE quiz_id = ?
             ORDER BY session_id DESC
-                "#,
-                params![quiz_id],
-            )
-            .await?
-            .into_stream()
-            .map_ok(|r| SessionReportModel {
-                id: r.get::<i32>(0).expect("failed to get session id"),
-                name: r.get::<String>(1).expect("failed to get session name"),
-                session_token: r.get::<String>(2).expect("failed to get session token"),
-                score: r.get::<i32>(3).expect("failed to get score"),
-                total_questions: r.get::<i32>(4).expect("failed to get total questions"),
-                answered_questions: r.get::<i32>(5).expect("failed to get answered questions"),
-                is_complete: r.get::<bool>(6).unwrap_or(false),
-                question_count: r.get::<Option<i32>>(7).ok().flatten(),
-                selection_mode: r.get::<Option<String>>(8).ok().flatten(),
-            })
-            .filter_map(|r| future::ready(r.ok()))
-            .collect::<Vec<_>>()
-            .await)
+            "#,
+            params![quiz_id],
+        )
+        .await
     }
 
     pub async fn get_session_category_trends(
@@ -76,10 +51,10 @@ impl Db {
         quiz_id: i32,
     ) -> Result<Vec<SessionCategoryAccuracy>> {
         let conn = self.db.connect()?;
-        Ok(conn
-            .query(
-                r#"
-            SELECT s.id, s.name, q.category,
+        helpers::query_all(
+            &conn,
+            r#"
+            SELECT s.id AS session_id, s.name AS session_name, q.category AS category,
                    ROUND(CAST(SUM(CASE WHEN sq.is_correct = 1 THEN 1 ELSE 0 END) AS REAL) * 100.0 / COUNT(*), 1) AS accuracy
             FROM session_questions sq
             JOIN quiz_sessions s ON s.id = sq.session_id
@@ -87,19 +62,9 @@ impl Db {
             WHERE s.quiz_id = ? AND q.category IS NOT NULL AND sq.is_correct IS NOT NULL
             GROUP BY s.id, q.category
             ORDER BY s.id ASC
-                "#,
-                params![quiz_id],
-            )
-            .await?
-            .into_stream()
-            .map_ok(|r| SessionCategoryAccuracy {
-                session_id: r.get::<i32>(0).expect("failed to get session id"),
-                session_name: r.get::<String>(1).expect("failed to get session name"),
-                category: r.get::<String>(2).expect("failed to get category"),
-                accuracy: r.get::<f64>(3).unwrap_or(0.0),
-            })
-            .filter_map(|r| future::ready(r.ok()))
-            .collect::<Vec<_>>()
-            .await)
+            "#,
+            params![quiz_id],
+        )
+        .await
     }
 }

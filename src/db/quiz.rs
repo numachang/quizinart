@@ -1,7 +1,7 @@
 use color_eyre::{eyre::OptionExt, Result};
-use futures::{future, StreamExt, TryStreamExt};
 use libsql::params;
 
+use super::helpers;
 use super::models::Quiz;
 use super::Db;
 use crate::models::{Question, Questions};
@@ -53,34 +53,22 @@ impl Db {
 
     pub async fn quizzes(&self) -> Result<Vec<Quiz>> {
         let conn = self.db.connect()?;
-
-        let quizzes = conn
-            .query(
-                r#"
-        SELECT
-          quizzes.id,
-          quizzes.name,
-          COUNT(questions.id) AS question_count
-        FROM
-          quizzes
-          JOIN questions ON questions.quiz_id = quizzes.id
-        GROUP BY
-          quizzes.name
-                "#,
-                (),
-            )
-            .await?
-            .into_stream()
-            .map_ok(|r| Quiz {
-                id: r.get::<i32>(0).expect("could not get quiz id"),
-                name: r.get::<String>(1).expect("could not get quiz name"),
-                count: r.get::<i32>(2).expect("could not get questions count"),
-            })
-            .filter_map(|r| future::ready(r.ok()))
-            .collect::<Vec<_>>()
-            .await;
-
-        Ok(quizzes)
+        helpers::query_all(
+            &conn,
+            r#"
+            SELECT
+              quizzes.id AS id,
+              quizzes.name AS name,
+              COUNT(questions.id) AS count
+            FROM
+              quizzes
+              JOIN questions ON questions.quiz_id = quizzes.id
+            GROUP BY
+              quizzes.name
+            "#,
+            (),
+        )
+        .await
     }
 
     pub async fn delete_quiz(&self, quiz_id: i32) -> Result<()> {

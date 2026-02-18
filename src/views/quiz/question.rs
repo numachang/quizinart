@@ -11,6 +11,8 @@ pub struct QuestionData {
     pub selected_answers: Vec<i32>,
     pub is_resuming: bool,
     pub session_id: i32,
+    pub question_id: i32,
+    pub is_bookmarked: bool,
 }
 
 pub struct AnswerData {
@@ -23,17 +25,50 @@ pub struct AnswerData {
     pub selected: Vec<i32>,
     pub from_context: Option<String>,
     pub current_idx: Option<i32>,
+    pub question_id: i32,
+    pub is_bookmarked: bool,
+}
+
+pub fn bookmark_button(
+    session_id: i32,
+    question_id: i32,
+    is_bookmarked: bool,
+    locale: &str,
+) -> Markup {
+    let title = if is_bookmarked {
+        t!("quiz.unbookmark", locale = locale).to_string()
+    } else {
+        t!("quiz.bookmark", locale = locale).to_string()
+    };
+    let class = if is_bookmarked {
+        "bookmark-btn active"
+    } else {
+        "bookmark-btn"
+    };
+    html! {
+        button type="button" class=(class)
+               hx-post=(format!("/toggle-bookmark/{session_id}/{question_id}"))
+               hx-swap="outerHTML"
+               title=(title) {
+            "\u{1F516}"
+        }
+    }
 }
 
 pub fn question(data: QuestionData, locale: &str) -> Markup {
     html! {
         p { (t!("quiz.doing_quiz", locale = locale)) mark { (data.quiz_name) } "." }
         article style="width: fit-content;" {
-            p style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;" {
-                (t!("quiz.question_prefix", locale = locale))
-                strong { (data.question_idx + 1) }
-                (t!("quiz.question_of", locale = locale))
-                (data.questions_count)
+            div style="display: flex; align-items: center; margin-bottom: 0.5rem;" {
+                p style="color: #666; font-size: 0.9rem; margin-bottom: 0;" {
+                    (t!("quiz.question_prefix", locale = locale))
+                    strong { (data.question_idx + 1) }
+                    (t!("quiz.question_of", locale = locale))
+                    (data.questions_count)
+                }
+                span style="margin-left: auto;" {
+                    (bookmark_button(data.session_id, data.question_id, data.is_bookmarked, locale))
+                }
             }
 
             @if data.is_resuming {
@@ -97,11 +132,16 @@ pub fn answer(data: AnswerData, locale: &str) -> Markup {
     html! {
         p { (t!("quiz.doing_quiz", locale = locale)) mark { (data.quiz_name) } "." }
         article style="width: fit-content;" {
-            p style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;" {
-                (t!("quiz.question_prefix", locale = locale))
-                strong { (data.question_idx + 1) }
-                (t!("quiz.question_of", locale = locale))
-                (data.questions_count)
+            div style="display: flex; align-items: center; margin-bottom: 0.5rem;" {
+                p style="color: #666; font-size: 0.9rem; margin-bottom: 0;" {
+                    (t!("quiz.question_prefix", locale = locale))
+                    strong { (data.question_idx + 1) }
+                    (t!("quiz.question_of", locale = locale))
+                    (data.questions_count)
+                }
+                span style="margin-left: auto;" {
+                    (bookmark_button(data.session_id, data.question_id, data.is_bookmarked, locale))
+                }
             }
             h3 { (data.question.question) }
 

@@ -1,37 +1,44 @@
-use maud::Markup;
-use warp::{
-    http::{header::SET_COOKIE, Response},
-    reject::Rejection,
+use axum::{
+    extract::{Path, Query, State},
+    http::{header::SET_COOKIE, HeaderMap},
 };
+use axum_extra::extract::CookieJar;
+use maud::Markup;
 
 use super::{NavigateQuestionQuery, SubmitAnswerBody};
 use crate::{
-    db::Db,
+    extractors::{IsHtmx, Locale},
     names,
     rejections::{AppError, ResultExt},
     utils, views,
     views::quiz as quiz_views,
+    AppState,
 };
 
 pub(crate) async fn quiz_page(
-    is_htmx: bool,
-    db: Db,
-    quiz_id: i32,
-    token: Option<String>,
-    locale: String,
-) -> Result<impl warp::Reply, warp::Rejection> {
+    IsHtmx(is_htmx): IsHtmx,
+    State(state): State<AppState>,
+    Path(quiz_id): Path<i32>,
+    jar: CookieJar,
+    Locale(locale): Locale,
+) -> Result<Markup, AppError> {
+    let token = jar
+        .get(names::QUIZ_SESSION_COOKIE_NAME)
+        .map(|c| c.value().to_string());
+
     let content = match token {
         Some(token) => {
-            let res = db.get_session(&token).await;
+            let res = state.db.get_session(&token).await;
 
             match res {
                 Ok(session) => {
-                    let question_idx = db
+                    let question_idx = state
+                        .db
                         .current_question_index(session.id)
                         .await
                         .reject("could not get current question index")?;
                     question(
-                        &db,
+                        &state.db,
                         session.id,
                         session.quiz_id,
                         question_idx,
@@ -42,11 +49,11 @@ pub(crate) async fn quiz_page(
                 }
                 Err(e) => {
                     tracing::error!("could not get session for {token}: {e}");
-                    super::session::page(&db, quiz_id, &locale).await?
+                    super::session::page(&state.db, quiz_id, &locale).await?
                 }
             }
         }
-        None => super::session::page(&db, quiz_id, &locale).await?,
+        None => super::session::page(&state.db, quiz_id, &locale).await?,
     };
 
     if is_htmx {
@@ -57,11 +64,16 @@ pub(crate) async fn quiz_page(
 }
 
 pub(crate) async fn submit_answer_raw(
-    db: Db,
-    token: String,
+    State(state): State<AppState>,
+    jar: CookieJar,
+    Locale(locale): Locale,
     body_bytes: bytes::Bytes,
-    locale: String,
-) -> Result<impl warp::Reply, warp::Rejection> {
+) -> Result<axum::response::Response, AppError> {
+    let token = jar
+        .get(names::QUIZ_SESSION_COOKIE_NAME)
+        .map(|c| c.value().to_string())
+        .ok_or(AppError::Input("session cookie not found"))?;
+
     let body_str =
         String::from_utf8(body_bytes.to_vec()).reject_input("failed to parse body as UTF-8")?;
 
@@ -73,7 +85,7 @@ pub(crate) async fn submit_answer_raw(
             let decoded_value = urlencoding::decode(value)
                 .map_err(|e| {
                     tracing::error!("failed to decode URL value: {e}");
-                    warp::reject::custom(AppError::Input("failed to decode URL value"))
+                    AppError::Input("failed to decode URL value")
                 })?
                 .to_string();
 
@@ -88,16 +100,17 @@ pub(crate) async fn submit_answer_raw(
     tracing::info!("Received body: option={:?}, options={:?}", option, options);
 
     let body = SubmitAnswerBody { option, options };
-    submit_answer(db, token, body, &locale).await
+    submit_answer(state, token, body, &locale).await
 }
 
 async fn submit_answer(
-    db: Db,
+    state: AppState,
     token: String,
     body: SubmitAnswerBody,
     locale: &str,
-) -> Result<impl warp::Reply, warp::Rejection> {
-    let session = db
+) -> Result<axum::response::Response, AppError> {
+    let session = state
+        .db
         .get_session(&token)
         .await
         .reject("could not get session")?;
@@ -113,26 +126,30 @@ async fn submit_answer(
             .reject_input("failed to parse option id")?]
     } else {
         tracing::error!("no options provided");
-        return Err(warp::reject::custom(AppError::Input("no options provided")));
+        return Err(AppError::Input("no options provided"));
     };
 
-    let question_idx = db
+    let question_idx = state
+        .db
         .current_question_index(session.id)
         .await
         .reject("could not get current question index")?;
 
-    let question_id = db
+    let question_id = state
+        .db
         .get_question_by_idx(session.id, question_idx)
         .await
         .reject("could not get question id")?;
 
-    let question_data = db
+    let question_data = state
+        .db
         .get_question(question_id)
         .await
         .reject("could not get question")?;
 
     let is_correct = {
-        let correct_ids = db
+        let correct_ids = state
+            .db
             .get_correct_option_ids(question_id)
             .await
             .reject("could not get correct option ids")?;
@@ -157,16 +174,21 @@ async fn submit_answer(
     };
 
     for option_id in &selected_ids {
-        db.create_answer(session.id, question_id, *option_id, is_correct)
+        state
+            .db
+            .create_answer(session.id, question_id, *option_id, is_correct)
             .await
             .reject("could not create answer")?;
     }
 
-    db.update_question_result(session.id, question_id, is_correct)
+    state
+        .db
+        .update_question_result(session.id, question_id, is_correct)
         .await
         .reject("could not update question result")?;
 
-    let questions_count = db
+    let questions_count = state
+        .db
         .questions_count_for_session(session.id)
         .await
         .reject("could not get question count")?;
@@ -174,7 +196,7 @@ async fn submit_answer(
     let is_final = question_idx + 1 == questions_count;
 
     let page = answer(
-        &db,
+        &state.db,
         session.id,
         session.quiz_id,
         question_idx,
@@ -185,54 +207,57 @@ async fn submit_answer(
     )
     .await?;
 
-    let resp = if is_final {
+    use axum::response::IntoResponse;
+    if is_final {
         let cookie = utils::cookie(names::QUIZ_SESSION_COOKIE_NAME, "");
-        Response::builder()
-            .header(SET_COOKIE, cookie)
-            .body(page.into_string())
-            .unwrap()
+        let mut headers = HeaderMap::new();
+        headers.insert(SET_COOKIE, cookie.parse().unwrap());
+        Ok((headers, page).into_response())
     } else {
-        Response::builder().body(page.into_string()).unwrap()
-    };
-
-    Ok(resp)
+        Ok(page.into_response())
+    }
 }
 
 pub(crate) async fn navigate_question(
-    db: Db,
-    _is_htmx: bool,
-    session_id: i32,
-    query: NavigateQuestionQuery,
-    locale: String,
-) -> Result<impl warp::Reply, warp::Rejection> {
-    let session = db
+    State(state): State<AppState>,
+    IsHtmx(_is_htmx): IsHtmx,
+    Path(session_id): Path<i32>,
+    Query(query): Query<NavigateQuestionQuery>,
+    Locale(locale): Locale,
+) -> Result<Markup, AppError> {
+    let session = state
+        .db
         .get_session_by_id(session_id)
         .await
         .reject("could not get session")?;
 
-    let quiz_name = db
+    let quiz_name = state
+        .db
         .quiz_name(session.quiz_id)
         .await
         .reject("could not get quiz name")?;
 
-    let question_id = db
+    let question_id = state
+        .db
         .get_question_by_idx(session_id, query.question_idx)
         .await
         .reject("could not get question id")?;
 
-    let is_answered = db
+    let is_answered = state
+        .db
         .is_question_answered(session_id, question_id)
         .await
         .reject("could not check if question is answered")?;
 
     let page = if is_answered {
-        let selected_answers = db
+        let selected_answers = state
+            .db
             .get_selected_answers(session_id, question_id)
             .await
             .reject("could not get selected answers")?;
 
         answer(
-            &db,
+            &state.db,
             session_id,
             session.quiz_id,
             query.question_idx,
@@ -244,7 +269,7 @@ pub(crate) async fn navigate_question(
         .await?
     } else {
         question(
-            &db,
+            &state.db,
             session_id,
             session.quiz_id,
             query.question_idx,
@@ -257,16 +282,35 @@ pub(crate) async fn navigate_question(
     Ok(views::titled(&quiz_name, page))
 }
 
+pub(crate) async fn toggle_bookmark(
+    State(state): State<AppState>,
+    Path((session_id, question_id)): Path<(i32, i32)>,
+    Locale(locale): Locale,
+) -> Result<Markup, AppError> {
+    let new_state = state
+        .db
+        .toggle_bookmark(session_id, question_id)
+        .await
+        .reject("could not toggle bookmark")?;
+
+    Ok(quiz_views::bookmark_button(
+        session_id,
+        question_id,
+        new_state,
+        &locale,
+    ))
+}
+
 // --- Helper functions: DB queries + view delegation ---
 
 pub async fn question(
-    db: &Db,
+    db: &crate::db::Db,
     session_id: i32,
     quiz_id: i32,
     question_idx: i32,
     is_resuming: bool,
     locale: &str,
-) -> Result<Markup, Rejection> {
+) -> Result<Markup, AppError> {
     let quiz_name = db
         .quiz_name(quiz_id)
         .await
@@ -297,6 +341,11 @@ pub async fn question(
         .await
         .reject("could not get selected answers")?;
 
+    let is_bookmarked = db
+        .is_question_bookmarked(session_id, question_id)
+        .await
+        .reject("could not check bookmark status")?;
+
     Ok(quiz_views::question(
         quiz_views::QuestionData {
             quiz_name,
@@ -307,13 +356,15 @@ pub async fn question(
             selected_answers,
             is_resuming,
             session_id,
+            question_id,
+            is_bookmarked,
         },
         locale,
     ))
 }
 
 pub async fn answer(
-    db: &Db,
+    db: &crate::db::Db,
     session_id: i32,
     quiz_id: i32,
     question_idx: i32,
@@ -321,7 +372,7 @@ pub async fn answer(
     from_context: Option<String>,
     current_idx: Option<i32>,
     locale: &str,
-) -> Result<Markup, Rejection> {
+) -> Result<Markup, AppError> {
     let quiz_name = db
         .quiz_name(quiz_id)
         .await
@@ -342,6 +393,11 @@ pub async fn answer(
         .await
         .reject("could not get question count")?;
 
+    let is_bookmarked = db
+        .is_question_bookmarked(session_id, question_id)
+        .await
+        .reject("could not check bookmark status")?;
+
     Ok(quiz_views::answer(
         quiz_views::AnswerData {
             quiz_name,
@@ -353,6 +409,8 @@ pub async fn answer(
             selected,
             from_context,
             current_idx,
+            question_id,
+            is_bookmarked,
         },
         locale,
     ))

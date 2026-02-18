@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "scripts": {
+    "check": "biome check static/",
+    "check:ci": "biome ci static/",
+    "format": "biome check --write static/"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1"
+  }
+}

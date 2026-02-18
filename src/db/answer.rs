@@ -1,7 +1,7 @@
 use color_eyre::{eyre::OptionExt, Result};
-use futures::{future, StreamExt, TryStreamExt};
 use libsql::params;
 
+use super::helpers;
 use super::models::{AnswerModel, CategoryStats};
 use super::Db;
 
@@ -98,70 +98,54 @@ impl Db {
 
     pub async fn get_answers(&self, session_id: i32) -> Result<Vec<AnswerModel>> {
         let conn = self.db.connect()?;
-        Ok(conn
-            .query(
-                r#"
-            SELECT q.question, sq.is_correct, sq.question_number
+        helpers::query_all(
+            &conn,
+            r#"
+            SELECT q.question AS question, sq.is_correct AS is_correct, sq.question_number AS question_idx,
+                   sq.is_bookmarked AS is_bookmarked
             FROM session_questions sq
             JOIN questions q ON sq.question_id = q.id
             WHERE sq.session_id = ? AND sq.is_correct IS NOT NULL
-            ORDER BY sq.question_number"#,
-                params![session_id],
-            )
-            .await?
-            .into_stream()
-            .map_ok(|r| AnswerModel {
-                question: r.get::<String>(0).expect("failed to get answer question"),
-                is_correct: r.get::<bool>(1).expect("failed to get answer correctness"),
-                question_idx: r.get::<i32>(2).expect("failed to get question index"),
-            })
-            .filter_map(|r| future::ready(r.ok()))
-            .collect::<Vec<_>>()
-            .await)
+            ORDER BY sq.question_number
+            "#,
+            params![session_id],
+        )
+        .await
     }
 
     pub async fn get_incorrect_questions(&self, session_id: i32) -> Result<Vec<i32>> {
         let conn = self.db.connect()?;
-        Ok(conn
+        let mut rows = conn
             .query(
                 "SELECT DISTINCT question_id FROM session_questions WHERE session_id = ? AND is_correct = 0",
                 params![session_id],
             )
-            .await?
-            .into_stream()
-            .map_ok(|r| r.get::<i32>(0).expect("could not get question id"))
-            .filter_map(|r| future::ready(r.ok()))
-            .collect::<Vec<_>>()
-            .await)
+            .await?;
+
+        let mut ids = Vec::new();
+        while let Some(row) = rows.next().await? {
+            ids.push(row.get::<i32>(0)?);
+        }
+        Ok(ids)
     }
 
     pub async fn get_category_stats(&self, session_id: i32) -> Result<Vec<CategoryStats>> {
         let conn = self.db.connect()?;
-        Ok(conn
-            .query(
-                r#"
-                SELECT
-                    q.category,
-                    COUNT(*) as total,
-                    SUM(CASE WHEN sq.is_correct THEN 1 ELSE 0 END) as correct,
-                    ROUND(CAST(SUM(CASE WHEN sq.is_correct THEN 1 ELSE 0 END) AS REAL) * 100.0 / COUNT(*), 1) as accuracy
-                FROM session_questions sq
-                JOIN questions q ON sq.question_id = q.id
-                WHERE sq.session_id = ? AND q.category IS NOT NULL AND sq.is_correct IS NOT NULL
-                GROUP BY q.category
-                "#,
-                params![session_id],
-            )
-            .await?
-            .into_stream()
-            .map_ok(|r| CategoryStats {
-                category: r.get::<String>(0).expect("could not get category"),
-                total: r.get::<i32>(1).expect("could not get total"),
-                correct: r.get::<i32>(2).expect("could not get correct"),
-                accuracy: r.get::<f64>(3).expect("could not get accuracy"),
-            })
-            .filter_map(|r| future::ready(r.ok()))
-            .collect::<Vec<_>>()
-            .await)
+        helpers::query_all(
+            &conn,
+            r#"
+            SELECT
+                q.category AS category,
+                COUNT(*) AS total,
+                SUM(CASE WHEN sq.is_correct THEN 1 ELSE 0 END) AS correct,
+                ROUND(CAST(SUM(CASE WHEN sq.is_correct THEN 1 ELSE 0 END) AS REAL) * 100.0 / COUNT(*), 1) AS accuracy
+            FROM session_questions sq
+            JOIN questions q ON sq.question_id = q.id
+            WHERE sq.session_id = ? AND q.category IS NOT NULL AND sq.is_correct IS NOT NULL
+            GROUP BY q.category
+            "#,
+            params![session_id],
+        )
+        .await
     }
 }

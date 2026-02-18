@@ -1,11 +1,11 @@
 use color_eyre::{eyre::OptionExt, Result};
-use futures::{future, StreamExt, TryStreamExt};
 use libsql::params;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
 use rand::SeedableRng;
 use ulid::Ulid;
 
+use super::helpers;
 use super::models::QuizSessionModel;
 use super::Db;
 
@@ -92,8 +92,9 @@ impl Db {
         match selection_mode {
             "unanswered" => {
                 // Get questions that have never been asked in any session
-                let mut unanswered: Vec<i32> = conn
-                    .query(
+                let mut unanswered = self
+                    .query_id_column(
+                        conn,
                         r#"
                         SELECT id FROM questions
                         WHERE quiz_id = ? AND id NOT IN (
@@ -105,12 +106,7 @@ impl Db {
                         "#,
                         params![quiz_id, quiz_id],
                     )
-                    .await?
-                    .into_stream()
-                    .map_ok(|r| r.get::<i32>(0).expect("could not get question id"))
-                    .filter_map(|r| future::ready(r.ok()))
-                    .collect::<Vec<_>>()
-                    .await;
+                    .await?;
 
                 unanswered.shuffle(&mut rng);
 
@@ -135,8 +131,9 @@ impl Db {
             }
             "incorrect" => {
                 // Get questions that were answered incorrectly, sorted by accuracy (worst first)
-                let mut incorrect: Vec<i32> = conn
-                    .query(
+                let mut incorrect = self
+                    .query_id_column(
+                        conn,
                         r#"
                         SELECT question_id FROM question_stats
                         WHERE quiz_id = ? AND times_incorrect > 0
@@ -144,12 +141,7 @@ impl Db {
                         "#,
                         params![quiz_id],
                     )
-                    .await?
-                    .into_stream()
-                    .map_ok(|r| r.get::<i32>(0).expect("could not get question id"))
-                    .filter_map(|r| future::ready(r.ok()))
-                    .collect::<Vec<_>>()
-                    .await;
+                    .await?;
 
                 incorrect.shuffle(&mut rng);
 
@@ -181,22 +173,31 @@ impl Db {
         }
     }
 
+    async fn query_id_column(
+        &self,
+        conn: &libsql::Connection,
+        sql: &str,
+        params: impl libsql::params::IntoParams,
+    ) -> Result<Vec<i32>> {
+        let mut rows = conn.query(sql, params).await?;
+        let mut ids = Vec::new();
+        while let Some(row) = rows.next().await? {
+            ids.push(row.get::<i32>(0)?);
+        }
+        Ok(ids)
+    }
+
     async fn get_all_question_ids(
         &self,
         conn: &libsql::Connection,
         quiz_id: i32,
     ) -> Result<Vec<i32>> {
-        Ok(conn
-            .query(
-                "SELECT id FROM questions WHERE quiz_id = ? ORDER BY id",
-                params![quiz_id],
-            )
-            .await?
-            .into_stream()
-            .map_ok(|r| r.get::<i32>(0).expect("could not get question id"))
-            .filter_map(|r| future::ready(r.ok()))
-            .collect::<Vec<_>>()
-            .await)
+        self.query_id_column(
+            conn,
+            "SELECT id FROM questions WHERE quiz_id = ? ORDER BY id",
+            params![quiz_id],
+        )
+        .await
     }
 
     pub async fn sessions_count(&self, quiz_id: i32) -> Result<i32> {
@@ -215,40 +216,22 @@ impl Db {
 
     pub async fn get_session(&self, token: &str) -> Result<QuizSessionModel> {
         let conn = self.db.connect()?;
-        conn.query(
+        helpers::query_one(
+            &conn,
             "SELECT id, quiz_id, name, question_count, selection_mode FROM quiz_sessions WHERE session_token = ?",
             params![token],
         )
-        .await?
-        .next()
-        .await?
-        .map(|r| QuizSessionModel {
-            id: r.get::<i32>(0).expect("failed to get session id"),
-            quiz_id: r.get::<i32>(1).expect("failed to get quiz id"),
-            name: r.get::<String>(2).expect("failed to get session name"),
-            question_count: r.get::<Option<i32>>(3).ok().flatten(),
-            selection_mode: r.get::<Option<String>>(4).ok().flatten(),
-        })
-        .ok_or_eyre("could not get session")
+        .await
     }
 
     pub async fn get_session_by_id(&self, session_id: i32) -> Result<QuizSessionModel> {
         let conn = self.db.connect()?;
-        conn.query(
+        helpers::query_one(
+            &conn,
             "SELECT id, quiz_id, name, question_count, selection_mode FROM quiz_sessions WHERE id = ?",
             params![session_id],
         )
-        .await?
-        .next()
-        .await?
-        .map(|r| QuizSessionModel {
-            id: r.get::<i32>(0).expect("failed to get session id"),
-            quiz_id: r.get::<i32>(1).expect("failed to get quiz id"),
-            name: r.get::<String>(2).expect("failed to get session name"),
-            question_count: r.get::<Option<i32>>(3).ok().flatten(),
-            selection_mode: r.get::<Option<String>>(4).ok().flatten(),
-        })
-        .ok_or_eyre("could not get session")
+        .await
     }
 
     /// 回答済み問題数を返す（= 次の未回答問題の question_number）
@@ -336,6 +319,47 @@ impl Db {
         Ok(())
     }
 
+    pub async fn is_question_bookmarked(&self, session_id: i32, question_id: i32) -> Result<bool> {
+        let conn = self.db.connect()?;
+        let result = conn
+            .query(
+                "SELECT is_bookmarked FROM session_questions WHERE session_id = ? AND question_id = ?",
+                params![session_id, question_id],
+            )
+            .await?
+            .next()
+            .await?
+            .ok_or_eyre("session_question not found")?
+            .get::<i32>(0)?;
+        Ok(result != 0)
+    }
+
+    /// ブックマーク状態をトグルし、新しい状態を返す
+    pub async fn toggle_bookmark(&self, session_id: i32, question_id: i32) -> Result<bool> {
+        let conn = self.db.connect()?;
+        conn.execute(
+            "UPDATE session_questions SET is_bookmarked = CASE WHEN is_bookmarked = 0 THEN 1 ELSE 0 END WHERE session_id = ? AND question_id = ?",
+            params![session_id, question_id],
+        )
+        .await?;
+        self.is_question_bookmarked(session_id, question_id).await
+    }
+
+    pub async fn get_bookmarked_questions(&self, session_id: i32) -> Result<Vec<i32>> {
+        let conn = self.db.connect()?;
+        let mut rows = conn
+            .query(
+                "SELECT question_id FROM session_questions WHERE session_id = ? AND is_bookmarked = 1",
+                params![session_id],
+            )
+            .await?;
+        let mut ids = Vec::new();
+        while let Some(row) = rows.next().await? {
+            ids.push(row.get::<i32>(0)?);
+        }
+        Ok(ids)
+    }
+
     pub async fn find_incomplete_session(
         &self,
         name: &str,
@@ -350,8 +374,8 @@ impl Db {
         .await?;
 
         if let Some(row) = rows.next().await? {
-            let session_id = row.get::<i32>(0).expect("failed to get session id");
-            let session_token = row.get::<String>(1).expect("failed to get session token");
+            let session_id = row.get::<i32>(0)?;
+            let session_token = row.get::<String>(1)?;
 
             tracing::info!(
                 "Found incomplete session {} for user '{}'",
