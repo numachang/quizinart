@@ -5,6 +5,10 @@ layout.lang_toggle_en: "English"
 layout.lang_toggle_ja: "日本語"
 layout.lang_toggle_zh_cn: "简体中文"
 layout.lang_toggle_zh_tw: "繁體中文"
+layout.theme_aria_label: "主题"
+layout.theme_light: "浅色"
+layout.theme_dark: "深色"
+layout.theme_system: "跟随系统"
 
 # Homepage - Get Started
 homepage.welcome: "欢迎使用 Quizinart！"
