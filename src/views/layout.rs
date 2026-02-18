@@ -12,6 +12,58 @@ fn css() -> Markup {
 
 fn js() -> Markup {
     html! {
+        script {
+            r#"
+                (() => {
+                    const key = "quizinart-theme";
+
+                    const getPreferredTheme = () => {
+                        const saved = localStorage.getItem(key);
+                        if (saved === "light" || saved === "dark" || saved === "system") {
+                            return saved;
+                        }
+                        return "system";
+                    };
+
+                    const resolveTheme = (mode) => {
+                        if (mode === "system") {
+                            return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+                        }
+                        return mode;
+                    };
+
+                    const applyTheme = (mode) => {
+                        const theme = resolveTheme(mode);
+                        document.documentElement.setAttribute("data-theme", theme);
+                        document.documentElement.setAttribute("data-theme-mode", mode);
+                    };
+
+                    const mode = getPreferredTheme();
+                    applyTheme(mode);
+
+                    document.addEventListener("DOMContentLoaded", () => {
+                        const select = document.querySelector(".theme-select");
+                        if (!select) {
+                            return;
+                        }
+
+                        select.value = mode;
+                        select.addEventListener("change", (event) => {
+                            const selectedMode = event.target.value;
+                            localStorage.setItem(key, selectedMode);
+                            applyTheme(selectedMode);
+                        });
+                    });
+
+                    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+                        const currentMode = getPreferredTheme();
+                        if (currentMode === "system") {
+                            applyTheme(currentMode);
+                        }
+                    });
+                })();
+            "#
+        }
         script src="/static/htmx/htmx.min.js" {}
         script src="/static/htmx/ext/json-enc.js" {}
     }
@@ -30,6 +82,12 @@ const LOCALES: &[(&str, &str)] = &[
     ("zh-TW", "layout.lang_toggle_zh_tw"),
 ];
 
+const THEMES: &[(&str, &str)] = &[
+    ("light", "layout.theme_light"),
+    ("dark", "layout.theme_dark"),
+    ("system", "layout.theme_system"),
+];
+
 fn header(locale: &str) -> Markup {
     html! {
         header {
@@ -42,6 +100,19 @@ fn header(locale: &str) -> Markup {
                     }
                 }
                 ul {
+                    li."secondary" {
+                        select."theme-select"
+                               name="theme"
+                               aria-label=(t!("layout.theme_aria_label", locale = locale)) {
+                            @for &(value, label_key) in THEMES {
+                                @if value == "system" {
+                                    option value=(value) selected { (t!(label_key, locale = locale)) }
+                                } @else {
+                                    option value=(value) { (t!(label_key, locale = locale)) }
+                                }
+                            }
+                        }
+                    }
                     li."secondary" {
                         select."lang-select"
                                name="locale"
