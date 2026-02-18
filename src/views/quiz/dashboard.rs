@@ -42,6 +42,15 @@ pub fn dashboard(data: DashboardData, locale: &str) -> Markup {
     html! {
         h1 { (data.quiz_name) }
 
+        div style="margin-bottom: 1rem;" {
+            button hx-get=(names::quiz_page_url(data.quiz_id))
+                   hx-push-url="true"
+                   hx-target="main"
+                   style="width: fit-content; background-color: #007bff; color: white; font-weight: 500;" {
+                (t!("dashboard.start_new", locale = locale))
+            }
+        }
+
         article {
             h4 { (t!("dashboard.overall_stats", locale = locale)) }
             table {
@@ -105,15 +114,6 @@ pub fn dashboard(data: DashboardData, locale: &str) -> Markup {
                         }
                     }
                 }
-            }
-        }
-
-        div style="margin-bottom: 1rem;" {
-            button hx-get=(names::quiz_page_url(data.quiz_id))
-                   hx-push-url="true"
-                   hx-target="main"
-                   style="width: fit-content; background-color: #007bff; color: white; font-weight: 500;" {
-                (t!("dashboard.start_new", locale = locale))
             }
         }
 
