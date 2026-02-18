@@ -74,7 +74,7 @@ pub fn question(data: QuestionData, locale: &str) -> Markup {
                 }
                 div style="display: flex; gap: 1rem; margin-top: 1rem; align-items: center;" {
                     @if data.question_idx > 0 {
-                        button type="button" class="nav-btn"
+                        button type="button" class="nav-btn nav-btn-back"
                                hx-get=(format!("/question/{}?question_idx={}", data.session_id, data.question_idx - 1))
                                hx-target="main"
                                hx-swap="innerHTML" {
@@ -151,7 +151,7 @@ pub fn answer(data: AnswerData, locale: &str) -> Markup {
 
             @if data.from_context.as_deref() == Some("report") {
                 div style="display: flex; gap: 1rem; margin-top: 1rem; align-items: center;" {
-                    button class="nav-btn"
+                    button class="nav-btn nav-btn-back"
                            hx-get=(names::results_url(data.session_id))
                            hx-push-url="true"
                            hx-target="main"
@@ -159,12 +159,11 @@ pub fn answer(data: AnswerData, locale: &str) -> Markup {
                         (t!("quiz.back_to_results", locale = locale))
                     }
                     @if let Some(current) = data.current_idx {
-                        button class="nav-btn"
+                        button class="nav-btn nav-btn-next"
                                hx-get=(format!("/question/{}?question_idx={}", data.session_id, current))
                                hx-push-url="true"
                                hx-target="main"
-                               hx-disabled-elt="this"
-                               style="background-color: #007bff; color: white;" {
+                               hx-disabled-elt="this" {
                             (t!("quiz.return_to_current", locale = locale))
                         }
                     }
@@ -172,7 +171,7 @@ pub fn answer(data: AnswerData, locale: &str) -> Markup {
             } @else {
                 div style="display: flex; gap: 1rem; margin-top: 1rem; align-items: center;" {
                     @if data.question_idx > 0 {
-                        button type="button" class="nav-btn"
+                        button type="button" class="nav-btn nav-btn-back"
                                hx-get=(format!("/question/{}?question_idx={}", data.session_id, data.question_idx - 1))
                                hx-target="main"
                                hx-swap="innerHTML" {
@@ -180,12 +179,12 @@ pub fn answer(data: AnswerData, locale: &str) -> Markup {
                         }
                     }
                     @if is_final {
-                        button class="nav-btn"
+                        button class="nav-btn nav-btn-next"
                                hx-get=(names::results_url(data.session_id))
                                hx-push-url="true"
                                hx-target="main" hx-disabled-elt="this" { (t!("quiz.see_results", locale = locale)) }
                     } @else {
-                        button class="nav-btn"
+                        button class="nav-btn nav-btn-next"
                                hx-get=(names::quiz_page_url(data.quiz_id))
                                hx-target="main" hx-disabled-elt="this" { (t!("quiz.next", locale = locale)) }
                     }
