@@ -23,7 +23,10 @@ impl Db {
         let conn = self.db.connect()?;
 
         let rows = conn
-            .execute("INSERT INTO admin (password) VALUES (?)", params![password])
+            .execute(
+                "INSERT INTO admin (id, password) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET password = excluded.password",
+                params![password],
+            )
             .await?;
 
         tracing::info!("new admin password set: {rows:?}");
