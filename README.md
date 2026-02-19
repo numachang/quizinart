@@ -136,32 +136,6 @@ quizinart/
 └── Cargo.toml
 ```
 
-## Deployment
-
-### Environment Variables
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `URL` | libSQL connection string | `file:local.db` or `libsql://your-db.turso.io` |
-| `AUTH_TOKEN` | Turso auth token (empty for local) | `eyJhbGc...` |
-| `ADDRESS` | Listen address | `127.0.0.1:1414` |
-| `RUST_LOG` | Log level | `info` |
-
-### Deploy to Render.com
-
-1. Push to GitHub
-2. Create a **Web Service** on [render.com](https://render.com)
-3. Set environment: **Docker**, root directory: `quizinart`
-4. Add environment variables (`URL`, `AUTH_TOKEN`, `ADDRESS=0.0.0.0:1414`)
-
-### Using Turso (remote database)
-
-```bash
-turso db create my-quiz
-turso db show my-quiz       # get the URL
-turso db tokens create my-quiz  # get the token
-```
-
 ## License
 
 MIT

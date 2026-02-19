@@ -1,0 +1,7 @@
+target/
+local.db
+local.db.bak
+.env
+docs/
+*.md
+.github/

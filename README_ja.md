@@ -136,32 +136,6 @@ quizinart/
 └── Cargo.toml
 ```
 
-## デプロイ
-
-### 環境変数
-
-| 変数 | 説明 | 例 |
-|------|------|-----|
-| `URL` | libSQL接続文字列 | `file:local.db` または `libsql://your-db.turso.io` |
-| `AUTH_TOKEN` | Turso認証トークン（ローカルは空） | `eyJhbGc...` |
-| `ADDRESS` | リッスンアドレス | `127.0.0.1:1414` |
-| `RUST_LOG` | ログレベル | `info` |
-
-### Render.com へのデプロイ
-
-1. GitHub にプッシュ
-2. [render.com](https://render.com) で **Web Service** を作成
-3. 環境を **Docker** に設定、ルートディレクトリは `quizinart`
-4. 環境変数を追加（`URL`, `AUTH_TOKEN`, `ADDRESS=0.0.0.0:1414`）
-
-### Turso（リモートデータベース）の使用
-
-```bash
-turso db create my-quiz
-turso db show my-quiz           # URLを取得
-turso db tokens create my-quiz  # トークンを取得
-```
-
 ## ライセンス
 
 MIT
