@@ -256,10 +256,17 @@ impl Db {
         question_ids: &[i32],
         selection_mode: &str,
     ) -> Result<String> {
+        let mut seen = std::collections::HashSet::new();
+        let deduped_question_ids: Vec<i32> = question_ids
+            .iter()
+            .copied()
+            .filter(|id| seen.insert(*id))
+            .collect();
+
         let session_token = Ulid::new().to_string();
         let token_str = session_token.as_str();
         let conn = self.db.connect()?;
-        let question_count = question_ids.len() as i32;
+        let question_count = deduped_question_ids.len() as i32;
 
         let session_id = conn
             .query(
@@ -272,7 +279,7 @@ impl Db {
             .ok_or_eyre("could not get session id")?
             .get::<i32>(0)?;
 
-        for (idx, question_id) in question_ids.iter().enumerate() {
+        for (idx, question_id) in deduped_question_ids.iter().enumerate() {
             conn.execute(
                 "INSERT INTO session_questions (session_id, question_id, question_number) VALUES (?, ?, ?)",
                 params![session_id, question_id, idx as i32],

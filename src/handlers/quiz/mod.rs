@@ -22,10 +22,10 @@ fn deserialize_string_or_i32<'de, D: serde::Deserializer<'de>>(d: D) -> Result<i
             f.write_str("number or numeric string")
         }
         fn visit_i64<E: serde::de::Error>(self, v: i64) -> Result<i32, E> {
-            Ok(v as i32)
+            i32::try_from(v).map_err(E::custom)
         }
         fn visit_u64<E: serde::de::Error>(self, v: u64) -> Result<i32, E> {
-            Ok(v as i32)
+            i32::try_from(v).map_err(E::custom)
         }
         fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<i32, E> {
             v.parse().map_err(E::custom)
@@ -93,4 +93,38 @@ pub fn routes() -> Router<AppState> {
         )
         .route("/session/{id}/delete", delete(session::delete_session))
         .route("/session/{id}/rename", patch(session::rename_session))
+        .route("/quiz/{id}/sessions", get(dashboard::quiz_session_history))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn start_session_body_accepts_numeric_string() {
+        let body: StartSessionBody = serde_json::from_str(
+            r#"{"name":"alice","question_count":"10","selection_mode":"random"}"#,
+        )
+        .expect("should parse numeric string");
+
+        assert_eq!(body.question_count, 10);
+    }
+
+    #[test]
+    fn start_session_body_rejects_out_of_range_i64() {
+        let result = serde_json::from_str::<StartSessionBody>(
+            r#"{"name":"alice","question_count":2147483648,"selection_mode":"random"}"#,
+        );
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn start_session_body_rejects_out_of_range_u64() {
+        let result = serde_json::from_str::<StartSessionBody>(
+            r#"{"name":"alice","question_count":9223372036854775808,"selection_mode":"random"}"#,
+        );
+
+        assert!(result.is_err());
+    }
 }

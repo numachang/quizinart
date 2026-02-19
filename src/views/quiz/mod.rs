@@ -2,7 +2,10 @@ mod dashboard;
 mod question;
 mod session;
 
-pub use dashboard::{dashboard, session_result, DashboardData, SessionResultData};
+pub use dashboard::{
+    dashboard, session_history, session_result, DashboardData, SessionHistoryData,
+    SessionResultData,
+};
 pub use question::{answer, bookmark_button, question, AnswerData, QuestionData};
 pub use session::{session_name_error_page, start_page, StartPageData};
 

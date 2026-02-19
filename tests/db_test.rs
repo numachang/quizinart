@@ -82,6 +82,7 @@ async fn test_db_connection() {
     let db = create_test_db().await;
     assert!(db.migration_applied("V1").await.unwrap());
     assert!(db.migration_applied("V2").await.unwrap());
+    assert!(db.migration_applied("V3").await.unwrap());
 }
 
 #[tokio::test]
@@ -96,6 +97,17 @@ async fn test_admin_password() {
     db.set_admin_password("secret".to_string()).await.unwrap();
     let pw = db.admin_password().await.unwrap();
     assert_eq!(pw, Some("secret".to_string()));
+}
+
+#[tokio::test]
+async fn test_admin_password_can_be_updated() {
+    let db = create_test_db().await;
+
+    db.set_admin_password("secret-1".to_string()).await.unwrap();
+    db.set_admin_password("secret-2".to_string()).await.unwrap();
+
+    let pw = db.admin_password().await.unwrap();
+    assert_eq!(pw, Some("secret-2".to_string()));
 }
 
 #[tokio::test]
@@ -441,6 +453,39 @@ async fn test_unanswered_mode_partial_fallback() {
         6,
         "Both sessions combined should cover all 6 questions"
     );
+}
+
+#[tokio::test]
+async fn test_create_session_with_questions_deduplicates_question_ids() {
+    let db = create_test_db().await;
+    let quiz_id = db
+        .load_quiz("Quiz".to_string(), make_questions(5))
+        .await
+        .unwrap();
+
+    let mut all_questions = Vec::new();
+    for idx in 0..5 {
+        all_questions.push(db.question_id_from_idx(quiz_id, idx).await.unwrap());
+    }
+
+    let requested = vec![
+        all_questions[0],
+        all_questions[1],
+        all_questions[0],
+        all_questions[2],
+    ];
+
+    let token = db
+        .create_session_with_questions("dedupe", quiz_id, &requested, "incorrect")
+        .await
+        .unwrap();
+    let session = db.get_session(&token).await.unwrap();
+
+    let ids = get_session_question_ids(&db, session.id).await;
+    assert_eq!(ids.len(), 3);
+
+    let unique: HashSet<i32> = ids.iter().copied().collect();
+    assert_eq!(unique.len(), ids.len());
 }
 
 // --- Bookmark tests ---

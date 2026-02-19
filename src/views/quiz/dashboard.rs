@@ -15,10 +15,15 @@ pub struct DashboardData {
     pub quiz_name: String,
     pub quiz_id: i32,
     pub sessions_count: i32,
-    pub sessions: Vec<SessionReportModel>,
     pub overall: QuizOverallStats,
     pub cat_stats: Vec<QuizCategoryOverallStats>,
     pub trends: Vec<SessionCategoryAccuracy>,
+}
+
+pub struct SessionHistoryData {
+    pub quiz_name: String,
+    pub quiz_id: i32,
+    pub sessions: Vec<SessionReportModel>,
 }
 
 pub struct SessionResultData {
@@ -130,77 +135,112 @@ pub fn dashboard(data: DashboardData, locale: &str) -> Markup {
             }
         }
 
-        @if !data.sessions.is_empty() {
-            article {
-                h4 { (t!("dashboard.session_history", locale = locale)) }
-                table {
-                    thead { tr {
-                        th { (t!("dashboard.name", locale = locale)) }
-                        th { (t!("dashboard.mode", locale = locale)) }
-                        th { (t!("dashboard.progress", locale = locale)) }
-                        th { (t!("dashboard.score", locale = locale)) }
-                        th { (t!("dashboard.status", locale = locale)) }
-                        th { (t!("dashboard.actions", locale = locale)) }
-                    } }
-                    tbody {
-                        @for s in &data.sessions {
-                            tr {
-                                td { (s.name) }
-                                td {
-                                    (selection_mode_label(s.selection_mode.as_deref().unwrap_or("random"), locale))
+        article {
+            h4 { (t!("dashboard.session_history", locale = locale)) }
+            p style="margin-bottom: 0.75rem;" {
+                (t!("dashboard.session_history_desc", locale = locale))
+            }
+            button hx-get=(names::quiz_session_history_url(data.quiz_id))
+                   hx-push-url="true"
+                   hx-target="main"
+                   style="width: fit-content;" {
+                (t!("dashboard.open_session_history", locale = locale))
+            }
+        }
+    }
+}
+
+pub fn session_history(data: SessionHistoryData, locale: &str) -> Markup {
+    html! {
+        h1 { (data.quiz_name) }
+        article {
+            h4 { (t!("dashboard.session_history", locale = locale)) }
+            @if data.sessions.is_empty() {
+                p { (t!("dashboard.no_sessions", locale = locale)) }
+            } @else {
+                (session_history_table(&data.sessions, locale))
+            }
+        }
+
+        div style="margin-top: 2rem;" {
+            button hx-get=(names::quiz_dashboard_url(data.quiz_id))
+                   hx-push-url="true"
+                   hx-target="main"
+                   style="width: fit-content;" {
+                (t!("dashboard.back_to_dashboard", locale = locale))
+            }
+        }
+    }
+}
+
+fn session_history_table(sessions: &[SessionReportModel], locale: &str) -> Markup {
+    html! {
+        table {
+            thead { tr {
+                th { (t!("dashboard.name", locale = locale)) }
+                th { (t!("dashboard.mode", locale = locale)) }
+                th { (t!("dashboard.progress", locale = locale)) }
+                th { (t!("dashboard.score", locale = locale)) }
+                th { (t!("dashboard.status", locale = locale)) }
+                th { (t!("dashboard.actions", locale = locale)) }
+            } }
+            tbody {
+                @for s in sessions {
+                    tr {
+                        td { (s.name) }
+                        td {
+                            (selection_mode_label(s.selection_mode.as_deref().unwrap_or("random"), locale))
+                        }
+                        td {
+                            @if s.is_complete {
+                                a hx-get=(names::results_url(s.id))
+                                    hx-push-url="true"
+                                    hx-target="main"
+                                    href="#" {
+                                    (s.answered_questions) "/" (s.total_questions)
                                 }
-                                td {
-                                    @if s.is_complete {
-                                        a hx-get=(names::results_url(s.id))
-                                           hx-push-url="true"
-                                           hx-target="main"
-                                           href="#" {
-                                            (s.answered_questions) "/" (s.total_questions)
-                                        }
-                                    } @else {
-                                        a hx-get=(names::resume_session_url(s.id, &s.session_token))
-                                           hx-push-url="true"
-                                           hx-target="main"
-                                           href="#" {
-                                            (s.answered_questions) "/" (s.total_questions)
-                                        }
-                                    }
+                            } @else {
+                                a hx-get=(names::resume_session_url(s.id, &s.session_token))
+                                    hx-push-url="true"
+                                    hx-target="main"
+                                    href="#" {
+                                    (s.answered_questions) "/" (s.total_questions)
                                 }
-                                td {
-                                    a hx-get=(names::results_url(s.id))
-                                       hx-push-url="true"
-                                       hx-target="main"
-                                       href="#" {
-                                        (s.score) "/" (s.answered_questions)
-                                    }
-                                }
-                                td {
-                                    @if s.is_complete {
-                                        span style="color: #28a745; font-weight: 500;" { (t!("dashboard.complete", locale = locale)) }
-                                    } @else {
-                                        span style="color: #6c757d; font-weight: 500;" { (t!("dashboard.in_progress", locale = locale)) }
-                                    }
-                                }
-                                td style="white-space: nowrap;" {
-                                    @let safe_name = serde_json::to_string(&s.name).unwrap_or_default();
-                                    @let prompt_label = serde_json::to_string(&t!("dashboard.rename_prompt", locale = locale).to_string()).unwrap_or_default();
-                                    @let rename_js = format!(
-                                        "var n=prompt({},{});if(n)htmx.ajax('PATCH','{}',{{target:'main',swap:'innerHTML',values:{{name:n}}}})",
-                                        prompt_label, safe_name, names::rename_session_url(s.id),
-                                    );
-                                    button onclick=(rename_js)
-                                           style="width:fit-content;padding:0.25rem 0.5rem;font-size:0.8rem;margin-right:0.25rem;" {
-                                        (t!("dashboard.rename_btn", locale = locale))
-                                    }
-                                    button hx-delete=(names::delete_session_url(s.id))
-                                           hx-target="main"
-                                           hx-swap="innerHTML"
-                                           hx-confirm=(t!("dashboard.delete_session_confirm", locale = locale))
-                                           style="width:fit-content;padding:0.25rem 0.5rem;font-size:0.8rem;background-color:#dc3545;color:white;" {
-                                        (t!("dashboard.delete_btn", locale = locale))
-                                    }
-                                }
-                             }
+                            }
+                        }
+                        td {
+                            a hx-get=(names::results_url(s.id))
+                                hx-push-url="true"
+                                hx-target="main"
+                                href="#" {
+                                (s.score) "/" (s.answered_questions)
+                            }
+                        }
+                        td {
+                            @if s.is_complete {
+                                span style="color: #28a745; font-weight: 500;" { (t!("dashboard.complete", locale = locale)) }
+                            } @else {
+                                span style="color: #6c757d; font-weight: 500;" { (t!("dashboard.in_progress", locale = locale)) }
+                            }
+                        }
+                        td style="white-space: nowrap;" {
+                            @let safe_name = serde_json::to_string(&s.name).unwrap_or_default();
+                            @let prompt_label = serde_json::to_string(&t!("dashboard.rename_prompt", locale = locale).to_string()).unwrap_or_default();
+                            @let rename_js = format!(
+                                "var n=prompt({},{});if(n)htmx.ajax('PATCH','{}',{{target:'main',swap:'innerHTML',values:{{name:n}}}})",
+                                prompt_label, safe_name, names::rename_session_url(s.id),
+                            );
+                            button onclick=(rename_js)
+                                    style="width:fit-content;padding:0.25rem 0.5rem;font-size:0.8rem;margin-right:0.25rem;" {
+                                (t!("dashboard.rename_btn", locale = locale))
+                            }
+                            button hx-delete=(names::delete_session_url(s.id))
+                                    hx-target="main"
+                                    hx-swap="innerHTML"
+                                    hx-confirm=(t!("dashboard.delete_session_confirm", locale = locale))
+                                    style="width:fit-content;padding:0.25rem 0.5rem;font-size:0.8rem;background-color:#dc3545;color:white;" {
+                                (t!("dashboard.delete_btn", locale = locale))
+                            }
                         }
                     }
                 }
