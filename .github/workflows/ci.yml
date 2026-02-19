@@ -26,11 +26,3 @@ jobs:
 
       - name: Test
         run: cargo test --all-targets --all-features
-
-      - uses: DeterminateSystems/nix-installer-action@main
-
-      - name: Build Release
-        run: nix build .
-
-      - name: Build Docker Image
-        run: nix build .#docker
