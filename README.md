@@ -6,6 +6,16 @@ A self-hosted, learning-focused quiz application. Built with Rust, HTMX, and lib
 
 Forked from [frectonz/quizzy](https://github.com/frectonz/quizzy) and extended with features for effective study.
 
+## Screenshots
+
+| Dashboard | Quiz | Results |
+|-----------|------|---------|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Quiz](docs/screenshots/quiz-answer.png) | ![Results](docs/screenshots/session-results.png) |
+
+Light/Dark theme and multi-language support (English, Japanese, Simplified Chinese, Traditional Chinese):
+
+![Theme & Language](docs/screenshots/theme-language.png)
+
 ## Features
 
 - **Smart question selection** — choose from unanswered, previously incorrect, or random questions

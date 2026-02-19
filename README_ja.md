@@ -6,6 +6,16 @@
 
 [frectonz/quizzy](https://github.com/frectonz/quizzy) をフォークし、効果的な学習のための機能を追加しています。
 
+## スクリーンショット
+
+| ダッシュボード | クイズ画面 | 結果画面 |
+|--------------|-----------|---------|
+| ![ダッシュボード](docs/screenshots/dashboard.png) | ![クイズ](docs/screenshots/quiz-answer.png) | ![結果](docs/screenshots/session-results.png) |
+
+ライト/ダークテーマ切り替え、多言語対応（English, 日本語, 简体中文, 繁體中文）：
+
+![テーマ・言語切り替え](docs/screenshots/theme-language.png)
+
 ## 特徴
 
 - **スマート出題** — 未出題・不正解・ランダムから選択可能
