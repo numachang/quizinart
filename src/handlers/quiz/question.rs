@@ -31,7 +31,7 @@ pub(crate) async fn quiz_page(
             let res = state.db.get_session(&token).await;
 
             match res {
-                Ok(session) => {
+                Ok(session) if session.quiz_id == quiz_id => {
                     let question_idx = state
                         .db
                         .current_question_index(session.id)
@@ -46,6 +46,10 @@ pub(crate) async fn quiz_page(
                         &locale,
                     )
                     .await?
+                }
+                Ok(_) => {
+                    // Session belongs to a different quiz; show start page for this quiz
+                    super::session::page(&state.db, quiz_id, &locale).await?
                 }
                 Err(e) => {
                     tracing::error!("could not get session for {token}: {e}");

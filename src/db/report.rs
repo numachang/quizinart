@@ -2,7 +2,7 @@ use color_eyre::Result;
 use libsql::params;
 
 use super::helpers;
-use super::models::{QuestionStatsModel, SessionCategoryAccuracy, SessionReportModel};
+use super::models::{DailyAccuracy, QuestionStatsModel, SessionReportModel};
 use super::Db;
 
 impl Db {
@@ -46,22 +46,18 @@ impl Db {
         .await
     }
 
-    pub async fn get_session_category_trends(
-        &self,
-        quiz_id: i32,
-    ) -> Result<Vec<SessionCategoryAccuracy>> {
+    pub async fn get_daily_accuracy(&self, quiz_id: i32) -> Result<Vec<DailyAccuracy>> {
         let conn = self.db.connect()?;
         helpers::query_all(
             &conn,
             r#"
-            SELECT s.id AS session_id, s.name AS session_name, q.category AS category,
+            SELECT SUBSTR(s.name, 1, 10) AS date_label,
                    ROUND(CAST(SUM(CASE WHEN sq.is_correct = 1 THEN 1 ELSE 0 END) AS REAL) * 100.0 / COUNT(*), 1) AS accuracy
             FROM session_questions sq
             JOIN quiz_sessions s ON s.id = sq.session_id
-            JOIN questions q ON q.id = sq.question_id
-            WHERE s.quiz_id = ? AND q.category IS NOT NULL AND sq.is_correct IS NOT NULL
-            GROUP BY s.id, q.category
-            ORDER BY s.id ASC
+            WHERE s.quiz_id = ? AND sq.is_correct IS NOT NULL
+            GROUP BY SUBSTR(s.name, 1, 10)
+            ORDER BY SUBSTR(s.name, 1, 10) ASC
             "#,
             params![quiz_id],
         )

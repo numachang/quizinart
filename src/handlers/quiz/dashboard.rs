@@ -143,10 +143,10 @@ pub async fn dashboard(db: &crate::db::Db, quiz_id: i32, locale: &str) -> Result
         .await
         .reject("could not get quiz category stats")?;
 
-    let trends = db
-        .get_session_category_trends(quiz_id)
+    let daily_accuracy = db
+        .get_daily_accuracy(quiz_id)
         .await
-        .reject("could not get session category trends")?;
+        .reject("could not get daily accuracy")?;
 
     Ok(quiz_views::dashboard(
         quiz_views::DashboardData {
@@ -155,7 +155,7 @@ pub async fn dashboard(db: &crate::db::Db, quiz_id: i32, locale: &str) -> Result
             sessions_count,
             overall,
             cat_stats,
-            trends,
+            daily_accuracy,
         },
         locale,
     ))

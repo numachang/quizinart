@@ -116,7 +116,9 @@ pub fn question(data: QuestionData, locale: &str) -> Markup {
                             (t!("quiz.previous", locale = locale))
                         }
                     }
-                    input type="submit" id="submit-btn" class="nav-btn" value=(t!("quiz.submit_answer", locale = locale)) disabled[!data.is_answered];
+                    span style="margin-left: auto;" {
+                        input type="submit" id="submit-btn" class="nav-btn" value=(t!("quiz.submit_answer", locale = locale)) disabled[!data.is_answered];
+                    }
                 }
             }
             script {
@@ -199,12 +201,14 @@ pub fn answer(data: AnswerData, locale: &str) -> Markup {
                         (t!("quiz.back_to_results", locale = locale))
                     }
                     @if let Some(current) = data.current_idx {
-                        button class="nav-btn nav-btn-next"
-                               hx-get=(format!("/question/{}?question_idx={}", data.session_id, current))
-                               hx-push-url="true"
-                               hx-target="main"
-                               hx-disabled-elt="this" {
-                            (t!("quiz.return_to_current", locale = locale))
+                        span style="margin-left: auto;" {
+                            button class="nav-btn nav-btn-next"
+                                   hx-get=(format!("/question/{}?question_idx={}", data.session_id, current))
+                                   hx-push-url="true"
+                                   hx-target="main"
+                                   hx-disabled-elt="this" {
+                                (t!("quiz.return_to_current", locale = locale))
+                            }
                         }
                     }
                 }
@@ -218,15 +222,17 @@ pub fn answer(data: AnswerData, locale: &str) -> Markup {
                             (t!("quiz.previous", locale = locale))
                         }
                     }
-                    @if is_final {
-                        button class="nav-btn nav-btn-next"
-                               hx-get=(names::results_url(data.session_id))
-                               hx-push-url="true"
-                               hx-target="main" hx-disabled-elt="this" { (t!("quiz.see_results", locale = locale)) }
-                    } @else {
-                        button class="nav-btn nav-btn-next"
-                               hx-get=(names::quiz_page_url(data.quiz_id))
-                               hx-target="main" hx-disabled-elt="this" { (t!("quiz.next", locale = locale)) }
+                    span style="margin-left: auto;" {
+                        @if is_final {
+                            button class="nav-btn nav-btn-next"
+                                   hx-get=(names::results_url(data.session_id))
+                                   hx-push-url="true"
+                                   hx-target="main" hx-disabled-elt="this" { (t!("quiz.see_results", locale = locale)) }
+                        } @else {
+                            button class="nav-btn nav-btn-next"
+                                   hx-get=(names::quiz_page_url(data.quiz_id))
+                                   hx-target="main" hx-disabled-elt="this" { (t!("quiz.next", locale = locale)) }
+                        }
                     }
                 }
             }

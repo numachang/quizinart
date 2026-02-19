@@ -76,10 +76,8 @@ pub struct QuizOverallStats {
 }
 
 #[derive(Deserialize)]
-pub struct SessionCategoryAccuracy {
-    pub session_id: i32,
-    pub session_name: String,
-    pub category: String,
+pub struct DailyAccuracy {
+    pub date_label: String,
     pub accuracy: f64,
 }
 
