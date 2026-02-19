@@ -79,6 +79,7 @@ struct NavigateQuestionQuery {
 pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/quiz/{id}/dashboard", get(dashboard::quiz_dashboard))
+        .route("/quiz/{id}/sessions", get(dashboard::quiz_session_history))
         .route("/quiz/{id}", get(question::quiz_page))
         .route("/start-session/{id}", post(session::start_session))
         .route("/submit-answer", post(question::submit_answer_raw))

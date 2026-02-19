@@ -30,6 +30,27 @@ pub(crate) async fn quiz_dashboard(
     })
 }
 
+pub(crate) async fn quiz_session_history(
+    _guard: AuthGuard,
+    IsHtmx(is_htmx): IsHtmx,
+    State(state): State<AppState>,
+    Path(quiz_id): Path<i32>,
+    Locale(locale): Locale,
+) -> Result<Markup, AppError> {
+    Ok(if is_htmx {
+        views::titled(
+            "Session History",
+            session_history(&state.db, quiz_id, &locale).await?,
+        )
+    } else {
+        views::page(
+            "Session History",
+            session_history(&state.db, quiz_id, &locale).await?,
+            &locale,
+        )
+    })
+}
+
 pub(crate) async fn session_result(
     State(state): State<AppState>,
     IsHtmx(is_htmx): IsHtmx,
@@ -118,11 +139,6 @@ pub async fn dashboard(db: &crate::db::Db, quiz_id: i32, locale: &str) -> Result
         .await
         .reject("could not get sessions count")?;
 
-    let sessions = db
-        .get_sessions_report(quiz_id)
-        .await
-        .reject("could not get sessions report")?;
-
     let overall = db
         .get_quiz_overall_stats(quiz_id)
         .await
@@ -143,10 +159,34 @@ pub async fn dashboard(db: &crate::db::Db, quiz_id: i32, locale: &str) -> Result
             quiz_name,
             quiz_id,
             sessions_count,
-            sessions,
             overall,
             cat_stats,
             trends,
+        },
+        locale,
+    ))
+}
+
+pub async fn session_history(
+    db: &crate::db::Db,
+    quiz_id: i32,
+    locale: &str,
+) -> Result<Markup, AppError> {
+    let quiz_name = db
+        .quiz_name(quiz_id)
+        .await
+        .reject("could not get quiz name")?;
+
+    let sessions = db
+        .get_sessions_report(quiz_id)
+        .await
+        .reject("could not get sessions report")?;
+
+    Ok(quiz_views::session_history(
+        quiz_views::SessionHistoryData {
+            quiz_name,
+            quiz_id,
+            sessions,
         },
         locale,
     ))

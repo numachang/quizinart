@@ -10,6 +10,10 @@ pub fn quiz_dashboard_url(quiz_id: i32) -> String {
     format!("/quiz/{quiz_id}/dashboard")
 }
 
+pub fn quiz_session_history_url(quiz_id: i32) -> String {
+    format!("/quiz/{quiz_id}/sessions")
+}
+
 pub fn quiz_page_url(quiz_id: i32) -> String {
     format!("/quiz/{quiz_id}")
 }
