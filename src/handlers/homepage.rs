@@ -12,7 +12,7 @@ use maud::html;
 use serde::Deserialize;
 
 use crate::{
-    extractors::{AuthGuard, Locale},
+    extractors::{AuthGuard, IsHtmx, Locale},
     handlers::quiz,
     models, names,
     rejections::{AppError, ResultExt},
@@ -40,11 +40,13 @@ pub fn routes() -> Router<AppState> {
         .route("/set-locale", post(set_locale))
 }
 
-async fn register_page(Locale(locale): Locale) -> maud::Markup {
-    views::page(
+async fn register_page(IsHtmx(is_htmx): IsHtmx, Locale(locale): Locale) -> maud::Markup {
+    views::render(
+        is_htmx,
         "Register",
         homepage_views::register(homepage_views::RegisterState::NoError, &locale),
         &locale,
+        None,
     )
 }
 
@@ -365,11 +367,13 @@ async fn resend_verification(
     .into_response())
 }
 
-async fn forgot_password_page(Locale(locale): Locale) -> maud::Markup {
-    views::page(
+async fn forgot_password_page(IsHtmx(is_htmx): IsHtmx, Locale(locale): Locale) -> maud::Markup {
+    views::render(
+        is_htmx,
         "Forgot Password",
         homepage_views::forgot_password(homepage_views::ForgotPasswordState::NoError, &locale),
         &locale,
+        None,
     )
 }
 
