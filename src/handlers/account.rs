@@ -7,7 +7,7 @@ use axum::{
 use serde::Deserialize;
 
 use crate::{
-    extractors::{AuthGuard, Locale},
+    extractors::{AuthGuard, IsHtmx, Locale},
     rejections::{AppError, ResultExt},
     views, AppState,
 };
@@ -20,8 +20,13 @@ pub fn routes() -> Router<AppState> {
         .route("/change-password", post(change_password_post))
 }
 
-async fn account_page(AuthGuard(user): AuthGuard, Locale(locale): Locale) -> maud::Markup {
-    views::page_with_user(
+async fn account_page(
+    AuthGuard(user): AuthGuard,
+    IsHtmx(is_htmx): IsHtmx,
+    Locale(locale): Locale,
+) -> maud::Markup {
+    views::render(
+        is_htmx,
         "Account",
         account_views::account_page(&user, account_views::ChangePasswordState::NoError, &locale),
         &locale,

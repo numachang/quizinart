@@ -16,19 +16,13 @@ pub(crate) async fn quiz_dashboard(
     Path(quiz_id): Path<i32>,
     Locale(locale): Locale,
 ) -> Result<Markup, AppError> {
-    Ok(if is_htmx {
-        views::titled(
-            "Quiz Dashboard",
-            dashboard(&state.db, quiz_id, &locale).await?,
-        )
-    } else {
-        views::page_with_user(
-            "Quiz Dashboard",
-            dashboard(&state.db, quiz_id, &locale).await?,
-            &locale,
-            Some(&user.display_name),
-        )
-    })
+    Ok(views::render(
+        is_htmx,
+        "Quiz Dashboard",
+        dashboard(&state.db, quiz_id, &locale).await?,
+        &locale,
+        Some(&user.display_name),
+    ))
 }
 
 pub(crate) async fn quiz_session_history(
@@ -38,17 +32,13 @@ pub(crate) async fn quiz_session_history(
     Path(quiz_id): Path<i32>,
     Locale(locale): Locale,
 ) -> Result<Markup, AppError> {
-    let content = session_history(&state.db, quiz_id, &locale).await?;
-    Ok(if is_htmx {
-        views::titled("Session History", content)
-    } else {
-        views::page_with_user(
-            "Session History",
-            content,
-            &locale,
-            Some(&user.display_name),
-        )
-    })
+    Ok(views::render(
+        is_htmx,
+        "Session History",
+        session_history(&state.db, quiz_id, &locale).await?,
+        &locale,
+        Some(&user.display_name),
+    ))
 }
 
 pub(crate) async fn session_result(
@@ -122,11 +112,13 @@ pub(crate) async fn session_result(
         &locale,
     );
 
-    Ok(if is_htmx {
-        views::titled("Results", page)
-    } else {
-        views::page_with_user("Results", page, &locale, Some(&user.display_name))
-    })
+    Ok(views::render(
+        is_htmx,
+        "Results",
+        page,
+        &locale,
+        Some(&user.display_name),
+    ))
 }
 
 pub async fn dashboard(db: &crate::db::Db, quiz_id: i32, locale: &str) -> Result<Markup, AppError> {

@@ -61,16 +61,13 @@ pub(crate) async fn quiz_page(
         None => super::session::page(&state.db, quiz_id, &locale).await?,
     };
 
-    if is_htmx {
-        Ok(views::titled("Quiz", content))
-    } else {
-        Ok(views::page_with_user(
-            "Quiz",
-            content,
-            &locale,
-            Some(&user.display_name),
-        ))
-    }
+    Ok(views::render(
+        is_htmx,
+        "Quiz",
+        content,
+        &locale,
+        Some(&user.display_name),
+    ))
 }
 
 pub(crate) async fn submit_answer_raw(
