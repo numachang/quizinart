@@ -1,0 +1,52 @@
+[
+  {
+    "question": "What is the chemical symbol for water?",
+    "category": "Science",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "CO2", "isAnswer": false, "explanation": "CO2 is the chemical formula for carbon dioxide, not water." },
+      { "text": "H2O", "isAnswer": true, "explanation": "H2O is the chemical formula for water, consisting of two hydrogen atoms and one oxygen atom." },
+      { "text": "NaCl", "isAnswer": false, "explanation": "NaCl is the chemical formula for sodium chloride (table salt)." }
+    ]
+  },
+  {
+    "question": "Select all states of matter.",
+    "category": "Science",
+    "isMultipleChoice": true,
+    "options": [
+      { "text": "Solid", "isAnswer": true, "explanation": "Solid is one of the fundamental states of matter." },
+      { "text": "Energy", "isAnswer": false, "explanation": "Energy is not a state of matter; it is a property of physical systems." },
+      { "text": "Liquid", "isAnswer": true, "explanation": "Liquid is one of the fundamental states of matter." }
+    ]
+  },
+  {
+    "question": "Who was the first President of the United States?",
+    "category": "History",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "George Washington", "isAnswer": true, "explanation": "George Washington served as the first President from 1789 to 1797." },
+      { "text": "Thomas Jefferson", "isAnswer": false, "explanation": "Thomas Jefferson was the third President of the United States." },
+      { "text": "Abraham Lincoln", "isAnswer": false, "explanation": "Abraham Lincoln was the 16th President of the United States." }
+    ]
+  },
+  {
+    "question": "In which year did World War II end?",
+    "category": "History",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "1918", "isAnswer": false, "explanation": "1918 marks the end of World War I, not World War II." },
+      { "text": "1939", "isAnswer": false, "explanation": "1939 is when World War II began in Europe." },
+      { "text": "1945", "isAnswer": true, "explanation": "World War II ended in 1945 with the surrender of Germany in May and Japan in August." }
+    ]
+  },
+  {
+    "question": "What is the speed of light approximately?",
+    "category": "Science",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "300 km/s", "isAnswer": false, "explanation": "300 km/s is far too slow; the speed of light is about 300,000 km/s." },
+      { "text": "300,000 km/s", "isAnswer": true, "explanation": "The speed of light in vacuum is approximately 299,792 km/s, commonly rounded to 300,000 km/s." },
+      { "text": "3,000,000 km/s", "isAnswer": false, "explanation": "3,000,000 km/s is ten times the actual speed of light." }
+    ]
+  }
+]
