@@ -1,5 +1,3 @@
-pub const VERSION: &str = env!("CARGO_PKG_VERSION");
-
 const COOKIE_MAX_AGE_SECS: u32 = 3600;
 
 pub fn cookie(name: &str, value: &str, secure: bool) -> String {

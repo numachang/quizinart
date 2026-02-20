@@ -145,14 +145,7 @@ pub fn login(state: LoginState, locale: &str) -> Markup {
 
 pub fn dashboard(quizzes: Vec<Quiz>, locale: &str) -> Markup {
     html! {
-        div style="display: flex; justify-content: space-between; align-items: center;" {
-            h1 { (t!("homepage.dashboard", locale = locale)) }
-            button."contrast outline"
-                   hx-post=(names::LOGOUT_URL)
-                   hx-swap="none" {
-                (t!("homepage.logout", locale = locale))
-            }
-        }
+        h1 { (t!("homepage.dashboard", locale = locale)) }
 
         article style="width: fit-content;" {
             form hx-post=(names::CREATE_QUIZ_URL)

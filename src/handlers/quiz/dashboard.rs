@@ -10,7 +10,7 @@ use crate::{
 };
 
 pub(crate) async fn quiz_dashboard(
-    AuthGuard(_user): AuthGuard,
+    AuthGuard(user): AuthGuard,
     IsHtmx(is_htmx): IsHtmx,
     State(state): State<AppState>,
     Path(quiz_id): Path<i32>,
@@ -22,16 +22,17 @@ pub(crate) async fn quiz_dashboard(
             dashboard(&state.db, quiz_id, &locale).await?,
         )
     } else {
-        views::page(
+        views::page_with_user(
             "Quiz Dashboard",
             dashboard(&state.db, quiz_id, &locale).await?,
             &locale,
+            Some(&user.display_name),
         )
     })
 }
 
 pub(crate) async fn quiz_session_history(
-    AuthGuard(_user): AuthGuard,
+    AuthGuard(user): AuthGuard,
     IsHtmx(is_htmx): IsHtmx,
     State(state): State<AppState>,
     Path(quiz_id): Path<i32>,
@@ -41,12 +42,17 @@ pub(crate) async fn quiz_session_history(
     Ok(if is_htmx {
         views::titled("Session History", content)
     } else {
-        views::page("Session History", content, &locale)
+        views::page_with_user(
+            "Session History",
+            content,
+            &locale,
+            Some(&user.display_name),
+        )
     })
 }
 
 pub(crate) async fn session_result(
-    AuthGuard(_user): AuthGuard,
+    AuthGuard(user): AuthGuard,
     State(state): State<AppState>,
     IsHtmx(is_htmx): IsHtmx,
     Path(session_id): Path<i32>,
@@ -119,7 +125,7 @@ pub(crate) async fn session_result(
     Ok(if is_htmx {
         views::titled("Results", page)
     } else {
-        views::page("Results", page, &locale)
+        views::page_with_user("Results", page, &locale, Some(&user.display_name))
     })
 }
 

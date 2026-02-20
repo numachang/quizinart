@@ -16,7 +16,7 @@ use crate::{
 };
 
 pub(crate) async fn quiz_page(
-    AuthGuard(_user): AuthGuard,
+    AuthGuard(user): AuthGuard,
     IsHtmx(is_htmx): IsHtmx,
     State(state): State<AppState>,
     Path(quiz_id): Path<i32>,
@@ -64,7 +64,12 @@ pub(crate) async fn quiz_page(
     if is_htmx {
         Ok(views::titled("Quiz", content))
     } else {
-        Ok(views::page("Quiz", content, &locale))
+        Ok(views::page_with_user(
+            "Quiz",
+            content,
+            &locale,
+            Some(&user.display_name),
+        ))
     }
 }
 

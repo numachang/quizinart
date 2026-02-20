@@ -56,10 +56,11 @@ async fn homepage(
                 .quizzes(user.id)
                 .await
                 .reject("could not get quizzes")?;
-            return Ok(views::page(
+            return Ok(views::page_with_user(
                 "Dashboard",
                 homepage_views::dashboard(quizzes, &locale),
                 &locale,
+                Some(&user.display_name),
             ));
         }
     }
@@ -81,10 +82,11 @@ async fn homepage(
                     .quizzes(user.id)
                     .await
                     .reject("could not get quizzes")?;
-                return Ok(views::page(
+                return Ok(views::page_with_user(
                     "Dashboard",
                     homepage_views::dashboard(quizzes, &locale),
                     &locale,
+                    Some(&user.display_name),
                 ));
             }
         }

@@ -1,7 +1,7 @@
 use maud::{html, Markup, PreEscaped, DOCTYPE};
 use rust_i18n::t;
 
-use crate::{names, utils};
+use crate::names;
 
 fn css() -> Markup {
     html! {
@@ -86,7 +86,7 @@ const THEMES: &[(&str, &str)] = &[
     ("system", "layout.theme_system"),
 ];
 
-fn header(locale: &str) -> Markup {
+fn header(locale: &str, user_name: Option<&str>) -> Markup {
     html! {
         header {
             nav {
@@ -129,7 +129,18 @@ fn header(locale: &str) -> Markup {
                             }
                         }
                     }
-                    li."secondary" { (utils::VERSION) }
+                    @if let Some(name) = user_name {
+                        li."secondary" { (name) }
+                        li."secondary" {
+                            a role="button"
+                              class="outline secondary"
+                              hx-post=(names::LOGOUT_URL)
+                              hx-swap="none"
+                              style="padding: 0.25rem 0.5rem; font-size: 0.85rem;" {
+                                (t!("homepage.logout", locale = locale))
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -143,6 +154,10 @@ fn main(body: Markup) -> Markup {
 }
 
 pub fn page(title: &str, body: Markup, locale: &str) -> Markup {
+    page_with_user(title, body, locale, None)
+}
+
+pub fn page_with_user(title: &str, body: Markup, locale: &str, user_name: Option<&str>) -> Markup {
     html! {
         (DOCTYPE)
         head {
@@ -158,7 +173,7 @@ pub fn page(title: &str, body: Markup, locale: &str) -> Markup {
         }
 
         body."container" {
-            (header(locale))
+            (header(locale, user_name))
             (main(body))
         }
     }
