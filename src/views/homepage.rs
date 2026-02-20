@@ -1,4 +1,4 @@
-use crate::{db::Quiz, names};
+use crate::{db::Quiz, names, views::components};
 use maud::{html, Markup};
 use rust_i18n::t;
 
@@ -24,7 +24,6 @@ pub fn register(state: RegisterState, locale: &str) -> Markup {
             form hx-post=(names::REGISTER_URL)
                  hx-ext="json-enc"
                  hx-target="main"
-                 hx-disabled-elt="find input, find button"
                  hx-swap="innerHTML" {
                 label {
                     (t!("homepage.email", locale = locale))
@@ -91,7 +90,6 @@ pub fn login(state: LoginState, locale: &str) -> Markup {
             form hx-post=(names::LOGIN_URL)
                  hx-ext="json-enc"
                  hx-target="main"
-                 hx-disabled-elt="find input, find button"
                  hx-swap="innerHTML" {
                 label {
                     (t!("homepage.email", locale = locale))
@@ -141,29 +139,21 @@ pub fn login(state: LoginState, locale: &str) -> Markup {
                         }
                     }
                 }
-                p style="margin-bottom: 0.5rem;"
-                  hx-disinherit="hx-disabled-elt" {
-                    a href=(names::FORGOT_PASSWORD_URL)
-                      hx-get=(names::FORGOT_PASSWORD_URL)
-                      hx-target="main"
-                      hx-push-url="true"
-                      hx-swap="innerHTML"
-                      style="font-size: 0.85rem;" {
-                        (t!("homepage.forgot_password", locale = locale))
-                    }
+                p style="margin-bottom: 0.5rem; font-size: 0.85rem;" {
+                    (components::nav_link(
+                        names::FORGOT_PASSWORD_URL,
+                        html! { (t!("homepage.forgot_password", locale = locale)) },
+                    ))
                 }
                 button type="submit" { (t!("homepage.log_in", locale = locale)) }
             }
             p {
                 (t!("homepage.no_account", locale = locale))
                 " "
-                a href="/register"
-                  hx-get="/register"
-                  hx-target="main"
-                  hx-swap="innerHTML"
-                  hx-disinherit="hx-disabled-elt" {
-                    (t!("homepage.register_btn", locale = locale))
-                }
+                (components::nav_link(
+                    "/register",
+                    html! { (t!("homepage.register_btn", locale = locale)) },
+                ))
             }
         }
     }
@@ -179,7 +169,6 @@ pub fn check_email(email: &str, locale: &str) -> Markup {
             form hx-post=(names::RESEND_VERIFICATION_URL)
                  hx-ext="json-enc"
                  hx-target="main"
-                 hx-disabled-elt="find button"
                  hx-swap="innerHTML" {
                 input type="hidden" name="email" value=(email);
                 button type="submit" class="outline" {
@@ -228,7 +217,7 @@ pub fn forgot_password(state: ForgotPasswordState, locale: &str) -> Markup {
                 form hx-post=(names::FORGOT_PASSWORD_URL)
                      hx-ext="json-enc"
                      hx-target="main"
-                     hx-disabled-elt="find input, find button"
+    
                      hx-swap="innerHTML" {
                     label {
                         (t!("homepage.email", locale = locale))
@@ -280,7 +269,7 @@ pub fn reset_password(state: ResetPasswordState, token: &str, locale: &str) -> M
                 form hx-post=(names::RESET_PASSWORD_URL)
                      hx-ext="json-enc"
                      hx-target="main"
-                     hx-disabled-elt="find input, find button"
+    
                      hx-swap="innerHTML" {
                     input type="hidden" name="token" value=(token);
                     label {
@@ -303,7 +292,7 @@ pub fn reset_password(state: ResetPasswordState, token: &str, locale: &str) -> M
                 form hx-post=(names::RESET_PASSWORD_URL)
                      hx-ext="json-enc"
                      hx-target="main"
-                     hx-disabled-elt="find input, find button"
+    
                      hx-swap="innerHTML" {
                     input type="hidden" name="token" value=(token);
                     label {
@@ -346,7 +335,6 @@ pub fn dashboard(quizzes: Vec<Quiz>, locale: &str) -> Markup {
             form hx-post=(names::CREATE_QUIZ_URL)
                  hx-target="main"
                  enctype="multipart/form-data"
-                 hx-disabled-elt="find input[type='text'], find input[type='file'], find input[type='submit']"
                  hx-swap="innerHTML" {
                     label {
                         (t!("homepage.quiz_name", locale = locale))
@@ -388,7 +376,6 @@ pub fn dashboard(quizzes: Vec<Quiz>, locale: &str) -> Markup {
                             hx-push-url="true"
                             hx-get=(names::quiz_dashboard_url(quiz.id)) { (t!("homepage.view", locale = locale)) }
                         button."contrast"
-                            hx-disabled-elt="this"
                             hx-trigger="click"
                             hx-target="closest article"
                             hx-swap="outerHTML"

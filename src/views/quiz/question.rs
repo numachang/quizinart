@@ -197,7 +197,7 @@ pub fn answer(data: AnswerData, locale: &str) -> Markup {
                            hx-get=(names::results_url(data.session_id))
                            hx-push-url="true"
                            hx-target="main"
-                           hx-disabled-elt="this" {
+                           {
                         (t!("quiz.back_to_results", locale = locale))
                     }
                     @if let Some(current) = data.current_idx {
@@ -206,7 +206,7 @@ pub fn answer(data: AnswerData, locale: &str) -> Markup {
                                    hx-get=(format!("/question/{}?question_idx={}", data.session_id, current))
                                    hx-push-url="true"
                                    hx-target="main"
-                                   hx-disabled-elt="this" {
+                                   {
                                 (t!("quiz.return_to_current", locale = locale))
                             }
                         }
@@ -227,11 +227,11 @@ pub fn answer(data: AnswerData, locale: &str) -> Markup {
                             button class="nav-btn nav-btn-next"
                                    hx-get=(names::results_url(data.session_id))
                                    hx-push-url="true"
-                                   hx-target="main" hx-disabled-elt="this" { (t!("quiz.see_results", locale = locale)) }
+                                   hx-target="main" { (t!("quiz.see_results", locale = locale)) }
                         } @else {
                             button class="nav-btn nav-btn-next"
                                    hx-get=(names::quiz_page_url(data.quiz_id))
-                                   hx-target="main" hx-disabled-elt="this" { (t!("quiz.next", locale = locale)) }
+                                   hx-target="main" { (t!("quiz.next", locale = locale)) }
                         }
                     }
                 }

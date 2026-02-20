@@ -54,7 +54,6 @@ pub fn start_page(data: StartPageData, locale: &str) -> Markup {
             form hx-post=(names::start_session_url(data.quiz_id))
                  hx-ext="json-enc"
                  hx-target="main"
-                 hx-disabled-elt="find input[type='text'], find input[type='submit']"
                  hx-swap="innerHTML" {
                 label {
                     (t!("quiz.session_name", locale = locale))

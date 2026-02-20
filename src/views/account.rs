@@ -50,7 +50,6 @@ pub fn account_page(user: &AuthUser, state: ChangePasswordState, locale: &str) -
             form hx-post=(names::CHANGE_PASSWORD_URL)
                  hx-ext="json-enc"
                  hx-target="main"
-                 hx-disabled-elt="find input, find button"
                  hx-swap="innerHTML" {
                 label {
                     (t!("account.current_password", locale = locale))

@@ -247,6 +247,19 @@ header nav ul {
   opacity: 0.8;
 }
 
+/* htmx リクエスト中のフォーム要素を無効化（hx-disabled-elt の CSS 代替） */
+form.htmx-request input,
+form.htmx-request button,
+form.htmx-request select {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+button.htmx-request {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
 .theme-select {
   width: auto;
   margin: 0;
