@@ -82,7 +82,11 @@ pub(crate) async fn start_session(
         super::question::question(&state.db, session.id, quiz_id, question_idx, false, &locale)
             .await?,
     );
-    let cookie = utils::cookie(names::QUIZ_SESSION_COOKIE_NAME, &session_token);
+    let cookie = utils::cookie(
+        names::QUIZ_SESSION_COOKIE_NAME,
+        &session_token,
+        state.secure_cookies,
+    );
     let mut headers = HeaderMap::new();
     headers.insert(SET_COOKIE, cookie.parse().unwrap());
 
@@ -128,7 +132,11 @@ pub(crate) async fn resume_session(
         )
         .await?,
     );
-    let cookie = utils::cookie(names::QUIZ_SESSION_COOKIE_NAME, &token);
+    let cookie = utils::cookie(
+        names::QUIZ_SESSION_COOKIE_NAME,
+        &token,
+        state.secure_cookies,
+    );
     let mut headers = HeaderMap::new();
     headers.insert(SET_COOKIE, cookie.parse().unwrap());
 
@@ -207,7 +215,11 @@ pub(crate) async fn retry_incorrect(
         )
         .await?,
     );
-    let cookie = utils::cookie(names::QUIZ_SESSION_COOKIE_NAME, &token);
+    let cookie = utils::cookie(
+        names::QUIZ_SESSION_COOKIE_NAME,
+        &token,
+        state.secure_cookies,
+    );
     let mut headers = HeaderMap::new();
     headers.insert(SET_COOKIE, cookie.parse().unwrap());
 
@@ -286,7 +298,11 @@ pub(crate) async fn retry_bookmarked(
         )
         .await?,
     );
-    let cookie = utils::cookie(names::QUIZ_SESSION_COOKIE_NAME, &token);
+    let cookie = utils::cookie(
+        names::QUIZ_SESSION_COOKIE_NAME,
+        &token,
+        state.secure_cookies,
+    );
     let mut headers = HeaderMap::new();
     headers.insert(SET_COOKIE, cookie.parse().unwrap());
 

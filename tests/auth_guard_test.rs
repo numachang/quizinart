@@ -9,7 +9,10 @@ use tower::ServiceExt;
 
 async fn app() -> axum::Router {
     let db = common::create_test_db().await;
-    router(AppState { db })
+    router(AppState {
+        db,
+        secure_cookies: false,
+    })
 }
 
 #[tokio::test]
@@ -32,6 +35,8 @@ async fn protected_quiz_routes_reject_direct_access_without_session_cookie() {
     for (method, uri, body) in cases {
         let mut req = Request::builder().method(method).uri(uri);
         req = req.header("content-type", "application/json");
+        // HTMX sends HX-Request on all requests; CSRF middleware requires it for mutations
+        req = req.header("HX-Request", "true");
         let resp = app
             .clone()
             .oneshot(req.body(body).expect("request build should succeed"))
@@ -58,7 +63,10 @@ async fn protected_quiz_routes_accept_requests_with_valid_user_session() {
         .await
         .expect("create user session");
 
-    let app = router(AppState { db });
+    let app = router(AppState {
+        db,
+        secure_cookies: false,
+    });
 
     let req = Request::builder()
         .method(Method::GET)
@@ -93,7 +101,10 @@ async fn protected_routes_accept_legacy_admin_session_with_migration_user() {
         .await
         .expect("create migration user");
 
-    let app = router(AppState { db });
+    let app = router(AppState {
+        db,
+        secure_cookies: false,
+    });
 
     let req = Request::builder()
         .method(Method::GET)
@@ -108,4 +119,33 @@ async fn protected_routes_accept_legacy_admin_session_with_migration_user() {
     let resp = app.oneshot(req).await.expect("router should respond");
 
     assert_ne!(resp.status(), StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn csrf_rejects_post_without_hx_request_header() {
+    let app = app().await;
+
+    let req = Request::builder()
+        .method(Method::POST)
+        .uri("/login")
+        .header("content-type", "application/json")
+        .body(Body::from(r#"{"email":"a","password":"b"}"#))
+        .unwrap();
+
+    let resp = app.oneshot(req).await.unwrap();
+    assert_eq!(resp.status(), StatusCode::FORBIDDEN);
+}
+
+#[tokio::test]
+async fn csrf_allows_get_without_hx_request_header() {
+    let app = app().await;
+
+    let req = Request::builder()
+        .method(Method::GET)
+        .uri("/")
+        .body(Body::empty())
+        .unwrap();
+
+    let resp = app.oneshot(req).await.unwrap();
+    assert_ne!(resp.status(), StatusCode::FORBIDDEN);
 }

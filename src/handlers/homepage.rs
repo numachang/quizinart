@@ -148,7 +148,11 @@ async fn register_post(
         .await
         .reject("could not create session")?;
 
-    let cookie = utils::cookie(names::USER_SESSION_COOKIE_NAME, &session);
+    let cookie = utils::cookie(
+        names::USER_SESSION_COOKIE_NAME,
+        &session,
+        state.secure_cookies,
+    );
     let quizzes = state
         .db
         .quizzes(user_id)
@@ -196,7 +200,11 @@ async fn login_post(
             .await
             .reject("could not create session")?;
 
-        let cookie = utils::cookie(names::USER_SESSION_COOKIE_NAME, &session);
+        let cookie = utils::cookie(
+            names::USER_SESSION_COOKIE_NAME,
+            &session,
+            state.secure_cookies,
+        );
         let quizzes = state
             .db
             .quizzes(user.id)
@@ -230,14 +238,8 @@ async fn logout_post(jar: CookieJar, State(state): State<AppState>) -> impl Into
     }
 
     // Clear both new and legacy session cookies
-    let clear_user = format!(
-        "{}=; HttpOnly; Max-Age=0; Path=/; SameSite=Strict",
-        names::USER_SESSION_COOKIE_NAME
-    );
-    let clear_admin = format!(
-        "{}=; HttpOnly; Max-Age=0; Path=/; SameSite=Strict",
-        names::ADMIN_SESSION_COOKIE_NAME
-    );
+    let clear_user = utils::clear_cookie(names::USER_SESSION_COOKIE_NAME, state.secure_cookies);
+    let clear_admin = utils::clear_cookie(names::ADMIN_SESSION_COOKIE_NAME, state.secure_cookies);
     let mut headers = HeaderMap::new();
     headers.insert(SET_COOKIE, clear_user.parse().unwrap());
     headers.append(SET_COOKIE, clear_admin.parse().unwrap());
@@ -317,14 +319,17 @@ struct SetLocaleBody {
     locale: String,
 }
 
-async fn set_locale(Json(body): Json<SetLocaleBody>) -> Result<impl IntoResponse, AppError> {
+async fn set_locale(
+    State(state): State<AppState>,
+    Json(body): Json<SetLocaleBody>,
+) -> Result<impl IntoResponse, AppError> {
     let locale = match body.locale.as_str() {
         "ja" => "ja",
         "zh-CN" => "zh-CN",
         "zh-TW" => "zh-TW",
         _ => "en",
     };
-    let cookie = utils::cookie(names::LOCALE_COOKIE_NAME, locale);
+    let cookie = utils::cookie(names::LOCALE_COOKIE_NAME, locale, state.secure_cookies);
     let mut headers = HeaderMap::new();
     headers.insert(SET_COOKIE, cookie.parse().unwrap());
     headers.insert("HX-Refresh", "true".parse().unwrap());

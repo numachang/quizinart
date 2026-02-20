@@ -15,6 +15,10 @@ struct Args {
     /// The address to bind to.
     #[arg(short, long, env, default_value = "127.0.0.1:1414")]
     address: String,
+
+    /// Set cookie Secure flag (enable for HTTPS deployments).
+    #[arg(long, env, default_value = "false")]
+    secure_cookies: bool,
 }
 
 fn main() -> color_eyre::Result<()> {
@@ -42,7 +46,10 @@ async fn run() -> color_eyre::Result<()> {
     let args = Args::parse();
 
     let db = Db::new(args.url, args.auth_token).await?;
-    let state = AppState { db };
+    let state = AppState {
+        db,
+        secure_cookies: args.secure_cookies,
+    };
     let app = quizinart::router(state);
 
     let address = args.address.parse::<std::net::SocketAddr>()?;
