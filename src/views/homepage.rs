@@ -147,6 +147,7 @@ pub fn login(state: LoginState, locale: &str) -> Markup {
                       hx-target="main"
                       hx-push-url="true"
                       hx-swap="innerHTML"
+                      hx-disinherit="hx-disabled-elt"
                       style="font-size: 0.85rem;" {
                         (t!("homepage.forgot_password", locale = locale))
                     }
@@ -159,7 +160,8 @@ pub fn login(state: LoginState, locale: &str) -> Markup {
                 a href="/register"
                   hx-get="/register"
                   hx-target="main"
-                  hx-swap="innerHTML" {
+                  hx-swap="innerHTML"
+                  hx-disinherit="hx-disabled-elt" {
                     (t!("homepage.register_btn", locale = locale))
                 }
             }
