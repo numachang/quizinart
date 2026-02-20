@@ -8,6 +8,7 @@ pub const USER_SESSION_COOKIE_NAME: &str = "user_session";
 pub const QUIZ_SESSION_COOKIE_NAME: &str = "quiz_session";
 pub const REGISTER_URL: &str = "/register";
 pub const LOGOUT_URL: &str = "/logout";
+pub const RESEND_VERIFICATION_URL: &str = "/resend-verification";
 
 pub fn quiz_dashboard_url(quiz_id: i32) -> String {
     format!("/quiz/{quiz_id}/dashboard")

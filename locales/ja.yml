@@ -21,6 +21,18 @@ homepage.already_have_account: "すでにアカウントをお持ちですか？
 homepage.email_taken: "このメールアドレスは既に登録されています。"
 homepage.empty_fields: "すべての項目を入力してください。"
 
+# Homepage - Email Verification
+homepage.check_email_title: "メールを確認してください"
+homepage.check_email_desc: "確認リンクを送信しました："
+homepage.check_email_hint: "メール内のリンクをクリックしてアカウントを有効化してください。リンクの有効期限は24時間です。"
+homepage.resend_email: "確認メールを再送信"
+homepage.back_to_login: "ログインに戻る"
+homepage.email_not_verified: "ログインする前にメールアドレスを確認してください。"
+homepage.email_verified_title: "メール認証完了！"
+homepage.email_verified_desc: "メールアドレスが確認されました。ログインできます。"
+homepage.verification_failed_title: "認証に失敗しました"
+homepage.verification_failed_desc: "この確認リンクは無効または期限切れです。再登録するか、新しいリンクをリクエストしてください。"
+
 # Homepage - Login
 homepage.welcome_back: "おかえりなさい！"
 homepage.login_desc: "メールアドレスとパスワードでログインしてください。"

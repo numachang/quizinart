@@ -27,6 +27,8 @@ pub fn routes() -> Router<AppState> {
         .route("/register", get(register_page).post(register_post))
         .route("/login", post(login_post))
         .route("/logout", post(logout_post))
+        .route("/verify-email/{token}", get(verify_email))
+        .route("/resend-verification", post(resend_verification))
         .route("/create-quiz", post(create_quiz))
         .route("/delete-quiz/{id}", delete(delete_quiz))
         .route("/set-locale", post(set_locale))
@@ -136,39 +138,62 @@ async fn register_post(
         .into_response());
     }
 
-    // Create user
-    let user_id = state
+    // If no Resend API key, skip verification (local dev mode)
+    if state.resend_api_key.is_empty() {
+        let user_id = state
+            .db
+            .create_user(&body.email, &body.password, &body.display_name)
+            .await
+            .reject("could not create user")?;
+
+        let session = state
+            .db
+            .create_user_session(user_id)
+            .await
+            .reject("could not create session")?;
+
+        let cookie = utils::cookie(
+            names::USER_SESSION_COOKIE_NAME,
+            &session,
+            state.secure_cookies,
+        );
+        let quizzes = state
+            .db
+            .quizzes(user_id)
+            .await
+            .reject("could not get quizzes")?;
+
+        let mut headers = HeaderMap::new();
+        headers.insert(SET_COOKIE, cookie.parse().unwrap());
+
+        return Ok((
+            headers,
+            views::titled("Dashboard", homepage_views::dashboard(quizzes, &locale)),
+        )
+            .into_response());
+    }
+
+    // Email verification flow
+    let (_user_id, token) = state
         .db
-        .create_user(&body.email, &body.password, &body.display_name)
+        .create_unverified_user(&body.email, &body.password, &body.display_name)
         .await
         .reject("could not create user")?;
 
-    // Create session
-    let session = state
-        .db
-        .create_user_session(user_id)
-        .await
-        .reject("could not create session")?;
+    let verification_url = format!("{}/verify-email/{}", state.base_url, token);
 
-    let cookie = utils::cookie(
-        names::USER_SESSION_COOKIE_NAME,
-        &session,
-        state.secure_cookies,
-    );
-    let quizzes = state
-        .db
-        .quizzes(user_id)
-        .await
-        .reject("could not get quizzes")?;
+    if let Err(e) =
+        crate::email::send_verification_email(&state.resend_api_key, &body.email, &verification_url)
+            .await
+    {
+        tracing::error!("failed to send verification email to {}: {e}", body.email);
+    }
 
-    let mut headers = HeaderMap::new();
-    headers.insert(SET_COOKIE, cookie.parse().unwrap());
-
-    Ok((
-        headers,
-        views::titled("Dashboard", homepage_views::dashboard(quizzes, &locale)),
+    Ok(views::titled(
+        "Check Your Email",
+        homepage_views::check_email(&body.email, &locale),
     )
-        .into_response())
+    .into_response())
 }
 
 #[derive(Deserialize)]
@@ -189,6 +214,23 @@ async fn login_post(
         .reject("could not verify password")?;
 
     if verified {
+        // Check email verification (skip if no API key configured)
+        if !state.resend_api_key.is_empty() {
+            let email_verified = state
+                .db
+                .is_email_verified(&body.email)
+                .await
+                .reject("could not check email verification")?;
+
+            if !email_verified {
+                return Ok(views::titled(
+                    "Log In",
+                    homepage_views::login(homepage_views::LoginState::EmailNotVerified, &locale),
+                )
+                .into_response());
+            }
+        }
+
         let user = state
             .db
             .find_user_by_email(&body.email)
@@ -248,6 +290,73 @@ async fn logout_post(jar: CookieJar, State(state): State<AppState>) -> impl Into
     headers.insert("HX-Redirect", "/".parse().unwrap());
 
     (headers, "")
+}
+
+async fn verify_email(
+    State(state): State<AppState>,
+    Locale(locale): Locale,
+    axum::extract::Path(token): axum::extract::Path<String>,
+) -> Result<maud::Markup, AppError> {
+    let verified = state
+        .db
+        .verify_email_token(&token)
+        .await
+        .reject("could not verify email token")?;
+
+    if verified {
+        Ok(views::page(
+            "Email Verified",
+            homepage_views::email_verified(&locale),
+            &locale,
+        ))
+    } else {
+        Ok(views::page(
+            "Verification Failed",
+            homepage_views::verification_failed(&locale),
+            &locale,
+        ))
+    }
+}
+
+#[derive(Deserialize)]
+struct ResendVerificationPost {
+    email: String,
+}
+
+async fn resend_verification(
+    State(state): State<AppState>,
+    Locale(locale): Locale,
+    Json(body): Json<ResendVerificationPost>,
+) -> Result<axum::response::Response, AppError> {
+    if state.resend_api_key.is_empty() {
+        return Err(AppError::Input("email verification not configured"));
+    }
+
+    let token = state
+        .db
+        .regenerate_verification_token(&body.email)
+        .await
+        .reject("could not regenerate token")?;
+
+    if let Some(token) = token {
+        let verification_url = format!("{}/verify-email/{}", state.base_url, token);
+        if let Err(e) = crate::email::send_verification_email(
+            &state.resend_api_key,
+            &body.email,
+            &verification_url,
+        )
+        .await
+        {
+            tracing::error!("failed to resend verification email: {e}");
+        }
+    }
+
+    // Always show success (don't leak whether email exists)
+    Ok(views::titled(
+        "Check Your Email",
+        homepage_views::check_email(&body.email, &locale),
+    )
+    .into_response())
 }
 
 async fn create_quiz(

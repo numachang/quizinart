@@ -696,3 +696,76 @@ async fn test_quiz_isolation_between_users() {
     assert_eq!(quizzes2.len(), 1);
     assert_eq!(quizzes2[0].name, "User2 Quiz");
 }
+
+// --- Email verification tests ---
+
+#[tokio::test]
+async fn test_unverified_user_and_verify_token() {
+    let db = create_test_db().await;
+
+    let (user_id, token) = db
+        .create_unverified_user("unverified@example.com", "password", "Unverified")
+        .await
+        .expect("create unverified user");
+    assert!(user_id > 0);
+    assert!(!token.is_empty());
+
+    // Should not be verified
+    assert!(!db
+        .is_email_verified("unverified@example.com")
+        .await
+        .unwrap());
+
+    // Verify with correct token
+    assert!(db.verify_email_token(&token).await.unwrap());
+
+    // Now should be verified
+    assert!(db
+        .is_email_verified("unverified@example.com")
+        .await
+        .unwrap());
+
+    // Token should be consumed
+    assert!(!db.verify_email_token(&token).await.unwrap());
+}
+
+#[tokio::test]
+async fn test_verify_invalid_token() {
+    let db = create_test_db().await;
+    assert!(!db.verify_email_token("nonexistent-token").await.unwrap());
+}
+
+#[tokio::test]
+async fn test_regenerate_verification_token() {
+    let db = create_test_db().await;
+
+    let (_user_id, original_token) = db
+        .create_unverified_user("regen@example.com", "password", "Regen")
+        .await
+        .expect("create unverified user");
+
+    let new_token = db
+        .regenerate_verification_token("regen@example.com")
+        .await
+        .unwrap();
+    assert!(new_token.is_some());
+    let new_token = new_token.unwrap();
+    assert_ne!(new_token, original_token);
+
+    // Old token should no longer work
+    assert!(!db.verify_email_token(&original_token).await.unwrap());
+
+    // New token should work
+    assert!(db.verify_email_token(&new_token).await.unwrap());
+}
+
+#[tokio::test]
+async fn test_existing_user_is_verified_by_default() {
+    let db = create_test_db().await;
+    db.create_user("existing@example.com", "password", "Existing")
+        .await
+        .unwrap();
+
+    // create_user uses DEFAULT TRUE, so should be verified
+    assert!(db.is_email_verified("existing@example.com").await.unwrap());
+}

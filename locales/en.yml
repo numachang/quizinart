@@ -21,6 +21,18 @@ homepage.already_have_account: "Already have an account?"
 homepage.email_taken: "This email is already registered."
 homepage.empty_fields: "Please fill in all fields."
 
+# Homepage - Email Verification
+homepage.check_email_title: "Check your email"
+homepage.check_email_desc: "We've sent a verification link to:"
+homepage.check_email_hint: "Click the link in the email to activate your account. The link expires in 24 hours."
+homepage.resend_email: "Resend verification email"
+homepage.back_to_login: "Back to login"
+homepage.email_not_verified: "Please verify your email before logging in."
+homepage.email_verified_title: "Email verified!"
+homepage.email_verified_desc: "Your email has been verified. You can now log in."
+homepage.verification_failed_title: "Verification failed"
+homepage.verification_failed_desc: "This verification link is invalid or has expired. Please register again or request a new link."
+
 # Homepage - Login
 homepage.welcome_back: "Welcome back to Quizinart!"
 homepage.login_desc: "Log in with your email and password."

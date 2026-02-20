@@ -127,6 +127,90 @@ impl Db {
         Ok(row.is_some())
     }
 
+    /// Create a new user with email_verified = false and a verification token.
+    /// Returns (user_id, token).
+    pub async fn create_unverified_user(
+        &self,
+        email: &str,
+        password: &str,
+        display_name: &str,
+    ) -> Result<(i32, String)> {
+        let password_hash = hash_password(password)?;
+        let token = Ulid::new().to_string();
+        let conn = self.db.connect()?;
+
+        let user_id = conn
+            .query(
+                r#"INSERT INTO users (email, password_hash, display_name, email_verified, verification_token, token_expires_at)
+                   VALUES (?, ?, ?, FALSE, ?, datetime('now', '+24 hours'))
+                   RETURNING id"#,
+                params![email, password_hash, display_name, token.clone()],
+            )
+            .await?
+            .next()
+            .await?
+            .ok_or_eyre("could not get user id")?
+            .get::<i32>(0)?;
+
+        tracing::info!("new unverified user created: id={user_id}, email={email}");
+        Ok((user_id, token))
+    }
+
+    /// Verify a user's email using their verification token.
+    /// Returns true if verification succeeded, false if token is invalid/expired.
+    pub async fn verify_email_token(&self, token: &str) -> Result<bool> {
+        let conn = self.db.connect()?;
+        let affected = conn
+            .execute(
+                r#"UPDATE users
+                   SET email_verified = TRUE, verification_token = NULL, token_expires_at = NULL
+                   WHERE verification_token = ? AND token_expires_at > datetime('now')
+                   AND email_verified = FALSE"#,
+                params![token],
+            )
+            .await?;
+
+        Ok(affected > 0)
+    }
+
+    /// Check if a user's email is verified.
+    pub async fn is_email_verified(&self, email: &str) -> Result<bool> {
+        let conn = self.db.connect()?;
+        let row = conn
+            .query(
+                "SELECT email_verified FROM users WHERE email = ?",
+                params![email],
+            )
+            .await?
+            .next()
+            .await?;
+
+        match row {
+            Some(row) => Ok(row.get::<bool>(0)?),
+            None => Ok(false),
+        }
+    }
+
+    /// Regenerate the verification token for an unverified user. Returns the new token.
+    pub async fn regenerate_verification_token(&self, email: &str) -> Result<Option<String>> {
+        let token = Ulid::new().to_string();
+        let conn = self.db.connect()?;
+        let affected = conn
+            .execute(
+                r#"UPDATE users
+                   SET verification_token = ?, token_expires_at = datetime('now', '+24 hours')
+                   WHERE email = ? AND email_verified = FALSE"#,
+                params![token.clone(), email],
+            )
+            .await?;
+
+        if affected > 0 {
+            Ok(Some(token))
+        } else {
+            Ok(None)
+        }
+    }
+
     /// Create a user with a pre-hashed password (for migration from admin table)
     pub async fn create_user_with_hash(
         &self,

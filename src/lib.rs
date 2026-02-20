@@ -1,6 +1,7 @@
 rust_i18n::i18n!("locales", fallback = "en");
 
 pub mod db;
+pub mod email;
 pub mod extractors;
 pub mod handlers;
 pub mod models;
@@ -16,6 +17,8 @@ use axum::{middleware, Router};
 pub struct AppState {
     pub db: db::Db,
     pub secure_cookies: bool,
+    pub resend_api_key: String,
+    pub base_url: String,
 }
 
 pub fn router(state: AppState) -> Router {

@@ -19,6 +19,14 @@ struct Args {
     /// Set cookie Secure flag (enable for HTTPS deployments).
     #[arg(long, env, default_value = "false")]
     secure_cookies: bool,
+
+    /// Resend API key for email verification. Leave empty to skip verification in dev.
+    #[arg(long, env, default_value = "")]
+    resend_api_key: String,
+
+    /// Base URL for verification links (e.g., https://quizinart.onrender.com).
+    #[arg(long, env, default_value = "http://127.0.0.1:1414")]
+    base_url: String,
 }
 
 fn main() -> color_eyre::Result<()> {
@@ -49,6 +57,8 @@ async fn run() -> color_eyre::Result<()> {
     let state = AppState {
         db,
         secure_cookies: args.secure_cookies,
+        resend_api_key: args.resend_api_key,
+        base_url: args.base_url,
     };
     let app = quizinart::router(state);
 

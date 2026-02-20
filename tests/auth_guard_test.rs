@@ -12,6 +12,8 @@ async fn app() -> axum::Router {
     router(AppState {
         db,
         secure_cookies: false,
+        resend_api_key: String::new(),
+        base_url: "http://localhost:1414".to_string(),
     })
 }
 
@@ -66,6 +68,8 @@ async fn protected_quiz_routes_accept_requests_with_valid_user_session() {
     let app = router(AppState {
         db,
         secure_cookies: false,
+        resend_api_key: String::new(),
+        base_url: "http://localhost:1414".to_string(),
     });
 
     let req = Request::builder()
@@ -104,6 +108,8 @@ async fn protected_routes_accept_legacy_admin_session_with_migration_user() {
     let app = router(AppState {
         db,
         secure_cookies: false,
+        resend_api_key: String::new(),
+        base_url: "http://localhost:1414".to_string(),
     });
 
     let req = Request::builder()

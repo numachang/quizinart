@@ -78,6 +78,7 @@ pub fn register(state: RegisterState, locale: &str) -> Markup {
 pub enum LoginState {
     NoError,
     IncorrectPassword,
+    EmailNotVerified,
 }
 
 pub fn login(state: LoginState, locale: &str) -> Markup {
@@ -125,6 +126,19 @@ pub fn login(state: LoginState, locale: &str) -> Markup {
                                   aria-label=(t!("homepage.password", locale = locale));
                             small { (t!("homepage.incorrect_password", locale = locale)) }
                         }
+                    },
+                    LoginState::EmailNotVerified => {
+                        label {
+                            (t!("homepage.password", locale = locale))
+                            input name="password"
+                                  type="password"
+                                  autocomplete="current-password"
+                                  required="true"
+                                  placeholder=(t!("homepage.password", locale = locale))
+                                  aria-invalid="true"
+                                  aria-label=(t!("homepage.password", locale = locale));
+                            small { (t!("homepage.email_not_verified", locale = locale)) }
+                        }
                     }
                 }
                 button type="submit" { (t!("homepage.log_in", locale = locale)) }
@@ -139,6 +153,50 @@ pub fn login(state: LoginState, locale: &str) -> Markup {
                     (t!("homepage.register_btn", locale = locale))
                 }
             }
+        }
+    }
+}
+
+pub fn check_email(email: &str, locale: &str) -> Markup {
+    html! {
+        h1 { (t!("homepage.check_email_title", locale = locale)) }
+        p { (t!("homepage.check_email_desc", locale = locale)) }
+        p { strong { (email) } }
+        p { (t!("homepage.check_email_hint", locale = locale)) }
+        article style="width: fit-content;" {
+            form hx-post=(names::RESEND_VERIFICATION_URL)
+                 hx-ext="json-enc"
+                 hx-target="main"
+                 hx-disabled-elt="find button"
+                 hx-swap="innerHTML" {
+                input type="hidden" name="email" value=(email);
+                button type="submit" class="outline" {
+                    (t!("homepage.resend_email", locale = locale))
+                }
+            }
+            p {
+                a href="/" { (t!("homepage.back_to_login", locale = locale)) }
+            }
+        }
+    }
+}
+
+pub fn email_verified(locale: &str) -> Markup {
+    html! {
+        h1 { (t!("homepage.email_verified_title", locale = locale)) }
+        p { (t!("homepage.email_verified_desc", locale = locale)) }
+        p {
+            a href="/" { (t!("homepage.log_in", locale = locale)) }
+        }
+    }
+}
+
+pub fn verification_failed(locale: &str) -> Markup {
+    html! {
+        h1 { (t!("homepage.verification_failed_title", locale = locale)) }
+        p { (t!("homepage.verification_failed_desc", locale = locale)) }
+        p {
+            a href="/register" { (t!("homepage.register_btn", locale = locale)) }
         }
     }
 }

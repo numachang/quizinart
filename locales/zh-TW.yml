@@ -21,6 +21,18 @@ homepage.already_have_account: "已有帳號？"
 homepage.email_taken: "此電子郵件已被註冊。"
 homepage.empty_fields: "請填寫所有欄位。"
 
+# Homepage - Email Verification
+homepage.check_email_title: "請查收電子郵件"
+homepage.check_email_desc: "我們已將驗證連結傳送至："
+homepage.check_email_hint: "請點擊電子郵件中的連結啟用您的帳號。連結24小時內有效。"
+homepage.resend_email: "重新傳送驗證郵件"
+homepage.back_to_login: "返回登入"
+homepage.email_not_verified: "請先驗證電子郵件再登入。"
+homepage.email_verified_title: "電子郵件驗證成功！"
+homepage.email_verified_desc: "您的電子郵件已驗證，現在可以登入了。"
+homepage.verification_failed_title: "驗證失敗"
+homepage.verification_failed_desc: "此驗證連結無效或已過期。請重新註冊或請求新的連結。"
+
 # Homepage - Login
 homepage.welcome_back: "歡迎回來！"
 homepage.login_desc: "使用您的電子郵件和密碼登入。"

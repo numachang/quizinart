@@ -23,6 +23,10 @@ const MIGRATIONS: &[Migration] = &[
         version: "V4",
         sql: include_str!("../../migrations/V4__add_users.sql"),
     },
+    Migration {
+        version: "V5",
+        sql: include_str!("../../migrations/V5__add_email_verification.sql"),
+    },
 ];
 
 pub async fn run(conn: &libsql::Connection) -> Result<()> {
