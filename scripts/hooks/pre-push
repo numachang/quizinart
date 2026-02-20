@@ -8,5 +8,8 @@ cargo fmt --all -- --check
 echo "Running cargo clippy..."
 cargo clippy --all-targets -- -D warnings
 
+echo "Running TypeScript type check..."
+npx tsc --noEmit
+
 echo "Running Playwright E2E tests..."
 npx playwright test --reporter=line
