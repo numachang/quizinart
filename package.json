@@ -3,9 +3,12 @@
   "scripts": {
     "check": "biome check static/",
     "check:ci": "biome ci static/",
-    "format": "biome check --write static/"
+    "format": "biome check --write static/",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1"
+    "@biomejs/biome": "^1",
+    "@playwright/test": "^1.50"
   }
 }

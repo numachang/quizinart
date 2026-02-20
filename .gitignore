@@ -29,5 +29,10 @@ Thumbs.db
 # Node
 node_modules/
 
+# Playwright
+/test-results/
+/playwright-report/
+/e2e_test.db*
+
 # Accidental files
 nul

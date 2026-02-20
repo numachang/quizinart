@@ -141,13 +141,13 @@ pub fn login(state: LoginState, locale: &str) -> Markup {
                         }
                     }
                 }
-                p style="margin-bottom: 0.5rem;" {
+                p style="margin-bottom: 0.5rem;"
+                  hx-disinherit="hx-disabled-elt" {
                     a href=(names::FORGOT_PASSWORD_URL)
                       hx-get=(names::FORGOT_PASSWORD_URL)
                       hx-target="main"
                       hx-push-url="true"
                       hx-swap="innerHTML"
-                      hx-disinherit="hx-disabled-elt"
                       style="font-size: 0.85rem;" {
                         (t!("homepage.forgot_password", locale = locale))
                     }
