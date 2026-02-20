@@ -41,6 +41,37 @@ homepage.log_in: "Log In"
 homepage.no_account: "Don't have an account?"
 homepage.logout: "Log Out"
 
+# Homepage - Forgot Password
+homepage.forgot_password: "Forgot password?"
+homepage.forgot_password_title: "Forgot your password?"
+homepage.forgot_password_desc: "Enter your email address and we'll send you a link to reset your password."
+homepage.forgot_password_btn: "Send Reset Link"
+homepage.forgot_password_email_sent: "If an account exists with that email, we've sent a password reset link."
+homepage.forgot_password_email_sent_hint: "Check your inbox and spam folder. The link expires in 1 hour."
+homepage.forgot_password_not_configured: "Password reset is not available. Email sending is not configured."
+
+# Homepage - Reset Password
+homepage.reset_password_title: "Reset your password"
+homepage.reset_password_desc: "Enter your new password below."
+homepage.new_password: "New Password"
+homepage.reset_password_btn: "Reset Password"
+homepage.reset_password_success_title: "Password reset!"
+homepage.reset_password_success_desc: "Your password has been reset. You can now log in with your new password."
+homepage.reset_token_invalid_title: "Invalid or expired link"
+homepage.reset_token_invalid_desc: "This password reset link is invalid or has expired. Please request a new one."
+
+# Account
+account.title: "Account Settings"
+account.email_label: "Email"
+account.display_name_label: "Display Name"
+account.change_password_title: "Change Password"
+account.current_password: "Current Password"
+account.new_password: "New Password"
+account.change_password_btn: "Change Password"
+account.incorrect_password: "Current password is incorrect."
+account.empty_fields: "Please fill in all password fields."
+account.password_changed: "Your password has been changed successfully."
+
 # Homepage - Dashboard
 homepage.dashboard: "Dashboard"
 homepage.quiz_name: "Quiz Name"

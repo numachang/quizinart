@@ -25,6 +25,7 @@ pub fn router(state: AppState) -> Router {
     Router::new()
         .merge(handlers::homepage::routes())
         .merge(handlers::quiz::routes())
+        .merge(handlers::account::routes())
         .layer(middleware::from_fn(csrf_check))
         .nest("/static", statics::routes())
         .with_state(state)

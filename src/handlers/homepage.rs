@@ -29,6 +29,12 @@ pub fn routes() -> Router<AppState> {
         .route("/logout", post(logout_post))
         .route("/verify-email/{token}", get(verify_email))
         .route("/resend-verification", post(resend_verification))
+        .route(
+            "/forgot-password",
+            get(forgot_password_page).post(forgot_password_post),
+        )
+        .route("/reset-password/{token}", get(reset_password_page))
+        .route("/reset-password", post(reset_password_post))
         .route("/create-quiz", post(create_quiz))
         .route("/delete-quiz/{id}", delete(delete_quiz))
         .route("/set-locale", post(set_locale))
@@ -357,6 +363,145 @@ async fn resend_verification(
         homepage_views::check_email(&body.email, &locale),
     )
     .into_response())
+}
+
+async fn forgot_password_page(Locale(locale): Locale) -> maud::Markup {
+    views::page(
+        "Forgot Password",
+        homepage_views::forgot_password(homepage_views::ForgotPasswordState::NoError, &locale),
+        &locale,
+    )
+}
+
+#[derive(Deserialize)]
+struct ForgotPasswordPost {
+    email: String,
+}
+
+async fn forgot_password_post(
+    State(state): State<AppState>,
+    Locale(locale): Locale,
+    Json(body): Json<ForgotPasswordPost>,
+) -> Result<axum::response::Response, AppError> {
+    if state.resend_api_key.is_empty() {
+        return Ok(views::titled(
+            "Forgot Password",
+            homepage_views::forgot_password(
+                homepage_views::ForgotPasswordState::EmailNotConfigured,
+                &locale,
+            ),
+        )
+        .into_response());
+    }
+
+    let token = state
+        .db
+        .create_password_reset_token(&body.email)
+        .await
+        .reject("could not create reset token")?;
+
+    if let Some(token) = token {
+        let reset_url = format!("{}/reset-password/{}", state.base_url, token);
+        if let Err(e) =
+            crate::email::send_password_reset_email(&state.resend_api_key, &body.email, &reset_url)
+                .await
+        {
+            tracing::error!("failed to send password reset email to {}: {e}", body.email);
+        }
+    }
+
+    // Always show "check your email" regardless of whether email exists
+    Ok(views::titled(
+        "Forgot Password",
+        homepage_views::forgot_password(homepage_views::ForgotPasswordState::EmailSent, &locale),
+    )
+    .into_response())
+}
+
+async fn reset_password_page(
+    State(state): State<AppState>,
+    Locale(locale): Locale,
+    axum::extract::Path(token): axum::extract::Path<String>,
+) -> Result<maud::Markup, AppError> {
+    let valid = state
+        .db
+        .validate_password_reset_token(&token)
+        .await
+        .reject("could not validate reset token")?;
+
+    if valid.is_some() {
+        Ok(views::page(
+            "Reset Password",
+            homepage_views::reset_password(
+                homepage_views::ResetPasswordState::Form,
+                &token,
+                &locale,
+            ),
+            &locale,
+        ))
+    } else {
+        Ok(views::page(
+            "Reset Password",
+            homepage_views::reset_password(
+                homepage_views::ResetPasswordState::InvalidToken,
+                "",
+                &locale,
+            ),
+            &locale,
+        ))
+    }
+}
+
+#[derive(Deserialize)]
+struct ResetPasswordPost {
+    token: String,
+    password: String,
+}
+
+async fn reset_password_post(
+    State(state): State<AppState>,
+    Locale(locale): Locale,
+    Json(body): Json<ResetPasswordPost>,
+) -> Result<axum::response::Response, AppError> {
+    if body.password.is_empty() {
+        return Ok(views::titled(
+            "Reset Password",
+            homepage_views::reset_password(
+                homepage_views::ResetPasswordState::EmptyPassword,
+                &body.token,
+                &locale,
+            ),
+        )
+        .into_response());
+    }
+
+    let success = state
+        .db
+        .reset_password_with_token(&body.token, &body.password)
+        .await
+        .reject("could not reset password")?;
+
+    if success {
+        Ok(views::titled(
+            "Reset Password",
+            homepage_views::reset_password(
+                homepage_views::ResetPasswordState::Success,
+                "",
+                &locale,
+            ),
+        )
+        .into_response())
+    } else {
+        Ok(views::titled(
+            "Reset Password",
+            homepage_views::reset_password(
+                homepage_views::ResetPasswordState::InvalidToken,
+                "",
+                &locale,
+            ),
+        )
+        .into_response())
+    }
 }
 
 async fn create_quiz(

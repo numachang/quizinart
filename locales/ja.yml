@@ -41,6 +41,37 @@ homepage.log_in: "ログイン"
 homepage.no_account: "アカウントをお持ちでないですか？"
 homepage.logout: "ログアウト"
 
+# Homepage - Forgot Password
+homepage.forgot_password: "パスワードをお忘れですか？"
+homepage.forgot_password_title: "パスワードをお忘れですか？"
+homepage.forgot_password_desc: "メールアドレスを入力してください。パスワードリセットのリンクを送信します。"
+homepage.forgot_password_btn: "リセットリンクを送信"
+homepage.forgot_password_email_sent: "アカウントが存在する場合、パスワードリセットのリンクを送信しました。"
+homepage.forgot_password_email_sent_hint: "受信トレイと迷惑メールフォルダを確認してください。リンクの有効期限は1時間です。"
+homepage.forgot_password_not_configured: "パスワードリセットは利用できません。メール送信が設定されていません。"
+
+# Homepage - Reset Password
+homepage.reset_password_title: "パスワードをリセット"
+homepage.reset_password_desc: "新しいパスワードを入力してください。"
+homepage.new_password: "新しいパスワード"
+homepage.reset_password_btn: "パスワードをリセット"
+homepage.reset_password_success_title: "パスワードがリセットされました"
+homepage.reset_password_success_desc: "パスワードがリセットされました。新しいパスワードでログインできます。"
+homepage.reset_token_invalid_title: "無効または期限切れのリンク"
+homepage.reset_token_invalid_desc: "このリセットリンクは無効または期限切れです。新しいリンクをリクエストしてください。"
+
+# Account
+account.title: "アカウント設定"
+account.email_label: "メールアドレス"
+account.display_name_label: "表示名"
+account.change_password_title: "パスワード変更"
+account.current_password: "現在のパスワード"
+account.new_password: "新しいパスワード"
+account.change_password_btn: "パスワードを変更"
+account.incorrect_password: "現在のパスワードが正しくありません。"
+account.empty_fields: "すべてのパスワード項目を入力してください。"
+account.password_changed: "パスワードが正常に変更されました。"
+
 # Homepage - Dashboard
 homepage.dashboard: "ダッシュボード"
 homepage.quiz_name: "クイズ名"

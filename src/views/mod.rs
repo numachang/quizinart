@@ -1,3 +1,4 @@
+pub mod account;
 pub mod homepage;
 pub mod layout;
 pub mod quiz;

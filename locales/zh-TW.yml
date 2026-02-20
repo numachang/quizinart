@@ -41,6 +41,37 @@ homepage.log_in: "登入"
 homepage.no_account: "還沒有帳號？"
 homepage.logout: "登出"
 
+# Homepage - Forgot Password
+homepage.forgot_password: "忘記密碼？"
+homepage.forgot_password_title: "忘記密碼？"
+homepage.forgot_password_desc: "請輸入您的電子郵件地址，我們將傳送重設密碼的連結。"
+homepage.forgot_password_btn: "傳送重設連結"
+homepage.forgot_password_email_sent: "如果該電子郵件存在帳號，我們已傳送密碼重設連結。"
+homepage.forgot_password_email_sent_hint: "請檢查您的收件匣和垃圾郵件資料夾。連結1小時內有效。"
+homepage.forgot_password_not_configured: "密碼重設不可用。郵件傳送未設定。"
+
+# Homepage - Reset Password
+homepage.reset_password_title: "重設密碼"
+homepage.reset_password_desc: "請輸入您的新密碼。"
+homepage.new_password: "新密碼"
+homepage.reset_password_btn: "重設密碼"
+homepage.reset_password_success_title: "密碼已重設"
+homepage.reset_password_success_desc: "您的密碼已重設。現在可以使用新密碼登入。"
+homepage.reset_token_invalid_title: "無效或已過期的連結"
+homepage.reset_token_invalid_desc: "此密碼重設連結無效或已過期。請重新請求。"
+
+# Account
+account.title: "帳號設定"
+account.email_label: "電子郵件"
+account.display_name_label: "顯示名稱"
+account.change_password_title: "變更密碼"
+account.current_password: "目前密碼"
+account.new_password: "新密碼"
+account.change_password_btn: "變更密碼"
+account.incorrect_password: "目前密碼不正確。"
+account.empty_fields: "請填寫所有密碼欄位。"
+account.password_changed: "密碼變更成功。"
+
 # Homepage - Dashboard
 homepage.dashboard: "儀表板"
 homepage.quiz_name: "測驗名稱"

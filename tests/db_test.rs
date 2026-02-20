@@ -769,3 +769,138 @@ async fn test_existing_user_is_verified_by_default() {
     // create_user uses DEFAULT TRUE, so should be verified
     assert!(db.is_email_verified("existing@example.com").await.unwrap());
 }
+
+// --- Password reset tests ---
+
+#[tokio::test]
+async fn test_create_password_reset_token_verified_user() {
+    let db = create_test_db().await;
+    db.create_user("reset@example.com", "password", "Reset User")
+        .await
+        .unwrap();
+
+    let token = db
+        .create_password_reset_token("reset@example.com")
+        .await
+        .unwrap();
+    assert!(token.is_some());
+}
+
+#[tokio::test]
+async fn test_create_password_reset_token_nonexistent_email() {
+    let db = create_test_db().await;
+
+    let token = db
+        .create_password_reset_token("nobody@example.com")
+        .await
+        .unwrap();
+    assert!(token.is_none());
+}
+
+#[tokio::test]
+async fn test_create_password_reset_token_unverified_user() {
+    let db = create_test_db().await;
+    db.create_unverified_user("unverified@example.com", "password", "Unverified")
+        .await
+        .unwrap();
+
+    // Unverified users should not get reset tokens
+    let token = db
+        .create_password_reset_token("unverified@example.com")
+        .await
+        .unwrap();
+    assert!(token.is_none());
+}
+
+#[tokio::test]
+async fn test_validate_and_reset_password_with_token() {
+    let db = create_test_db().await;
+    db.create_user("reset@example.com", "old-password", "Reset")
+        .await
+        .unwrap();
+
+    let token = db
+        .create_password_reset_token("reset@example.com")
+        .await
+        .unwrap()
+        .unwrap();
+
+    // Validate token
+    let email = db.validate_password_reset_token(&token).await.unwrap();
+    assert_eq!(email.as_deref(), Some("reset@example.com"));
+
+    // Reset password
+    assert!(db
+        .reset_password_with_token(&token, "new-password")
+        .await
+        .unwrap());
+
+    // Token should be consumed
+    let email = db.validate_password_reset_token(&token).await.unwrap();
+    assert!(email.is_none());
+
+    // Old password should not work
+    assert!(!db
+        .verify_user_password("reset@example.com", "old-password")
+        .await
+        .unwrap());
+
+    // New password should work
+    assert!(db
+        .verify_user_password("reset@example.com", "new-password")
+        .await
+        .unwrap());
+}
+
+#[tokio::test]
+async fn test_reset_password_invalid_token() {
+    let db = create_test_db().await;
+    assert!(!db
+        .reset_password_with_token("invalid-token", "new-pass")
+        .await
+        .unwrap());
+}
+
+#[tokio::test]
+async fn test_change_password_success() {
+    let db = create_test_db().await;
+    let user_id = db
+        .create_user("change@example.com", "current-pass", "Change")
+        .await
+        .unwrap();
+
+    assert!(db
+        .change_password(user_id, "current-pass", "new-pass")
+        .await
+        .unwrap());
+
+    // Login with new password
+    assert!(db
+        .verify_user_password("change@example.com", "new-pass")
+        .await
+        .unwrap());
+    assert!(!db
+        .verify_user_password("change@example.com", "current-pass")
+        .await
+        .unwrap());
+}
+
+#[tokio::test]
+async fn test_change_password_wrong_current() {
+    let db = create_test_db().await;
+    let user_id = db
+        .create_user("change@example.com", "correct-pass", "Change")
+        .await
+        .unwrap();
+
+    assert!(!db
+        .change_password(user_id, "wrong-pass", "new-pass")
+        .await
+        .unwrap());
+
+    // Original password should still work
+    assert!(db
+        .verify_user_password("change@example.com", "correct-pass")
+        .await
+        .unwrap());
+}

@@ -141,6 +141,16 @@ pub fn login(state: LoginState, locale: &str) -> Markup {
                         }
                     }
                 }
+                p style="margin-bottom: 0.5rem;" {
+                    a href=(names::FORGOT_PASSWORD_URL)
+                      hx-get=(names::FORGOT_PASSWORD_URL)
+                      hx-target="main"
+                      hx-push-url="true"
+                      hx-swap="innerHTML"
+                      style="font-size: 0.85rem;" {
+                        (t!("homepage.forgot_password", locale = locale))
+                    }
+                }
                 button type="submit" { (t!("homepage.log_in", locale = locale)) }
             }
             p {
@@ -198,6 +208,131 @@ pub fn verification_failed(locale: &str) -> Markup {
         p {
             a href="/register" { (t!("homepage.register_btn", locale = locale)) }
         }
+    }
+}
+
+pub enum ForgotPasswordState {
+    NoError,
+    EmailNotConfigured,
+    EmailSent,
+}
+
+pub fn forgot_password(state: ForgotPasswordState, locale: &str) -> Markup {
+    match state {
+        ForgotPasswordState::NoError => html! {
+            h1 { (t!("homepage.forgot_password_title", locale = locale)) }
+            p { (t!("homepage.forgot_password_desc", locale = locale)) }
+            article style="width: fit-content;" {
+                form hx-post=(names::FORGOT_PASSWORD_URL)
+                     hx-ext="json-enc"
+                     hx-target="main"
+                     hx-disabled-elt="find input, find button"
+                     hx-swap="innerHTML" {
+                    label {
+                        (t!("homepage.email", locale = locale))
+                        input name="email"
+                              type="email"
+                              autocomplete="email"
+                              required="true"
+                              placeholder=(t!("homepage.email", locale = locale))
+                              aria-label=(t!("homepage.email", locale = locale));
+                    }
+                    button type="submit" { (t!("homepage.forgot_password_btn", locale = locale)) }
+                }
+                p {
+                    a href="/" { (t!("homepage.back_to_login", locale = locale)) }
+                }
+            }
+        },
+        ForgotPasswordState::EmailNotConfigured => html! {
+            h1 { (t!("homepage.forgot_password_title", locale = locale)) }
+            p { (t!("homepage.forgot_password_not_configured", locale = locale)) }
+            p {
+                a href="/" { (t!("homepage.back_to_login", locale = locale)) }
+            }
+        },
+        ForgotPasswordState::EmailSent => html! {
+            h1 { (t!("homepage.forgot_password_title", locale = locale)) }
+            p { (t!("homepage.forgot_password_email_sent", locale = locale)) }
+            p { (t!("homepage.forgot_password_email_sent_hint", locale = locale)) }
+            p {
+                a href="/" { (t!("homepage.back_to_login", locale = locale)) }
+            }
+        },
+    }
+}
+
+pub enum ResetPasswordState {
+    Form,
+    InvalidToken,
+    EmptyPassword,
+    Success,
+}
+
+pub fn reset_password(state: ResetPasswordState, token: &str, locale: &str) -> Markup {
+    match state {
+        ResetPasswordState::Form => html! {
+            h1 { (t!("homepage.reset_password_title", locale = locale)) }
+            p { (t!("homepage.reset_password_desc", locale = locale)) }
+            article style="width: fit-content;" {
+                form hx-post=(names::RESET_PASSWORD_URL)
+                     hx-ext="json-enc"
+                     hx-target="main"
+                     hx-disabled-elt="find input, find button"
+                     hx-swap="innerHTML" {
+                    input type="hidden" name="token" value=(token);
+                    label {
+                        (t!("homepage.new_password", locale = locale))
+                        input name="password"
+                              type="password"
+                              autocomplete="new-password"
+                              required="true"
+                              placeholder=(t!("homepage.new_password", locale = locale))
+                              aria-label=(t!("homepage.new_password", locale = locale));
+                    }
+                    button type="submit" { (t!("homepage.reset_password_btn", locale = locale)) }
+                }
+            }
+        },
+        ResetPasswordState::EmptyPassword => html! {
+            h1 { (t!("homepage.reset_password_title", locale = locale)) }
+            p { (t!("homepage.reset_password_desc", locale = locale)) }
+            article style="width: fit-content;" {
+                form hx-post=(names::RESET_PASSWORD_URL)
+                     hx-ext="json-enc"
+                     hx-target="main"
+                     hx-disabled-elt="find input, find button"
+                     hx-swap="innerHTML" {
+                    input type="hidden" name="token" value=(token);
+                    label {
+                        (t!("homepage.new_password", locale = locale))
+                        input name="password"
+                              type="password"
+                              autocomplete="new-password"
+                              required="true"
+                              placeholder=(t!("homepage.new_password", locale = locale))
+                              aria-invalid="true"
+                              aria-label=(t!("homepage.new_password", locale = locale));
+                        small { (t!("homepage.empty_fields", locale = locale)) }
+                    }
+                    button type="submit" { (t!("homepage.reset_password_btn", locale = locale)) }
+                }
+            }
+        },
+        ResetPasswordState::InvalidToken => html! {
+            h1 { (t!("homepage.reset_token_invalid_title", locale = locale)) }
+            p { (t!("homepage.reset_token_invalid_desc", locale = locale)) }
+            p {
+                a href=(names::FORGOT_PASSWORD_URL) { (t!("homepage.forgot_password_btn", locale = locale)) }
+            }
+        },
+        ResetPasswordState::Success => html! {
+            h1 { (t!("homepage.reset_password_success_title", locale = locale)) }
+            p { (t!("homepage.reset_password_success_desc", locale = locale)) }
+            p {
+                a href="/" { (t!("homepage.log_in", locale = locale)) }
+            }
+        },
     }
 }
 
