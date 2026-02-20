@@ -131,11 +131,7 @@ fn header(locale: &str, user_name: Option<&str>) -> Markup {
                     }
                     @if let Some(name) = user_name {
                         li."secondary" {
-                            a href=(names::ACCOUNT_URL)
-                              hx-get=(names::ACCOUNT_URL)
-                              hx-target="main"
-                              hx-push-url="true"
-                              hx-swap="innerHTML" {
+                            a href=(names::ACCOUNT_URL) {
                                 (name)
                             }
                         }
