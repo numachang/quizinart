@@ -3,7 +3,7 @@ use std::convert::Infallible;
 use axum::{extract::FromRequestParts, http::request::Parts};
 use axum_extra::extract::CookieJar;
 
-use crate::{names, rejections::AppError, AppState};
+use crate::{db::models::AuthUser, names, rejections::AppError, AppState};
 
 /// Extracts whether the request is an HTMX request by checking the `HX-Request` header.
 pub struct IsHtmx(pub bool);
@@ -40,9 +40,10 @@ impl<S: Send + Sync> FromRequestParts<S> for Locale {
     }
 }
 
-/// Guard extractor that verifies the admin session cookie against the database.
-/// Rejects with `AppError::Unauthorized` if the session is invalid or missing.
-pub struct AuthGuard;
+/// Guard extractor that verifies the user session cookie against the database.
+/// Carries the authenticated user's info for use in handlers.
+/// Falls back to legacy admin_session cookie for migration compatibility.
+pub struct AuthGuard(pub AuthUser);
 
 impl FromRequestParts<AppState> for AuthGuard {
     type Rejection = AppError;
@@ -52,19 +53,34 @@ impl FromRequestParts<AppState> for AuthGuard {
         state: &AppState,
     ) -> Result<Self, Self::Rejection> {
         let jar = CookieJar::from_headers(&parts.headers);
-        let session = jar
-            .get(names::ADMIN_SESSION_COOKIE_NAME)
-            .map(|c| c.value().to_string());
 
-        let exists = match session {
-            Some(s) => state.db.admin_session_exists(s).await.unwrap_or(false),
-            None => false,
-        };
-
-        if exists {
-            Ok(AuthGuard)
-        } else {
-            Err(AppError::Unauthorized)
+        // Try new user_session cookie first
+        if let Some(session_id) = jar
+            .get(names::USER_SESSION_COOKIE_NAME)
+            .map(|c| c.value().to_string())
+        {
+            if let Ok(Some(user)) = state.db.get_user_by_session(&session_id).await {
+                return Ok(AuthGuard(user));
+            }
         }
+
+        // Fallback: legacy admin_session cookie → map to default migration user
+        if let Some(admin_session) = jar
+            .get(names::ADMIN_SESSION_COOKIE_NAME)
+            .map(|c| c.value().to_string())
+        {
+            let exists = state
+                .db
+                .admin_session_exists(admin_session)
+                .await
+                .unwrap_or(false);
+            if exists {
+                if let Ok(Some(user)) = state.db.find_user_by_email("admin@local").await {
+                    return Ok(AuthGuard(user));
+                }
+            }
+        }
+
+        Err(AppError::Unauthorized)
     }
 }

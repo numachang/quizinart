@@ -7,12 +7,17 @@ use super::Db;
 use crate::models::{Question, Questions};
 
 impl Db {
-    pub async fn load_quiz(&self, quiz_name: String, questions: Questions) -> Result<i32> {
+    pub async fn load_quiz(
+        &self,
+        quiz_name: String,
+        questions: Questions,
+        user_id: i32,
+    ) -> Result<i32> {
         let conn = self.db.connect()?;
         let quiz_id = conn
             .query(
-                "INSERT INTO quizzes (name) VALUES (?) RETURNING id",
-                params![quiz_name],
+                "INSERT INTO quizzes (name, user_id) VALUES (?, ?) RETURNING id",
+                params![quiz_name, user_id],
             )
             .await?
             .next()
@@ -47,11 +52,11 @@ impl Db {
             }
         }
 
-        tracing::info!("new quiz created with id: {quiz_id}");
+        tracing::info!("new quiz created with id: {quiz_id} for user_id: {user_id}");
         Ok(quiz_id)
     }
 
-    pub async fn quizzes(&self) -> Result<Vec<Quiz>> {
+    pub async fn quizzes(&self, user_id: i32) -> Result<Vec<Quiz>> {
         let conn = self.db.connect()?;
         helpers::query_all(
             &conn,
@@ -63,21 +68,26 @@ impl Db {
             FROM
               quizzes
               JOIN questions ON questions.quiz_id = quizzes.id
+            WHERE
+              quizzes.user_id = ?
             GROUP BY
               quizzes.name
             "#,
-            (),
+            params![user_id],
         )
         .await
     }
 
-    pub async fn delete_quiz(&self, quiz_id: i32) -> Result<()> {
+    pub async fn delete_quiz(&self, quiz_id: i32, user_id: i32) -> Result<()> {
         let conn = self.db.connect()?;
 
-        conn.execute("DELETE FROM quizzes WHERE id = ?", params![quiz_id])
-            .await?;
+        conn.execute(
+            "DELETE FROM quizzes WHERE id = ? AND user_id = ?",
+            params![quiz_id, user_id],
+        )
+        .await?;
 
-        tracing::info!("quiz deleted with id: {quiz_id}");
+        tracing::info!("quiz deleted with id: {quiz_id} by user_id: {user_id}");
         Ok(())
     }
 
@@ -93,5 +103,19 @@ impl Db {
             .get::<String>(0)?;
 
         Ok(quiz_name)
+    }
+
+    /// Verify that a quiz belongs to the given user
+    pub async fn verify_quiz_owner(&self, quiz_id: i32, user_id: i32) -> Result<bool> {
+        let conn = self.db.connect()?;
+        let row = conn
+            .query(
+                "SELECT 1 FROM quizzes WHERE id = ? AND user_id = ?",
+                params![quiz_id, user_id],
+            )
+            .await?
+            .next()
+            .await?;
+        Ok(row.is_some())
     }
 }

@@ -33,6 +33,7 @@ impl Db {
         quiz_id: i32,
         question_count: i32,
         selection_mode: &str,
+        user_id: i32,
     ) -> Result<String> {
         if self.session_name_exists(name, quiz_id).await? {
             return Err(color_eyre::eyre::eyre!(
@@ -49,8 +50,8 @@ impl Db {
 
         let session_id = conn
             .query(
-                "INSERT INTO quiz_sessions (name, session_token, quiz_id, shuffle_seed, question_count, selection_mode) VALUES (?, ?, ?, ?, ?, ?) RETURNING id",
-                params![name, token_str, quiz_id, shuffle_seed, question_count, selection_mode],
+                "INSERT INTO quiz_sessions (name, session_token, quiz_id, shuffle_seed, question_count, selection_mode, user_id) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id",
+                params![name, token_str, quiz_id, shuffle_seed, question_count, selection_mode, user_id],
             )
             .await?
             .next()
@@ -73,7 +74,7 @@ impl Db {
         }
 
         tracing::info!(
-            "session created for quiz={quiz_id}: session_id={session_id}, questions={}, mode={selection_mode}",
+            "session created for quiz={quiz_id}: session_id={session_id}, questions={}, mode={selection_mode}, user_id={user_id}",
             selected_ids.len()
         );
         Ok(session_token)
@@ -255,6 +256,7 @@ impl Db {
         quiz_id: i32,
         question_ids: &[i32],
         selection_mode: &str,
+        user_id: i32,
     ) -> Result<String> {
         let mut seen = std::collections::HashSet::new();
         let deduped_question_ids: Vec<i32> = question_ids
@@ -270,8 +272,8 @@ impl Db {
 
         let session_id = conn
             .query(
-                "INSERT INTO quiz_sessions (name, session_token, quiz_id, shuffle_seed, question_count, selection_mode) VALUES (?, ?, ?, 0, ?, ?) RETURNING id",
-                params![name, token_str, quiz_id, question_count, selection_mode],
+                "INSERT INTO quiz_sessions (name, session_token, quiz_id, shuffle_seed, question_count, selection_mode, user_id) VALUES (?, ?, ?, 0, ?, ?, ?) RETURNING id",
+                params![name, token_str, quiz_id, question_count, selection_mode, user_id],
             )
             .await?
             .next()
@@ -394,5 +396,19 @@ impl Db {
 
         tracing::info!("No incomplete session found for user '{}'", name);
         Ok(None)
+    }
+
+    /// Verify that a session belongs to the given user
+    pub async fn verify_session_owner(&self, session_id: i32, user_id: i32) -> Result<bool> {
+        let conn = self.db.connect()?;
+        let row = conn
+            .query(
+                "SELECT 1 FROM quiz_sessions WHERE id = ? AND user_id = ?",
+                params![session_id, user_id],
+            )
+            .await?
+            .next()
+            .await?;
+        Ok(row.is_some())
     }
 }

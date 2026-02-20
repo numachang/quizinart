@@ -16,7 +16,7 @@ use crate::{
 };
 
 pub(crate) async fn quiz_page(
-    _guard: AuthGuard,
+    AuthGuard(_user): AuthGuard,
     IsHtmx(is_htmx): IsHtmx,
     State(state): State<AppState>,
     Path(quiz_id): Path<i32>,
@@ -69,7 +69,7 @@ pub(crate) async fn quiz_page(
 }
 
 pub(crate) async fn submit_answer_raw(
-    _guard: AuthGuard,
+    AuthGuard(_user): AuthGuard,
     State(state): State<AppState>,
     jar: CookieJar,
     Locale(locale): Locale,
@@ -225,7 +225,7 @@ async fn submit_answer(
 }
 
 pub(crate) async fn navigate_question(
-    _guard: AuthGuard,
+    AuthGuard(_user): AuthGuard,
     State(state): State<AppState>,
     IsHtmx(_is_htmx): IsHtmx,
     Path(session_id): Path<i32>,
@@ -290,7 +290,7 @@ pub(crate) async fn navigate_question(
 }
 
 pub(crate) async fn toggle_bookmark(
-    _guard: AuthGuard,
+    AuthGuard(_user): AuthGuard,
     State(state): State<AppState>,
     Path((session_id, question_id)): Path<(i32, i32)>,
     Locale(locale): Locale,
@@ -371,6 +371,7 @@ pub async fn question(
     ))
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn answer(
     db: &crate::db::Db,
     session_id: i32,

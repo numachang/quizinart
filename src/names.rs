@@ -3,8 +3,11 @@ pub const GET_STARTED_URL: &str = "/start";
 pub const CREATE_QUIZ_URL: &str = "/create-quiz";
 pub const SUBMIT_ANSWER_URL: &str = "/submit-answer";
 
-pub const ADMIN_SESSION_COOKIE_NAME: &str = "admin_session";
+pub const ADMIN_SESSION_COOKIE_NAME: &str = "admin_session"; // legacy, kept for migration
+pub const USER_SESSION_COOKIE_NAME: &str = "user_session";
 pub const QUIZ_SESSION_COOKIE_NAME: &str = "quiz_session";
+pub const REGISTER_URL: &str = "/register";
+pub const LOGOUT_URL: &str = "/logout";
 
 pub fn quiz_dashboard_url(quiz_id: i32) -> String {
     format!("/quiz/{quiz_id}/dashboard")

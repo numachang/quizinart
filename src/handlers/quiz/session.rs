@@ -18,7 +18,7 @@ use crate::{
 };
 
 pub(crate) async fn start_session(
-    _guard: AuthGuard,
+    AuthGuard(user): AuthGuard,
     State(state): State<AppState>,
     Path(quiz_id): Path<i32>,
     Locale(locale): Locale,
@@ -36,7 +36,7 @@ pub(crate) async fn start_session(
 
     let session_token = match state
         .db
-        .create_session(&body.name, quiz_id, question_count, selection_mode)
+        .create_session(&body.name, quiz_id, question_count, selection_mode, user.id)
         .await
     {
         Ok(token) => {
@@ -90,7 +90,7 @@ pub(crate) async fn start_session(
 }
 
 pub(crate) async fn resume_session(
-    _guard: AuthGuard,
+    AuthGuard(_user): AuthGuard,
     State(state): State<AppState>,
     Path((session_id, token)): Path<(i32, String)>,
     Locale(locale): Locale,
@@ -136,7 +136,7 @@ pub(crate) async fn resume_session(
 }
 
 pub(crate) async fn retry_incorrect(
-    _guard: AuthGuard,
+    AuthGuard(user): AuthGuard,
     State(state): State<AppState>,
     Path(session_id): Path<i32>,
     Locale(locale): Locale,
@@ -173,7 +173,13 @@ pub(crate) async fn retry_incorrect(
 
     let token = state
         .db
-        .create_session_with_questions(&retry_name, session.quiz_id, &incorrect_ids, "incorrect")
+        .create_session_with_questions(
+            &retry_name,
+            session.quiz_id,
+            &incorrect_ids,
+            "incorrect",
+            user.id,
+        )
         .await
         .reject("could not create retry session")?;
 
@@ -209,7 +215,7 @@ pub(crate) async fn retry_incorrect(
 }
 
 pub(crate) async fn retry_bookmarked(
-    _guard: AuthGuard,
+    AuthGuard(user): AuthGuard,
     State(state): State<AppState>,
     Path(session_id): Path<i32>,
     Locale(locale): Locale,
@@ -246,7 +252,13 @@ pub(crate) async fn retry_bookmarked(
 
     let token = state
         .db
-        .create_session_with_questions(&retry_name, session.quiz_id, &bookmarked_ids, "bookmarked")
+        .create_session_with_questions(
+            &retry_name,
+            session.quiz_id,
+            &bookmarked_ids,
+            "bookmarked",
+            user.id,
+        )
         .await
         .reject("could not create bookmarked retry session")?;
 
@@ -282,7 +294,7 @@ pub(crate) async fn retry_bookmarked(
 }
 
 pub(crate) async fn delete_session(
-    _guard: AuthGuard,
+    AuthGuard(_user): AuthGuard,
     State(state): State<AppState>,
     Path(session_id): Path<i32>,
     Locale(locale): Locale,
@@ -307,7 +319,7 @@ pub(crate) async fn delete_session(
 }
 
 pub(crate) async fn rename_session(
-    _guard: AuthGuard,
+    AuthGuard(_user): AuthGuard,
     State(state): State<AppState>,
     Path(session_id): Path<i32>,
     Locale(locale): Locale,

@@ -10,22 +10,24 @@ layout.theme_light: "ライト"
 layout.theme_dark: "ダーク"
 layout.theme_system: "システム"
 
-# Homepage - Get Started
-homepage.welcome: "Quizinart へようこそ！"
-homepage.welcome_desc_1: "初めて "
-homepage.welcome_desc_2: " をご利用のようです。まず "
-homepage.welcome_desc_3: " を設定してください。"
-homepage.quizinart: "Quizinart"
-homepage.admin_password: "管理者パスワード"
-homepage.password_hint: "パスワードを忘れないようにしてください。"
-homepage.get_started: "始める"
+# Homepage - Register
+homepage.register_title: "アカウントを作成"
+homepage.register_desc: "Quizinartを始めるためにサインアップしてください。"
+homepage.email: "メールアドレス"
+homepage.display_name: "表示名"
+homepage.password: "パスワード"
+homepage.register_btn: "アカウント作成"
+homepage.already_have_account: "すでにアカウントをお持ちですか？"
+homepage.email_taken: "このメールアドレスは既に登録されています。"
+homepage.empty_fields: "すべての項目を入力してください。"
 
 # Homepage - Login
 homepage.welcome_back: "おかえりなさい！"
-homepage.login_desc: "以前設定した管理者パスワードでログインしてください。"
-homepage.password_hint_login: "初回使用時に設定した管理者パスワードを入力してください。"
-homepage.incorrect_password: "パスワードが正しくありません"
+homepage.login_desc: "メールアドレスとパスワードでログインしてください。"
+homepage.incorrect_password: "メールアドレスまたはパスワードが正しくありません。"
 homepage.log_in: "ログイン"
+homepage.no_account: "アカウントをお持ちでないですか？"
+homepage.logout: "ログアウト"
 
 # Homepage - Dashboard
 homepage.dashboard: "ダッシュボード"

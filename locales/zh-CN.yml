@@ -10,22 +10,24 @@ layout.theme_light: "浅色"
 layout.theme_dark: "深色"
 layout.theme_system: "跟随系统"
 
-# Homepage - Get Started
-homepage.welcome: "欢迎使用 Quizinart！"
-homepage.welcome_desc_1: "您似乎是第一次使用 "
-homepage.welcome_desc_2: "。请先设置 "
-homepage.welcome_desc_3: " 以开始使用。"
-homepage.quizinart: "Quizinart"
-homepage.admin_password: "管理员密码"
-homepage.password_hint: "请务必记住您的密码。"
-homepage.get_started: "开始"
+# Homepage - Register
+homepage.register_title: "创建账号"
+homepage.register_desc: "注册以开始使用 Quizinart。"
+homepage.email: "邮箱"
+homepage.display_name: "显示名称"
+homepage.password: "密码"
+homepage.register_btn: "创建账号"
+homepage.already_have_account: "已有账号？"
+homepage.email_taken: "该邮箱已被注册。"
+homepage.empty_fields: "请填写所有字段。"
 
 # Homepage - Login
 homepage.welcome_back: "欢迎回来！"
-homepage.login_desc: "请使用您之前设置的管理员密码登录。"
-homepage.password_hint_login: "请输入您首次使用时设置的管理员密码。"
-homepage.incorrect_password: "密码错误"
+homepage.login_desc: "使用您的邮箱和密码登录。"
+homepage.incorrect_password: "邮箱或密码错误。"
 homepage.log_in: "登录"
+homepage.no_account: "还没有账号？"
+homepage.logout: "退出登录"
 
 # Homepage - Dashboard
 homepage.dashboard: "仪表板"

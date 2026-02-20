@@ -2,6 +2,13 @@
 
 use serde::Deserialize;
 
+#[derive(Clone, Deserialize)]
+pub struct AuthUser {
+    pub id: i32,
+    pub email: String,
+    pub display_name: String,
+}
+
 #[derive(Deserialize)]
 pub struct Quiz {
     pub id: i32,

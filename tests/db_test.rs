@@ -6,6 +6,13 @@ use common::create_test_db;
 use quizinart::db::Db;
 use quizinart::models::{Question, QuestionOption};
 
+/// Helper: create a test user and return their id
+async fn create_test_user(db: &Db) -> i32 {
+    db.create_user("test@example.com", "password123", "Test User")
+        .await
+        .expect("create test user")
+}
+
 fn sample_questions() -> Vec<Question> {
     vec![Question {
         question: "What is 1+1?".to_string(),
@@ -83,6 +90,7 @@ async fn test_db_connection() {
     assert!(db.migration_applied("V1").await.unwrap());
     assert!(db.migration_applied("V2").await.unwrap());
     assert!(db.migration_applied("V3").await.unwrap());
+    assert!(db.migration_applied("V4").await.unwrap());
 }
 
 #[tokio::test]
@@ -113,14 +121,15 @@ async fn test_admin_password_can_be_updated() {
 #[tokio::test]
 async fn test_quiz_crud() {
     let db = create_test_db().await;
+    let user_id = create_test_user(&db).await;
 
     let quiz_id = db
-        .load_quiz("Test Quiz".to_string(), sample_questions())
+        .load_quiz("Test Quiz".to_string(), sample_questions(), user_id)
         .await
         .unwrap();
     assert!(quiz_id > 0);
 
-    let quizzes = db.quizzes().await.unwrap();
+    let quizzes = db.quizzes(user_id).await.unwrap();
     assert_eq!(quizzes.len(), 1);
     assert_eq!(quizzes[0].name, "Test Quiz");
     assert_eq!(quizzes[0].count, 1);
@@ -135,13 +144,14 @@ async fn test_quiz_crud() {
 #[tokio::test]
 async fn test_session_creation() {
     let db = create_test_db().await;
+    let user_id = create_test_user(&db).await;
 
     let quiz_id = db
-        .load_quiz("Quiz".to_string(), minimal_questions())
+        .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
         .await
         .unwrap();
     let token = db
-        .create_session("session-1", quiz_id, 5, "random")
+        .create_session("session-1", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
     assert!(!token.is_empty());
@@ -154,17 +164,20 @@ async fn test_session_creation() {
 #[tokio::test]
 async fn test_duplicate_session_name() {
     let db = create_test_db().await;
+    let user_id = create_test_user(&db).await;
 
     let quiz_id = db
-        .load_quiz("Quiz".to_string(), minimal_questions())
+        .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
         .await
         .unwrap();
-    db.create_session("dupe", quiz_id, 5, "random")
+    db.create_session("dupe", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
 
     // Same name, same quiz -> should fail
-    let result = db.create_session("dupe", quiz_id, 5, "random").await;
+    let result = db
+        .create_session("dupe", quiz_id, 5, "random", user_id)
+        .await;
     assert!(result.is_err());
     assert!(result.unwrap_err().to_string().contains("already in use"));
 }
@@ -172,30 +185,36 @@ async fn test_duplicate_session_name() {
 #[tokio::test]
 async fn test_session_count() {
     let db = create_test_db().await;
+    let user_id = create_test_user(&db).await;
 
     let quiz_id = db
-        .load_quiz("Quiz".to_string(), minimal_questions())
+        .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
         .await
         .unwrap();
     assert_eq!(db.sessions_count(quiz_id).await.unwrap(), 0);
 
-    db.create_session("s1", quiz_id, 5, "random").await.unwrap();
+    db.create_session("s1", quiz_id, 5, "random", user_id)
+        .await
+        .unwrap();
     assert_eq!(db.sessions_count(quiz_id).await.unwrap(), 1);
 
-    db.create_session("s2", quiz_id, 5, "random").await.unwrap();
+    db.create_session("s2", quiz_id, 5, "random", user_id)
+        .await
+        .unwrap();
     assert_eq!(db.sessions_count(quiz_id).await.unwrap(), 2);
 }
 
 #[tokio::test]
 async fn test_delete_session() {
     let db = create_test_db().await;
+    let user_id = create_test_user(&db).await;
 
     let quiz_id = db
-        .load_quiz("Quiz".to_string(), minimal_questions())
+        .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
         .await
         .unwrap();
     let token = db
-        .create_session("to-delete", quiz_id, 5, "random")
+        .create_session("to-delete", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
     let session = db.get_session(&token).await.unwrap();
@@ -212,13 +231,14 @@ async fn test_delete_session() {
 #[tokio::test]
 async fn test_rename_session() {
     let db = create_test_db().await;
+    let user_id = create_test_user(&db).await;
 
     let quiz_id = db
-        .load_quiz("Quiz".to_string(), minimal_questions())
+        .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
         .await
         .unwrap();
     let token = db
-        .create_session("old-name", quiz_id, 5, "random")
+        .create_session("old-name", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
     let session = db.get_session(&token).await.unwrap();
@@ -234,16 +254,17 @@ async fn test_rename_session() {
 #[tokio::test]
 async fn test_rename_session_duplicate() {
     let db = create_test_db().await;
+    let user_id = create_test_user(&db).await;
 
     let quiz_id = db
-        .load_quiz("Quiz".to_string(), minimal_questions())
+        .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
         .await
         .unwrap();
-    db.create_session("existing", quiz_id, 5, "random")
+    db.create_session("existing", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
     let token2 = db
-        .create_session("to-rename", quiz_id, 5, "random")
+        .create_session("to-rename", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
     let session2 = db.get_session(&token2).await.unwrap();
@@ -259,13 +280,14 @@ async fn test_rename_session_duplicate() {
 #[tokio::test]
 async fn test_random_mode_no_duplicates() {
     let db = create_test_db().await;
+    let user_id = create_test_user(&db).await;
     let quiz_id = db
-        .load_quiz("Quiz".to_string(), make_questions(10))
+        .load_quiz("Quiz".to_string(), make_questions(10), user_id)
         .await
         .unwrap();
 
     let token = db
-        .create_session("random-session", quiz_id, 5, "random")
+        .create_session("random-session", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
     let session = db.get_session(&token).await.unwrap();
@@ -285,14 +307,15 @@ async fn test_random_mode_no_duplicates() {
 #[tokio::test]
 async fn test_random_mode_cap_at_total() {
     let db = create_test_db().await;
+    let user_id = create_test_user(&db).await;
     let quiz_id = db
-        .load_quiz("Quiz".to_string(), make_questions(3))
+        .load_quiz("Quiz".to_string(), make_questions(3), user_id)
         .await
         .unwrap();
 
     // Request more questions than exist
     let token = db
-        .create_session("random-big", quiz_id, 10, "random")
+        .create_session("random-big", quiz_id, 10, "random", user_id)
         .await
         .unwrap();
     let session = db.get_session(&token).await.unwrap();
@@ -312,14 +335,15 @@ async fn test_random_mode_cap_at_total() {
 #[tokio::test]
 async fn test_unanswered_mode_no_duplicates() {
     let db = create_test_db().await;
+    let user_id = create_test_user(&db).await;
     let quiz_id = db
-        .load_quiz("Quiz".to_string(), make_questions(10))
+        .load_quiz("Quiz".to_string(), make_questions(10), user_id)
         .await
         .unwrap();
 
     // Session 1: pick 4 unanswered questions
     let token1 = db
-        .create_session("s1", quiz_id, 4, "unanswered")
+        .create_session("s1", quiz_id, 4, "unanswered", user_id)
         .await
         .unwrap();
     let s1 = db.get_session(&token1).await.unwrap();
@@ -336,7 +360,7 @@ async fn test_unanswered_mode_no_duplicates() {
 
     // Session 2: pick 4 more unanswered questions — should NOT overlap with session 1
     let token2 = db
-        .create_session("s2", quiz_id, 4, "unanswered")
+        .create_session("s2", quiz_id, 4, "unanswered", user_id)
         .await
         .unwrap();
     let s2 = db.get_session(&token2).await.unwrap();
@@ -363,14 +387,15 @@ async fn test_unanswered_mode_no_duplicates() {
 #[tokio::test]
 async fn test_unanswered_mode_fallback_no_duplicates() {
     let db = create_test_db().await;
+    let user_id = create_test_user(&db).await;
     let quiz_id = db
-        .load_quiz("Quiz".to_string(), make_questions(5))
+        .load_quiz("Quiz".to_string(), make_questions(5), user_id)
         .await
         .unwrap();
 
     // Session 1: exhaust all 5 questions
     let token1 = db
-        .create_session("s1", quiz_id, 5, "unanswered")
+        .create_session("s1", quiz_id, 5, "unanswered", user_id)
         .await
         .unwrap();
     let s1 = db.get_session(&token1).await.unwrap();
@@ -379,7 +404,7 @@ async fn test_unanswered_mode_fallback_no_duplicates() {
 
     // Session 2: no unanswered left — fallback fills from already-asked
     let token2 = db
-        .create_session("s2", quiz_id, 3, "unanswered")
+        .create_session("s2", quiz_id, 3, "unanswered", user_id)
         .await
         .unwrap();
     let s2 = db.get_session(&token2).await.unwrap();
@@ -403,14 +428,15 @@ async fn test_unanswered_mode_fallback_no_duplicates() {
 #[tokio::test]
 async fn test_unanswered_mode_partial_fallback() {
     let db = create_test_db().await;
+    let user_id = create_test_user(&db).await;
     let quiz_id = db
-        .load_quiz("Quiz".to_string(), make_questions(6))
+        .load_quiz("Quiz".to_string(), make_questions(6), user_id)
         .await
         .unwrap();
 
     // Session 1: use 4 out of 6
     let token1 = db
-        .create_session("s1", quiz_id, 4, "unanswered")
+        .create_session("s1", quiz_id, 4, "unanswered", user_id)
         .await
         .unwrap();
     let s1 = db.get_session(&token1).await.unwrap();
@@ -419,7 +445,7 @@ async fn test_unanswered_mode_partial_fallback() {
 
     // Session 2: request 4, only 2 unanswered remain → 2 unanswered + 2 fill
     let token2 = db
-        .create_session("s2", quiz_id, 4, "unanswered")
+        .create_session("s2", quiz_id, 4, "unanswered", user_id)
         .await
         .unwrap();
     let s2 = db.get_session(&token2).await.unwrap();
@@ -458,8 +484,9 @@ async fn test_unanswered_mode_partial_fallback() {
 #[tokio::test]
 async fn test_create_session_with_questions_deduplicates_question_ids() {
     let db = create_test_db().await;
+    let user_id = create_test_user(&db).await;
     let quiz_id = db
-        .load_quiz("Quiz".to_string(), make_questions(5))
+        .load_quiz("Quiz".to_string(), make_questions(5), user_id)
         .await
         .unwrap();
 
@@ -476,7 +503,7 @@ async fn test_create_session_with_questions_deduplicates_question_ids() {
     ];
 
     let token = db
-        .create_session_with_questions("dedupe", quiz_id, &requested, "incorrect")
+        .create_session_with_questions("dedupe", quiz_id, &requested, "incorrect", user_id)
         .await
         .unwrap();
     let session = db.get_session(&token).await.unwrap();
@@ -493,12 +520,13 @@ async fn test_create_session_with_questions_deduplicates_question_ids() {
 #[tokio::test]
 async fn test_bookmark_default_false() {
     let db = create_test_db().await;
+    let user_id = create_test_user(&db).await;
     let quiz_id = db
-        .load_quiz("Quiz".to_string(), minimal_questions())
+        .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
         .await
         .unwrap();
     let token = db
-        .create_session("bm-test", quiz_id, 5, "random")
+        .create_session("bm-test", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
     let session = db.get_session(&token).await.unwrap();
@@ -514,12 +542,13 @@ async fn test_bookmark_default_false() {
 #[tokio::test]
 async fn test_bookmark_toggle() {
     let db = create_test_db().await;
+    let user_id = create_test_user(&db).await;
     let quiz_id = db
-        .load_quiz("Quiz".to_string(), minimal_questions())
+        .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
         .await
         .unwrap();
     let token = db
-        .create_session("bm-toggle", quiz_id, 5, "random")
+        .create_session("bm-toggle", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
     let session = db.get_session(&token).await.unwrap();
@@ -541,12 +570,13 @@ async fn test_bookmark_toggle() {
 #[tokio::test]
 async fn test_get_bookmarked_questions() {
     let db = create_test_db().await;
+    let user_id = create_test_user(&db).await;
     let quiz_id = db
-        .load_quiz("Quiz".to_string(), make_questions(5))
+        .load_quiz("Quiz".to_string(), make_questions(5), user_id)
         .await
         .unwrap();
     let token = db
-        .create_session("bm-list", quiz_id, 5, "random")
+        .create_session("bm-list", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
     let session = db.get_session(&token).await.unwrap();
@@ -571,4 +601,98 @@ async fn test_get_bookmarked_questions() {
     let bookmarked = db.get_bookmarked_questions(session.id).await.unwrap();
     assert_eq!(bookmarked.len(), 1);
     assert_eq!(bookmarked[0], ids[2]);
+}
+
+// --- User tests ---
+
+#[tokio::test]
+async fn test_user_crud() {
+    let db = create_test_db().await;
+
+    let user_id = db
+        .create_user("test@example.com", "password123", "Test User")
+        .await
+        .unwrap();
+    assert!(user_id > 0);
+
+    let found = db.find_user_by_email("test@example.com").await.unwrap();
+    assert!(found.is_some());
+    let user = found.unwrap();
+    assert_eq!(user.id, user_id);
+    assert_eq!(user.email, "test@example.com");
+    assert_eq!(user.display_name, "Test User");
+
+    assert!(db.email_exists("test@example.com").await.unwrap());
+    assert!(!db.email_exists("other@example.com").await.unwrap());
+}
+
+#[tokio::test]
+async fn test_user_password_verification() {
+    let db = create_test_db().await;
+
+    db.create_user("test@example.com", "correct-password", "Test")
+        .await
+        .unwrap();
+
+    assert!(db
+        .verify_user_password("test@example.com", "correct-password")
+        .await
+        .unwrap());
+    assert!(!db
+        .verify_user_password("test@example.com", "wrong-password")
+        .await
+        .unwrap());
+    assert!(!db
+        .verify_user_password("nonexistent@example.com", "any")
+        .await
+        .unwrap());
+}
+
+#[tokio::test]
+async fn test_user_session() {
+    let db = create_test_db().await;
+
+    let user_id = db
+        .create_user("test@example.com", "password", "Test")
+        .await
+        .unwrap();
+    let session = db.create_user_session(user_id).await.unwrap();
+    assert!(!session.is_empty());
+
+    let found = db.get_user_by_session(&session).await.unwrap();
+    assert!(found.is_some());
+    assert_eq!(found.unwrap().id, user_id);
+
+    db.delete_user_session(&session).await.unwrap();
+    let found = db.get_user_by_session(&session).await.unwrap();
+    assert!(found.is_none());
+}
+
+#[tokio::test]
+async fn test_quiz_isolation_between_users() {
+    let db = create_test_db().await;
+
+    let user1 = db
+        .create_user("user1@example.com", "pw1", "User 1")
+        .await
+        .unwrap();
+    let user2 = db
+        .create_user("user2@example.com", "pw2", "User 2")
+        .await
+        .unwrap();
+
+    db.load_quiz("User1 Quiz".to_string(), minimal_questions(), user1)
+        .await
+        .unwrap();
+    db.load_quiz("User2 Quiz".to_string(), minimal_questions(), user2)
+        .await
+        .unwrap();
+
+    let quizzes1 = db.quizzes(user1).await.unwrap();
+    assert_eq!(quizzes1.len(), 1);
+    assert_eq!(quizzes1[0].name, "User1 Quiz");
+
+    let quizzes2 = db.quizzes(user2).await.unwrap();
+    assert_eq!(quizzes2.len(), 1);
+    assert_eq!(quizzes2[0].name, "User2 Quiz");
 }

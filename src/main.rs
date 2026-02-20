@@ -17,8 +17,7 @@ struct Args {
     address: String,
 }
 
-#[tokio::main]
-async fn main() -> color_eyre::Result<()> {
+fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
     dotenvy::dotenv().ok();
 
@@ -29,6 +28,17 @@ async fn main() -> color_eyre::Result<()> {
         .with_span_events(tracing_subscriber::fmt::format::FmtSpan::CLOSE)
         .init();
 
+    tokio::runtime::Builder::new_multi_thread()
+        .thread_stack_size(8 * 1024 * 1024) // 8 MB for worker threads
+        .enable_all()
+        .build()?
+        .block_on(async {
+            // Spawn on a worker thread (8 MB stack) instead of main thread (1 MB)
+            tokio::spawn(run()).await?
+        })
+}
+
+async fn run() -> color_eyre::Result<()> {
     let args = Args::parse();
 
     let db = Db::new(args.url, args.auth_token).await?;

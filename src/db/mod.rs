@@ -16,6 +16,7 @@ mod question;
 mod quiz;
 mod report;
 mod session;
+mod user;
 
 // Main database handle
 #[derive(Clone)]
@@ -53,7 +54,12 @@ impl Db {
 
         tracing::info!("database connection has been verified");
 
-        Ok(Self { db: Arc::new(db) })
+        let instance = Self { db: Arc::new(db) };
+
+        // Run data migration: assign orphan quizzes/sessions to a default user
+        instance.migrate_admin_to_user().await?;
+
+        Ok(instance)
     }
 
     pub async fn migration_applied(&self, version: &str) -> Result<bool> {

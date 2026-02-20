@@ -6,6 +6,7 @@ COPY Cargo.toml Cargo.lock ./
 COPY src/ src/
 COPY static/ static/
 COPY locales/ locales/
+COPY migrations/ migrations/
 
 RUN cargo build --release
 

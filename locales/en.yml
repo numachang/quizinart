@@ -10,22 +10,24 @@ layout.theme_light: "Light"
 layout.theme_dark: "Dark"
 layout.theme_system: "System"
 
-# Homepage - Get Started
-homepage.welcome: "Welcome to Quizinart!"
-homepage.welcome_desc_1: "Seems like this is the first time you are using "
-homepage.welcome_desc_2: " for the first time. You will need to set an "
-homepage.welcome_desc_3: " to get started."
-homepage.quizinart: "Quizinart"
-homepage.admin_password: "Admin Password"
-homepage.password_hint: "Be sure not to forget the password."
-homepage.get_started: "Get Started"
+# Homepage - Register
+homepage.register_title: "Create your account"
+homepage.register_desc: "Sign up to start using Quizinart."
+homepage.email: "Email"
+homepage.display_name: "Display Name"
+homepage.password: "Password"
+homepage.register_btn: "Create Account"
+homepage.already_have_account: "Already have an account?"
+homepage.email_taken: "This email is already registered."
+homepage.empty_fields: "Please fill in all fields."
 
 # Homepage - Login
 homepage.welcome_back: "Welcome back to Quizinart!"
-homepage.login_desc: "Use the admin password you previously set to log back in to your dashboard."
-homepage.password_hint_login: "Use the admin password you set when you first used Quizinart."
-homepage.incorrect_password: "Incorrect password"
+homepage.login_desc: "Log in with your email and password."
+homepage.incorrect_password: "Incorrect email or password."
 homepage.log_in: "Log In"
+homepage.no_account: "Don't have an account?"
+homepage.logout: "Log Out"
 
 # Homepage - Dashboard
 homepage.dashboard: "Dashboard"

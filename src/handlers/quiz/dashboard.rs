@@ -10,7 +10,7 @@ use crate::{
 };
 
 pub(crate) async fn quiz_dashboard(
-    _guard: AuthGuard,
+    AuthGuard(_user): AuthGuard,
     IsHtmx(is_htmx): IsHtmx,
     State(state): State<AppState>,
     Path(quiz_id): Path<i32>,
@@ -31,7 +31,7 @@ pub(crate) async fn quiz_dashboard(
 }
 
 pub(crate) async fn quiz_session_history(
-    _guard: AuthGuard,
+    AuthGuard(_user): AuthGuard,
     IsHtmx(is_htmx): IsHtmx,
     State(state): State<AppState>,
     Path(quiz_id): Path<i32>,
@@ -46,7 +46,7 @@ pub(crate) async fn quiz_session_history(
 }
 
 pub(crate) async fn session_result(
-    _guard: AuthGuard,
+    AuthGuard(_user): AuthGuard,
     State(state): State<AppState>,
     IsHtmx(is_htmx): IsHtmx,
     Path(session_id): Path<i32>,

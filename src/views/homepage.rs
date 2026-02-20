@@ -2,33 +2,74 @@ use crate::{db::Quiz, names};
 use maud::{html, Markup};
 use rust_i18n::t;
 
-pub fn get_started(locale: &str) -> Markup {
-    html! {
-        h1 { (t!("homepage.welcome", locale = locale)) }
-        p {
-            (t!("homepage.welcome_desc_1", locale = locale))
-            mark { (t!("homepage.quizinart", locale = locale)) }
-            (t!("homepage.welcome_desc_2", locale = locale))
-            strong { (t!("homepage.admin_password", locale = locale)) }
-            (t!("homepage.welcome_desc_3", locale = locale))
+pub enum RegisterState {
+    NoError,
+    EmailTaken,
+    EmptyFields,
+}
+
+pub fn register(state: RegisterState, locale: &str) -> Markup {
+    let error_msg = match state {
+        RegisterState::NoError => None,
+        RegisterState::EmailTaken => Some(t!("homepage.email_taken", locale = locale).to_string()),
+        RegisterState::EmptyFields => {
+            Some(t!("homepage.empty_fields", locale = locale).to_string())
         }
+    };
+
+    html! {
+        h1 { (t!("homepage.register_title", locale = locale)) }
+        p { (t!("homepage.register_desc", locale = locale)) }
         article style="width: fit-content;" {
-            form hx-post=(names::GET_STARTED_URL)
+            form hx-post=(names::REGISTER_URL)
                  hx-ext="json-enc"
                  hx-target="main"
-                 hx-disabled-elt="find input[type='password'], find input[type='submit']"
+                 hx-disabled-elt="find input, find button"
                  hx-swap="innerHTML" {
                 label {
-                    (t!("homepage.admin_password", locale = locale))
-                    input name="admin_password"
-                          type="password"
-                          autocomplete="off"
-                          placeholder=(t!("homepage.admin_password", locale = locale))
-                          aria-describedby="password-helper"
-                          aria-label=(t!("homepage.admin_password", locale = locale));
-                    small id="password-helper" { (t!("homepage.password_hint", locale = locale)) }
+                    (t!("homepage.email", locale = locale))
+                    input name="email"
+                          type="email"
+                          autocomplete="email"
+                          required="true"
+                          placeholder=(t!("homepage.email", locale = locale))
+                          aria-label=(t!("homepage.email", locale = locale));
                 }
-                input type="submit" value=(t!("homepage.get_started", locale = locale));
+                label {
+                    (t!("homepage.display_name", locale = locale))
+                    input name="display_name"
+                          type="text"
+                          autocomplete="name"
+                          required="true"
+                          placeholder=(t!("homepage.display_name", locale = locale))
+                          aria-label=(t!("homepage.display_name", locale = locale));
+                }
+                label {
+                    (t!("homepage.password", locale = locale))
+                    @if let Some(ref msg) = error_msg {
+                        input name="password"
+                              type="password"
+                              autocomplete="new-password"
+                              required="true"
+                              placeholder=(t!("homepage.password", locale = locale))
+                              aria-invalid="true"
+                              aria-label=(t!("homepage.password", locale = locale));
+                        small { (msg) }
+                    } @else {
+                        input name="password"
+                              type="password"
+                              autocomplete="new-password"
+                              required="true"
+                              placeholder=(t!("homepage.password", locale = locale))
+                              aria-label=(t!("homepage.password", locale = locale));
+                    }
+                }
+                button type="submit" { (t!("homepage.register_btn", locale = locale)) }
+            }
+            p {
+                (t!("homepage.already_have_account", locale = locale))
+                " "
+                a href="/" { (t!("homepage.log_in", locale = locale)) }
             }
         }
     }
@@ -49,38 +90,54 @@ pub fn login(state: LoginState, locale: &str) -> Markup {
             form hx-post=(names::LOGIN_URL)
                  hx-ext="json-enc"
                  hx-target="main"
-                 hx-disabled-elt="find input[type='password'], find input[type='submit']"
+                 hx-disabled-elt="find input, find button"
                  hx-swap="innerHTML" {
+                label {
+                    (t!("homepage.email", locale = locale))
+                    input name="email"
+                          type="email"
+                          autocomplete="email"
+                          required="true"
+                          placeholder=(t!("homepage.email", locale = locale))
+                          aria-label=(t!("homepage.email", locale = locale));
+                }
                 @match state {
                     LoginState::NoError => {
                         label {
-                            (t!("homepage.admin_password", locale = locale))
-                            input name="admin_password"
+                            (t!("homepage.password", locale = locale))
+                            input name="password"
                                   type="password"
-                                  autocomplete="off"
-                                  placeholder=(t!("homepage.admin_password", locale = locale))
-                                  aria-describedby="password-helper"
-                                  aria-label=(t!("homepage.admin_password", locale = locale));
-                            small id="password-helper" {
-                                (t!("homepage.password_hint_login", locale = locale))
-                            }
+                                  autocomplete="current-password"
+                                  required="true"
+                                  placeholder=(t!("homepage.password", locale = locale))
+                                  aria-label=(t!("homepage.password", locale = locale));
                         }
                     },
                     LoginState::IncorrectPassword => {
                         label {
-                            (t!("homepage.admin_password", locale = locale))
-                            input name="admin_password"
+                            (t!("homepage.password", locale = locale))
+                            input name="password"
                                   type="password"
-                                  autocomplete="off"
-                                  placeholder=(t!("homepage.admin_password", locale = locale))
-                                  aria-describedby="password-helper"
+                                  autocomplete="current-password"
+                                  required="true"
+                                  placeholder=(t!("homepage.password", locale = locale))
                                   aria-invalid="true"
-                                  aria-label=(t!("homepage.admin_password", locale = locale));
-                            small id="password-helper" { (t!("homepage.incorrect_password", locale = locale)) }
+                                  aria-label=(t!("homepage.password", locale = locale));
+                            small { (t!("homepage.incorrect_password", locale = locale)) }
                         }
                     }
                 }
-                input type="submit" value=(t!("homepage.log_in", locale = locale));
+                button type="submit" { (t!("homepage.log_in", locale = locale)) }
+            }
+            p {
+                (t!("homepage.no_account", locale = locale))
+                " "
+                a href="/register"
+                  hx-get="/register"
+                  hx-target="main"
+                  hx-swap="innerHTML" {
+                    (t!("homepage.register_btn", locale = locale))
+                }
             }
         }
     }
@@ -88,7 +145,14 @@ pub fn login(state: LoginState, locale: &str) -> Markup {
 
 pub fn dashboard(quizzes: Vec<Quiz>, locale: &str) -> Markup {
     html! {
-        h1 { (t!("homepage.dashboard", locale = locale)) }
+        div style="display: flex; justify-content: space-between; align-items: center;" {
+            h1 { (t!("homepage.dashboard", locale = locale)) }
+            button."contrast outline"
+                   hx-post=(names::LOGOUT_URL)
+                   hx-swap="none" {
+                (t!("homepage.logout", locale = locale))
+            }
+        }
 
         article style="width: fit-content;" {
             form hx-post=(names::CREATE_QUIZ_URL)
