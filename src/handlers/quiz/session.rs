@@ -9,7 +9,7 @@ use rust_i18n::t;
 
 use super::StartSessionBody;
 use crate::{
-    extractors::Locale,
+    extractors::{AuthGuard, Locale},
     names,
     rejections::{AppError, ResultExt},
     utils, views,
@@ -18,6 +18,7 @@ use crate::{
 };
 
 pub(crate) async fn start_session(
+    _guard: AuthGuard,
     State(state): State<AppState>,
     Path(quiz_id): Path<i32>,
     Locale(locale): Locale,
@@ -89,6 +90,7 @@ pub(crate) async fn start_session(
 }
 
 pub(crate) async fn resume_session(
+    _guard: AuthGuard,
     State(state): State<AppState>,
     Path((session_id, token)): Path<(i32, String)>,
     Locale(locale): Locale,
@@ -134,6 +136,7 @@ pub(crate) async fn resume_session(
 }
 
 pub(crate) async fn retry_incorrect(
+    _guard: AuthGuard,
     State(state): State<AppState>,
     Path(session_id): Path<i32>,
     Locale(locale): Locale,
@@ -206,6 +209,7 @@ pub(crate) async fn retry_incorrect(
 }
 
 pub(crate) async fn retry_bookmarked(
+    _guard: AuthGuard,
     State(state): State<AppState>,
     Path(session_id): Path<i32>,
     Locale(locale): Locale,
@@ -278,6 +282,7 @@ pub(crate) async fn retry_bookmarked(
 }
 
 pub(crate) async fn delete_session(
+    _guard: AuthGuard,
     State(state): State<AppState>,
     Path(session_id): Path<i32>,
     Locale(locale): Locale,
@@ -302,6 +307,7 @@ pub(crate) async fn delete_session(
 }
 
 pub(crate) async fn rename_session(
+    _guard: AuthGuard,
     State(state): State<AppState>,
     Path(session_id): Path<i32>,
     Locale(locale): Locale,

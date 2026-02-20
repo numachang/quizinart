@@ -46,6 +46,7 @@ pub(crate) async fn quiz_session_history(
 }
 
 pub(crate) async fn session_result(
+    _guard: AuthGuard,
     State(state): State<AppState>,
     IsHtmx(is_htmx): IsHtmx,
     Path(session_id): Path<i32>,

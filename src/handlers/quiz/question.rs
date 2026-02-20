@@ -7,7 +7,7 @@ use maud::Markup;
 
 use super::{NavigateQuestionQuery, SubmitAnswerBody};
 use crate::{
-    extractors::{IsHtmx, Locale},
+    extractors::{AuthGuard, IsHtmx, Locale},
     names,
     rejections::{AppError, ResultExt},
     utils, views,
@@ -16,6 +16,7 @@ use crate::{
 };
 
 pub(crate) async fn quiz_page(
+    _guard: AuthGuard,
     IsHtmx(is_htmx): IsHtmx,
     State(state): State<AppState>,
     Path(quiz_id): Path<i32>,
@@ -68,6 +69,7 @@ pub(crate) async fn quiz_page(
 }
 
 pub(crate) async fn submit_answer_raw(
+    _guard: AuthGuard,
     State(state): State<AppState>,
     jar: CookieJar,
     Locale(locale): Locale,
@@ -223,6 +225,7 @@ async fn submit_answer(
 }
 
 pub(crate) async fn navigate_question(
+    _guard: AuthGuard,
     State(state): State<AppState>,
     IsHtmx(_is_htmx): IsHtmx,
     Path(session_id): Path<i32>,
@@ -287,6 +290,7 @@ pub(crate) async fn navigate_question(
 }
 
 pub(crate) async fn toggle_bookmark(
+    _guard: AuthGuard,
     State(state): State<AppState>,
     Path((session_id, question_id)): Path<(i32, i32)>,
     Locale(locale): Locale,
