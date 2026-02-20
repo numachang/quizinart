@@ -53,6 +53,7 @@ async fn register_page(IsHtmx(is_htmx): IsHtmx, Locale(locale): Locale) -> maud:
 async fn homepage(
     State(state): State<AppState>,
     jar: CookieJar,
+    IsHtmx(is_htmx): IsHtmx,
     Locale(locale): Locale,
 ) -> Result<maud::Markup, AppError> {
     // Check new user_session cookie first
@@ -66,7 +67,8 @@ async fn homepage(
                 .quizzes(user.id)
                 .await
                 .reject("could not get quizzes")?;
-            return Ok(views::page_with_user(
+            return Ok(views::render(
+                is_htmx,
                 "Dashboard",
                 homepage_views::dashboard(quizzes, &locale),
                 &locale,
@@ -92,7 +94,8 @@ async fn homepage(
                     .quizzes(user.id)
                     .await
                     .reject("could not get quizzes")?;
-                return Ok(views::page_with_user(
+                return Ok(views::render(
+                    is_htmx,
                     "Dashboard",
                     homepage_views::dashboard(quizzes, &locale),
                     &locale,
@@ -103,10 +106,12 @@ async fn homepage(
     }
 
     // Not logged in: show login page
-    Ok(views::page(
+    Ok(views::render(
+        is_htmx,
         "Log In",
         homepage_views::login(homepage_views::LoginState::NoError, &locale),
         &locale,
+        None,
     ))
 }
 
@@ -302,6 +307,7 @@ async fn logout_post(jar: CookieJar, State(state): State<AppState>) -> impl Into
 
 async fn verify_email(
     State(state): State<AppState>,
+    IsHtmx(is_htmx): IsHtmx,
     Locale(locale): Locale,
     axum::extract::Path(token): axum::extract::Path<String>,
 ) -> Result<maud::Markup, AppError> {
@@ -312,16 +318,20 @@ async fn verify_email(
         .reject("could not verify email token")?;
 
     if verified {
-        Ok(views::page(
+        Ok(views::render(
+            is_htmx,
             "Email Verified",
             homepage_views::email_verified(&locale),
             &locale,
+            None,
         ))
     } else {
-        Ok(views::page(
+        Ok(views::render(
+            is_htmx,
             "Verification Failed",
             homepage_views::verification_failed(&locale),
             &locale,
+            None,
         ))
     }
 }
@@ -424,6 +434,7 @@ async fn forgot_password_post(
 
 async fn reset_password_page(
     State(state): State<AppState>,
+    IsHtmx(is_htmx): IsHtmx,
     Locale(locale): Locale,
     axum::extract::Path(token): axum::extract::Path<String>,
 ) -> Result<maud::Markup, AppError> {
@@ -434,7 +445,8 @@ async fn reset_password_page(
         .reject("could not validate reset token")?;
 
     if valid.is_some() {
-        Ok(views::page(
+        Ok(views::render(
+            is_htmx,
             "Reset Password",
             homepage_views::reset_password(
                 homepage_views::ResetPasswordState::Form,
@@ -442,9 +454,11 @@ async fn reset_password_page(
                 &locale,
             ),
             &locale,
+            None,
         ))
     } else {
-        Ok(views::page(
+        Ok(views::render(
+            is_htmx,
             "Reset Password",
             homepage_views::reset_password(
                 homepage_views::ResetPasswordState::InvalidToken,
@@ -452,6 +466,7 @@ async fn reset_password_page(
                 &locale,
             ),
             &locale,
+            None,
         ))
     }
 }
