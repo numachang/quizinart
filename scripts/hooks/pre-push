@@ -1,5 +1,9 @@
 #!/bin/bash
 set -e
 cd "$(git rev-parse --show-toplevel)"
+
+echo "Running cargo fmt check..."
+cargo fmt --all -- --check
+
 echo "Running Playwright E2E tests..."
 npx playwright test --reporter=line

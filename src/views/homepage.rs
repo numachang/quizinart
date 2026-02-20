@@ -217,7 +217,7 @@ pub fn forgot_password(state: ForgotPasswordState, locale: &str) -> Markup {
                 form hx-post=(names::FORGOT_PASSWORD_URL)
                      hx-ext="json-enc"
                      hx-target="main"
-    
+
                      hx-swap="innerHTML" {
                     label {
                         (t!("homepage.email", locale = locale))
@@ -269,7 +269,7 @@ pub fn reset_password(state: ResetPasswordState, token: &str, locale: &str) -> M
                 form hx-post=(names::RESET_PASSWORD_URL)
                      hx-ext="json-enc"
                      hx-target="main"
-    
+
                      hx-swap="innerHTML" {
                     input type="hidden" name="token" value=(token);
                     label {
@@ -292,7 +292,7 @@ pub fn reset_password(state: ResetPasswordState, token: &str, locale: &str) -> M
                 form hx-post=(names::RESET_PASSWORD_URL)
                      hx-ext="json-enc"
                      hx-target="main"
-    
+
                      hx-swap="innerHTML" {
                     input type="hidden" name="token" value=(token);
                     label {
