@@ -45,12 +45,13 @@ impl Db {
 
         let session_token = Ulid::new().to_string();
         let token_str = session_token.as_str();
-        let conn = self.db.connect()?;
-
         let shuffle_seed = rand::random::<i32>();
 
-        let session_id = conn
-            .query(
+        // Each step uses a fresh connection to avoid Hrana stream timeouts.
+        // Step 1: Insert session row
+        let session_id = {
+            let conn = self.db.connect()?;
+            conn.query(
                 "INSERT INTO quiz_sessions (name, session_token, quiz_id, shuffle_seed, question_count, selection_mode, user_id) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id",
                 params![name, token_str, quiz_id, shuffle_seed, question_count, selection_mode, user_id],
             )
@@ -58,12 +59,14 @@ impl Db {
             .next()
             .await?
             .ok_or_eyre("could not get session id")?
-            .get::<i32>(0)?;
+            .get::<i32>(0)?
+        };
 
-        // Select questions and insert — cleanup session row on failure
+        // Step 2: Select questions (fresh conn per query inside)
+        // Step 3: Batch insert session_questions (fresh conn inside)
+        // Cleanup session row on failure
         if let Err(e) = self
             .insert_session_questions(
-                &conn,
                 session_id,
                 quiz_id,
                 question_count,
@@ -73,7 +76,6 @@ impl Db {
             .await
         {
             tracing::warn!("cleaning up session {session_id} after question insertion failed: {e}");
-            // Use a fresh connection — the original conn's Hrana stream may be dead
             if let Ok(cleanup_conn) = self.db.connect() {
                 let _ = cleanup_conn
                     .execute(
@@ -93,7 +95,6 @@ impl Db {
 
     async fn insert_session_questions(
         &self,
-        conn: &libsql::Connection,
         session_id: i32,
         quiz_id: i32,
         question_count: i32,
@@ -101,15 +102,16 @@ impl Db {
         shuffle_seed: i32,
     ) -> Result<()> {
         let selected_ids = self
-            .select_questions(conn, quiz_id, question_count, selection_mode, shuffle_seed)
+            .select_questions(quiz_id, question_count, selection_mode, shuffle_seed)
             .await?;
 
-        Self::batch_insert_session_questions(conn, session_id, &selected_ids).await
+        self.batch_insert_session_questions(session_id, &selected_ids)
+            .await
     }
 
-    /// Batch insert session_questions in a single round-trip to avoid Hrana stream timeouts.
+    /// Batch insert session_questions in a single round-trip using a fresh connection.
     async fn batch_insert_session_questions(
-        conn: &libsql::Connection,
+        &self,
         session_id: i32,
         question_ids: &[i32],
     ) -> Result<()> {
@@ -125,13 +127,13 @@ impl Db {
             "INSERT INTO session_questions (session_id, question_id, question_number) VALUES {}",
             values.join(", ")
         );
+        let conn = self.db.connect()?;
         conn.execute(&sql, ()).await?;
         Ok(())
     }
 
     async fn select_questions(
         &self,
-        conn: &libsql::Connection,
         quiz_id: i32,
         question_count: i32,
         selection_mode: &str,
@@ -141,10 +143,8 @@ impl Db {
 
         match selection_mode {
             "unanswered" => {
-                // Get questions that have never been asked in any session
                 let mut unanswered = self
                     .query_id_column(
-                        conn,
                         r#"
                         SELECT id FROM questions
                         WHERE quiz_id = ? AND id NOT IN (
@@ -164,9 +164,8 @@ impl Db {
                     unanswered.truncate(question_count as usize);
                     Ok(unanswered)
                 } else {
-                    // Fill remaining with random questions (not already selected)
                     let needed = question_count as usize - unanswered.len();
-                    let mut all_ids = self.get_all_question_ids(conn, quiz_id).await?;
+                    let mut all_ids = self.get_all_question_ids(quiz_id).await?;
                     all_ids.shuffle(&mut rng);
                     let already_selected: std::collections::HashSet<i32> =
                         unanswered.iter().cloned().collect();
@@ -180,10 +179,8 @@ impl Db {
                 }
             }
             "incorrect" => {
-                // Get questions that were answered incorrectly, sorted by accuracy (worst first)
                 let mut incorrect = self
                     .query_id_column(
-                        conn,
                         r#"
                         SELECT question_id FROM question_stats
                         WHERE quiz_id = ? AND times_incorrect > 0
@@ -200,7 +197,7 @@ impl Db {
                     Ok(incorrect)
                 } else {
                     let needed = question_count as usize - incorrect.len();
-                    let mut all_ids = self.get_all_question_ids(conn, quiz_id).await?;
+                    let mut all_ids = self.get_all_question_ids(quiz_id).await?;
                     all_ids.shuffle(&mut rng);
                     let already_selected: std::collections::HashSet<i32> =
                         incorrect.iter().cloned().collect();
@@ -214,8 +211,7 @@ impl Db {
                 }
             }
             _ => {
-                // "random" mode: shuffle all questions and take question_count
-                let mut all_ids = self.get_all_question_ids(conn, quiz_id).await?;
+                let mut all_ids = self.get_all_question_ids(quiz_id).await?;
                 all_ids.shuffle(&mut rng);
                 all_ids.truncate(question_count as usize);
                 Ok(all_ids)
@@ -223,12 +219,13 @@ impl Db {
         }
     }
 
+    /// Execute a query returning a single i32 column, using a fresh connection.
     async fn query_id_column(
         &self,
-        conn: &libsql::Connection,
         sql: &str,
         params: impl libsql::params::IntoParams,
     ) -> Result<Vec<i32>> {
+        let conn = self.db.connect()?;
         let mut rows = conn.query(sql, params).await?;
         let mut ids = Vec::new();
         while let Some(row) = rows.next().await? {
@@ -237,13 +234,8 @@ impl Db {
         Ok(ids)
     }
 
-    async fn get_all_question_ids(
-        &self,
-        conn: &libsql::Connection,
-        quiz_id: i32,
-    ) -> Result<Vec<i32>> {
+    async fn get_all_question_ids(&self, quiz_id: i32) -> Result<Vec<i32>> {
         self.query_id_column(
-            conn,
             "SELECT id FROM questions WHERE quiz_id = ? ORDER BY id",
             params![quiz_id],
         )
@@ -316,11 +308,12 @@ impl Db {
 
         let session_token = Ulid::new().to_string();
         let token_str = session_token.as_str();
-        let conn = self.db.connect()?;
         let question_count = deduped_question_ids.len() as i32;
 
-        let session_id = conn
-            .query(
+        // Step 1: Insert session row (fresh connection)
+        let session_id = {
+            let conn = self.db.connect()?;
+            conn.query(
                 "INSERT INTO quiz_sessions (name, session_token, quiz_id, shuffle_seed, question_count, selection_mode, user_id) VALUES (?, ?, ?, 0, ?, ?, ?) RETURNING id",
                 params![name, token_str, quiz_id, question_count, selection_mode, user_id],
             )
@@ -328,13 +321,15 @@ impl Db {
             .next()
             .await?
             .ok_or_eyre("could not get session id")?
-            .get::<i32>(0)?;
+            .get::<i32>(0)?
+        };
 
-        if let Err(e) =
-            Self::batch_insert_session_questions(&conn, session_id, &deduped_question_ids).await
+        // Step 2: Batch insert session_questions (fresh connection inside)
+        if let Err(e) = self
+            .batch_insert_session_questions(session_id, &deduped_question_ids)
+            .await
         {
             tracing::warn!("cleaning up session {session_id} after question insertion failed: {e}");
-            // Use a fresh connection — the original conn's Hrana stream may be dead
             if let Ok(cleanup_conn) = self.db.connect() {
                 let _ = cleanup_conn
                     .execute(
