@@ -11,7 +11,8 @@ pub mod statics;
 pub mod utils;
 pub mod views;
 
-use axum::{middleware, Router};
+use axum::{extract::State, middleware, Router};
+use axum_extra::extract::CookieJar;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -26,9 +27,41 @@ pub fn router(state: AppState) -> Router {
         .merge(handlers::homepage::routes())
         .merge(handlers::quiz::routes())
         .merge(handlers::account::routes())
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            refresh_session_cookie,
+        ))
         .layer(middleware::from_fn(csrf_check))
         .nest("/static", statics::routes())
         .with_state(state)
+}
+
+/// Sliding expiration: refresh the user_session cookie Max-Age on every successful response.
+async fn refresh_session_cookie(
+    State(state): State<AppState>,
+    req: axum::http::Request<axum::body::Body>,
+    next: middleware::Next,
+) -> axum::response::Response {
+    let jar = CookieJar::from_headers(req.headers());
+    let session_value = jar
+        .get(names::USER_SESSION_COOKIE_NAME)
+        .map(|c| c.value().to_string());
+
+    let mut response = next.run(req).await;
+
+    if response.status().is_success() {
+        if let Some(value) = session_value {
+            let cookie_str =
+                utils::cookie(names::USER_SESSION_COOKIE_NAME, &value, state.secure_cookies);
+            if let Ok(header_value) = cookie_str.parse() {
+                response
+                    .headers_mut()
+                    .append(axum::http::header::SET_COOKIE, header_value);
+            }
+        }
+    }
+
+    response
 }
 
 async fn csrf_check(

@@ -1,4 +1,4 @@
-const COOKIE_MAX_AGE_SECS: u32 = 3600;
+const COOKIE_MAX_AGE_SECS: u32 = 86400; // 1 day
 
 pub fn cookie(name: &str, value: &str, secure: bool) -> String {
     let secure_flag = if secure { "; Secure" } else { "" };
