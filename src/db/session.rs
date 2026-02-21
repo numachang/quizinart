@@ -104,14 +104,28 @@ impl Db {
             .select_questions(conn, quiz_id, question_count, selection_mode, shuffle_seed)
             .await?;
 
-        for (idx, question_id) in selected_ids.iter().enumerate() {
-            conn.execute(
-                "INSERT INTO session_questions (session_id, question_id, question_number) VALUES (?, ?, ?)",
-                params![session_id, question_id, idx as i32],
-            )
-            .await?;
-        }
+        Self::batch_insert_session_questions(conn, session_id, &selected_ids).await
+    }
 
+    /// Batch insert session_questions in a single round-trip to avoid Hrana stream timeouts.
+    async fn batch_insert_session_questions(
+        conn: &libsql::Connection,
+        session_id: i32,
+        question_ids: &[i32],
+    ) -> Result<()> {
+        if question_ids.is_empty() {
+            return Ok(());
+        }
+        let values: Vec<String> = question_ids
+            .iter()
+            .enumerate()
+            .map(|(idx, qid)| format!("({session_id}, {qid}, {idx})"))
+            .collect();
+        let sql = format!(
+            "INSERT INTO session_questions (session_id, question_id, question_number) VALUES {}",
+            values.join(", ")
+        );
+        conn.execute(&sql, ()).await?;
         Ok(())
     }
 
@@ -316,19 +330,9 @@ impl Db {
             .ok_or_eyre("could not get session id")?
             .get::<i32>(0)?;
 
-        let insert_result = async {
-            for (idx, question_id) in deduped_question_ids.iter().enumerate() {
-                conn.execute(
-                    "INSERT INTO session_questions (session_id, question_id, question_number) VALUES (?, ?, ?)",
-                    params![session_id, question_id, idx as i32],
-                )
-                .await?;
-            }
-            Ok::<(), color_eyre::eyre::Error>(())
-        }
-        .await;
-
-        if let Err(e) = insert_result {
+        if let Err(e) =
+            Self::batch_insert_session_questions(&conn, session_id, &deduped_question_ids).await
+        {
             tracing::warn!("cleaning up session {session_id} after question insertion failed: {e}");
             // Use a fresh connection — the original conn's Hrana stream may be dead
             if let Ok(cleanup_conn) = self.db.connect() {
