@@ -27,6 +27,7 @@ impl Db {
         }
     }
 
+    /// Returns `(session_token, session_id)`.
     pub async fn create_session(
         &self,
         name: &str,
@@ -34,7 +35,7 @@ impl Db {
         question_count: i32,
         selection_mode: &str,
         user_id: i32,
-    ) -> Result<String> {
+    ) -> Result<(String, i32)> {
         if self.session_name_exists(name, quiz_id).await? {
             return Err(color_eyre::eyre::eyre!(
                 "Session name '{}' is already in use for this quiz. Please choose a different name.",
@@ -59,12 +60,49 @@ impl Db {
             .ok_or_eyre("could not get session id")?
             .get::<i32>(0)?;
 
-        // Select questions based on mode
+        // Select questions and insert — cleanup session row on failure
+        if let Err(e) = self
+            .insert_session_questions(
+                &conn,
+                session_id,
+                quiz_id,
+                question_count,
+                selection_mode,
+                shuffle_seed,
+            )
+            .await
+        {
+            tracing::warn!(
+                "cleaning up session {session_id} after question insertion failed: {e}"
+            );
+            let _ = conn
+                .execute(
+                    "DELETE FROM quiz_sessions WHERE id = ?",
+                    params![session_id],
+                )
+                .await;
+            return Err(e);
+        }
+
+        tracing::info!(
+            "session created for quiz={quiz_id}: session_id={session_id}, mode={selection_mode}, user_id={user_id}"
+        );
+        Ok((session_token, session_id))
+    }
+
+    async fn insert_session_questions(
+        &self,
+        conn: &libsql::Connection,
+        session_id: i32,
+        quiz_id: i32,
+        question_count: i32,
+        selection_mode: &str,
+        shuffle_seed: i32,
+    ) -> Result<()> {
         let selected_ids = self
-            .select_questions(&conn, quiz_id, question_count, selection_mode, shuffle_seed)
+            .select_questions(conn, quiz_id, question_count, selection_mode, shuffle_seed)
             .await?;
 
-        // Save to session_questions table
         for (idx, question_id) in selected_ids.iter().enumerate() {
             conn.execute(
                 "INSERT INTO session_questions (session_id, question_id, question_number) VALUES (?, ?, ?)",
@@ -73,11 +111,7 @@ impl Db {
             .await?;
         }
 
-        tracing::info!(
-            "session created for quiz={quiz_id}: session_id={session_id}, questions={}, mode={selection_mode}, user_id={user_id}",
-            selected_ids.len()
-        );
-        Ok(session_token)
+        Ok(())
     }
 
     async fn select_questions(
@@ -281,12 +315,29 @@ impl Db {
             .ok_or_eyre("could not get session id")?
             .get::<i32>(0)?;
 
-        for (idx, question_id) in deduped_question_ids.iter().enumerate() {
-            conn.execute(
-                "INSERT INTO session_questions (session_id, question_id, question_number) VALUES (?, ?, ?)",
-                params![session_id, question_id, idx as i32],
-            )
-            .await?;
+        let insert_result = async {
+            for (idx, question_id) in deduped_question_ids.iter().enumerate() {
+                conn.execute(
+                    "INSERT INTO session_questions (session_id, question_id, question_number) VALUES (?, ?, ?)",
+                    params![session_id, question_id, idx as i32],
+                )
+                .await?;
+            }
+            Ok::<(), color_eyre::eyre::Error>(())
+        }
+        .await;
+
+        if let Err(e) = insert_result {
+            tracing::warn!(
+                "cleaning up session {session_id} after question insertion failed: {e}"
+            );
+            let _ = conn
+                .execute(
+                    "DELETE FROM quiz_sessions WHERE id = ?",
+                    params![session_id],
+                )
+                .await;
+            return Err(e);
         }
 
         tracing::info!(

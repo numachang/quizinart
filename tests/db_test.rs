@@ -150,11 +150,12 @@ async fn test_session_creation() {
         .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
         .await
         .unwrap();
-    let token = db
+    let (token, session_id) = db
         .create_session("session-1", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
     assert!(!token.is_empty());
+    assert!(session_id > 0);
 
     let session = db.get_session(&token).await.unwrap();
     assert_eq!(session.name, "session-1");
@@ -213,15 +214,14 @@ async fn test_delete_session() {
         .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
         .await
         .unwrap();
-    let token = db
+    let (token, session_id) = db
         .create_session("to-delete", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
-    let session = db.get_session(&token).await.unwrap();
 
     assert_eq!(db.sessions_count(quiz_id).await.unwrap(), 1);
 
-    db.delete_session(session.id).await.unwrap();
+    db.delete_session(session_id).await.unwrap();
     assert_eq!(db.sessions_count(quiz_id).await.unwrap(), 0);
 
     // Session should no longer be retrievable
@@ -237,17 +237,16 @@ async fn test_rename_session() {
         .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
         .await
         .unwrap();
-    let token = db
+    let (_, session_id) = db
         .create_session("old-name", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
-    let session = db.get_session(&token).await.unwrap();
 
-    db.rename_session(session.id, "new-name", quiz_id)
+    db.rename_session(session_id, "new-name", quiz_id)
         .await
         .unwrap();
 
-    let renamed = db.get_session_by_id(session.id).await.unwrap();
+    let renamed = db.get_session_by_id(session_id).await.unwrap();
     assert_eq!(renamed.name, "new-name");
 }
 
@@ -263,14 +262,13 @@ async fn test_rename_session_duplicate() {
     db.create_session("existing", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
-    let token2 = db
+    let (_, session_id2) = db
         .create_session("to-rename", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
-    let session2 = db.get_session(&token2).await.unwrap();
 
     // Renaming to an existing name should fail
-    let result = db.rename_session(session2.id, "existing", quiz_id).await;
+    let result = db.rename_session(session_id2, "existing", quiz_id).await;
     assert!(result.is_err());
     assert!(result.unwrap_err().to_string().contains("already in use"));
 }
@@ -286,12 +284,11 @@ async fn test_random_mode_no_duplicates() {
         .await
         .unwrap();
 
-    let token = db
+    let (_, session_id) = db
         .create_session("random-session", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
-    let session = db.get_session(&token).await.unwrap();
-    let ids = get_session_question_ids(&db, session.id).await;
+    let ids = get_session_question_ids(&db, session_id).await;
 
     assert_eq!(ids.len(), 5, "Should select exactly 5 questions");
 
@@ -314,12 +311,11 @@ async fn test_random_mode_cap_at_total() {
         .unwrap();
 
     // Request more questions than exist
-    let token = db
+    let (_, session_id) = db
         .create_session("random-big", quiz_id, 10, "random", user_id)
         .await
         .unwrap();
-    let session = db.get_session(&token).await.unwrap();
-    let ids = get_session_question_ids(&db, session.id).await;
+    let ids = get_session_question_ids(&db, session_id).await;
 
     assert_eq!(
         ids.len(),
@@ -342,12 +338,11 @@ async fn test_unanswered_mode_no_duplicates() {
         .unwrap();
 
     // Session 1: pick 4 unanswered questions
-    let token1 = db
+    let (_, s1_id) = db
         .create_session("s1", quiz_id, 4, "unanswered", user_id)
         .await
         .unwrap();
-    let s1 = db.get_session(&token1).await.unwrap();
-    let ids1 = get_session_question_ids(&db, s1.id).await;
+    let ids1 = get_session_question_ids(&db, s1_id).await;
 
     assert_eq!(ids1.len(), 4);
     let unique1: HashSet<i32> = ids1.iter().cloned().collect();
@@ -359,12 +354,11 @@ async fn test_unanswered_mode_no_duplicates() {
     );
 
     // Session 2: pick 4 more unanswered questions — should NOT overlap with session 1
-    let token2 = db
+    let (_, s2_id) = db
         .create_session("s2", quiz_id, 4, "unanswered", user_id)
         .await
         .unwrap();
-    let s2 = db.get_session(&token2).await.unwrap();
-    let ids2 = get_session_question_ids(&db, s2.id).await;
+    let ids2 = get_session_question_ids(&db, s2_id).await;
 
     assert_eq!(ids2.len(), 4);
     let unique2: HashSet<i32> = ids2.iter().cloned().collect();
@@ -394,21 +388,19 @@ async fn test_unanswered_mode_fallback_no_duplicates() {
         .unwrap();
 
     // Session 1: exhaust all 5 questions
-    let token1 = db
+    let (_, s1_id) = db
         .create_session("s1", quiz_id, 5, "unanswered", user_id)
         .await
         .unwrap();
-    let s1 = db.get_session(&token1).await.unwrap();
-    let ids1 = get_session_question_ids(&db, s1.id).await;
+    let ids1 = get_session_question_ids(&db, s1_id).await;
     assert_eq!(ids1.len(), 5);
 
     // Session 2: no unanswered left — fallback fills from already-asked
-    let token2 = db
+    let (_, s2_id) = db
         .create_session("s2", quiz_id, 3, "unanswered", user_id)
         .await
         .unwrap();
-    let s2 = db.get_session(&token2).await.unwrap();
-    let ids2 = get_session_question_ids(&db, s2.id).await;
+    let ids2 = get_session_question_ids(&db, s2_id).await;
 
     assert_eq!(
         ids2.len(),
@@ -435,21 +427,19 @@ async fn test_unanswered_mode_partial_fallback() {
         .unwrap();
 
     // Session 1: use 4 out of 6
-    let token1 = db
+    let (_, s1_id) = db
         .create_session("s1", quiz_id, 4, "unanswered", user_id)
         .await
         .unwrap();
-    let s1 = db.get_session(&token1).await.unwrap();
-    let ids1 = get_session_question_ids(&db, s1.id).await;
+    let ids1 = get_session_question_ids(&db, s1_id).await;
     assert_eq!(ids1.len(), 4);
 
     // Session 2: request 4, only 2 unanswered remain → 2 unanswered + 2 fill
-    let token2 = db
+    let (_, s2_id) = db
         .create_session("s2", quiz_id, 4, "unanswered", user_id)
         .await
         .unwrap();
-    let s2 = db.get_session(&token2).await.unwrap();
-    let ids2 = get_session_question_ids(&db, s2.id).await;
+    let ids2 = get_session_question_ids(&db, s2_id).await;
 
     assert_eq!(ids2.len(), 4, "Should get 4 questions (2 new + 2 fill)");
     let unique2: HashSet<i32> = ids2.iter().cloned().collect();
@@ -525,15 +515,14 @@ async fn test_bookmark_default_false() {
         .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
         .await
         .unwrap();
-    let token = db
+    let (_, session_id) = db
         .create_session("bm-test", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
-    let session = db.get_session(&token).await.unwrap();
-    let question_id = db.get_question_by_idx(session.id, 0).await.unwrap();
+    let question_id = db.get_question_by_idx(session_id, 0).await.unwrap();
 
     let is_bm = db
-        .is_question_bookmarked(session.id, question_id)
+        .is_question_bookmarked(session_id, question_id)
         .await
         .unwrap();
     assert!(!is_bm, "New questions should not be bookmarked by default");
@@ -547,23 +536,22 @@ async fn test_bookmark_toggle() {
         .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
         .await
         .unwrap();
-    let token = db
+    let (_, session_id) = db
         .create_session("bm-toggle", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
-    let session = db.get_session(&token).await.unwrap();
-    let question_id = db.get_question_by_idx(session.id, 0).await.unwrap();
+    let question_id = db.get_question_by_idx(session_id, 0).await.unwrap();
 
     // Toggle on
-    let new_state = db.toggle_bookmark(session.id, question_id).await.unwrap();
+    let new_state = db.toggle_bookmark(session_id, question_id).await.unwrap();
     assert!(new_state, "First toggle should set bookmark to true");
 
     // Toggle off
-    let new_state = db.toggle_bookmark(session.id, question_id).await.unwrap();
+    let new_state = db.toggle_bookmark(session_id, question_id).await.unwrap();
     assert!(!new_state, "Second toggle should set bookmark to false");
 
     // Toggle on again
-    let new_state = db.toggle_bookmark(session.id, question_id).await.unwrap();
+    let new_state = db.toggle_bookmark(session_id, question_id).await.unwrap();
     assert!(new_state, "Third toggle should set bookmark to true");
 }
 
@@ -575,30 +563,29 @@ async fn test_get_bookmarked_questions() {
         .load_quiz("Quiz".to_string(), make_questions(5), user_id)
         .await
         .unwrap();
-    let token = db
+    let (_, session_id) = db
         .create_session("bm-list", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
-    let session = db.get_session(&token).await.unwrap();
-    let ids = get_session_question_ids(&db, session.id).await;
+    let ids = get_session_question_ids(&db, session_id).await;
 
     // No bookmarks initially
-    let bookmarked = db.get_bookmarked_questions(session.id).await.unwrap();
+    let bookmarked = db.get_bookmarked_questions(session_id).await.unwrap();
     assert!(bookmarked.is_empty(), "No bookmarks initially");
 
     // Bookmark 2 questions
-    db.toggle_bookmark(session.id, ids[0]).await.unwrap();
-    db.toggle_bookmark(session.id, ids[2]).await.unwrap();
+    db.toggle_bookmark(session_id, ids[0]).await.unwrap();
+    db.toggle_bookmark(session_id, ids[2]).await.unwrap();
 
-    let bookmarked = db.get_bookmarked_questions(session.id).await.unwrap();
+    let bookmarked = db.get_bookmarked_questions(session_id).await.unwrap();
     assert_eq!(bookmarked.len(), 2);
     let bookmarked_set: HashSet<i32> = bookmarked.into_iter().collect();
     assert!(bookmarked_set.contains(&ids[0]));
     assert!(bookmarked_set.contains(&ids[2]));
 
     // Un-bookmark one
-    db.toggle_bookmark(session.id, ids[0]).await.unwrap();
-    let bookmarked = db.get_bookmarked_questions(session.id).await.unwrap();
+    db.toggle_bookmark(session_id, ids[0]).await.unwrap();
+    let bookmarked = db.get_bookmarked_questions(session_id).await.unwrap();
     assert_eq!(bookmarked.len(), 1);
     assert_eq!(bookmarked[0], ids[2]);
 }

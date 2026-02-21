@@ -34,14 +34,21 @@ pub(crate) async fn start_session(
         names::DEFAULT_SELECTION_MODE
     };
 
-    let session_token = match state
+    // Fetch quiz name before session creation (fail early if quiz doesn't exist)
+    let quiz_name = state
+        .db
+        .quiz_name(quiz_id)
+        .await
+        .reject("could not get quiz name")?;
+
+    let (session_token, session_id) = match state
         .db
         .create_session(&body.name, quiz_id, question_count, selection_mode, user.id)
         .await
     {
-        Ok(token) => {
+        Ok(pair) => {
             tracing::info!("Created new session for '{}'", body.name);
-            token
+            pair
         }
         Err(e) if e.to_string().contains("already in use") => {
             tracing::warn!("Duplicate session name attempted: {}", body.name);
@@ -59,28 +66,10 @@ pub(crate) async fn start_session(
         }
     };
 
-    let session = state
-        .db
-        .get_session(&session_token)
-        .await
-        .reject("could not get session")?;
-
-    let quiz_name = state
-        .db
-        .quiz_name(quiz_id)
-        .await
-        .reject("could not get quiz name")?;
-
-    let question_idx = state
-        .db
-        .current_question_index(session.id)
-        .await
-        .reject("could not get current question index")?;
-
+    // New session always starts at question 0 — no need to query current_question_index
     let page = views::titled(
         &quiz_name,
-        super::question::question(&state.db, session.id, quiz_id, question_idx, false, &locale)
-            .await?,
+        super::question::question(&state.db, session_id, quiz_id, 0, false, &locale).await?,
     );
     let cookie = utils::cookie(
         names::QUIZ_SESSION_COOKIE_NAME,
