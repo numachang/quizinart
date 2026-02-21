@@ -59,9 +59,42 @@ const THEME_SCRIPT: &str = r#"
 })();
 "#;
 
+const MENU_SCRIPT: &str = r#"
+(() => {
+    document.addEventListener("DOMContentLoaded", () => {
+        const btn = document.getElementById("nav-toggle");
+        const menu = document.getElementById("nav-menu");
+        if (!btn || !menu) return;
+
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const open = menu.classList.toggle("open");
+            btn.setAttribute("aria-expanded", open);
+        });
+
+        document.addEventListener("click", (e) => {
+            if (!menu.classList.contains("open")) return;
+            if (!menu.contains(e.target) && e.target !== btn) {
+                menu.classList.remove("open");
+                btn.setAttribute("aria-expanded", "false");
+            }
+        });
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && menu.classList.contains("open")) {
+                menu.classList.remove("open");
+                btn.setAttribute("aria-expanded", "false");
+                btn.focus();
+            }
+        });
+    });
+})();
+"#;
+
 fn js() -> Markup {
     html! {
         script { (PreEscaped(THEME_SCRIPT)) }
+        script { (PreEscaped(MENU_SCRIPT)) }
         script src="/static/htmx/htmx.min.js" {}
         script src="/static/htmx/ext/json-enc.js" {}
     }
@@ -96,8 +129,18 @@ fn header(locale: &str, user_name: Option<&str>) -> Markup {
                             strong { "Quizinart" }
                         }
                     }
+                    li."secondary"."nav-toggle-item" {
+                        button
+                            id="nav-toggle"
+                            class="nav-toggle"
+                            aria-label=(t!("layout.menu_toggle", locale = locale))
+                            aria-expanded="false"
+                            aria-controls="nav-menu" {
+                            "\u{2630}"
+                        }
+                    }
                 }
-                ul {
+                ul id="nav-menu" {
                     li."secondary" {
                         select."theme-select"
                                name="theme"

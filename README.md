@@ -55,6 +55,44 @@ rustup --version
 cargo --version
 ```
 
+To run E2E tests, you also need Node.js:
+
+```powershell
+winget install Volta.Volta
+volta install node
+```
+
+### Prerequisites (WSL / Linux)
+
+For development on WSL Ubuntu:
+
+```bash
+# Rust toolchain
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source "$HOME/.cargo/env"
+
+# C compiler & build tools (required by libsql-ffi)
+sudo apt update && sudo apt install -y build-essential pkg-config libssl-dev
+```
+
+Verify:
+
+```bash
+rustup --version
+cargo --version
+```
+
+To run E2E tests, you also need Node.js and Playwright:
+
+```bash
+# Node.js
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# Playwright browsers (run in the project directory)
+npx playwright install --with-deps chromium
+```
+
 ### Run locally
 
 ```bash
