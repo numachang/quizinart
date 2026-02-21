@@ -30,7 +30,10 @@ test.describe("account management", () => {
     // Fill wrong current password
     await page.fill('input[name="current_password"]', "wrongpassword");
     await page.fill('input[name="new_password"]', "newpass123");
-    await page.click('button[type="submit"]');
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/change-password")),
+      page.click('button[type="submit"]'),
+    ]);
 
     // Should show error
     await expect(page.locator('input[aria-invalid="true"]')).toBeVisible();
@@ -52,7 +55,10 @@ test.describe("account management", () => {
     // Change password
     await page.fill('input[name="current_password"]', "testpass123");
     await page.fill('input[name="new_password"]', "newpass456");
-    await page.click('button[type="submit"]');
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/change-password")),
+      page.click('button[type="submit"]'),
+    ]);
 
     // Should show success message
     await expect(
@@ -61,7 +67,10 @@ test.describe("account management", () => {
 
     // Logout and login with new password
     await page.goto("/");
-    await page.click("text=Log Out");
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/logout")),
+      page.click("text=Log Out"),
+    ]);
     await expect(page.locator("h1")).toContainText("Welcome back");
 
     await loginUser(page, userEmail, "newpass456");

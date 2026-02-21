@@ -5,8 +5,11 @@ import { registerUser, createQuiz } from "./helpers";
 async function answerCurrentQuestion(
   page: import("@playwright/test").Page
 ): Promise<void> {
-  // Wait for question form to be ready
+  // Wait for question form and answer options to be ready
   await expect(page.locator("#question-form")).toBeVisible();
+  await expect(
+    page.locator('input[type="radio"][name="option"], input[type="checkbox"][name="options"]').first()
+  ).toBeAttached();
 
   const radioCount = await page
     .locator('input[type="radio"][name="option"]')
@@ -21,7 +24,10 @@ async function answerCurrentQuestion(
       .click();
   }
 
-  await page.click("#submit-btn");
+  await Promise.all([
+    page.waitForResponse((resp) => resp.url().includes("/submit-answer")),
+    page.click("#submit-btn"),
+  ]);
 
   // Wait for answer feedback
   await expect(
@@ -37,7 +43,10 @@ async function answerAllQuestions(
   for (let i = 0; i < count; i++) {
     await answerCurrentQuestion(page);
     if (i < count - 1) {
-      await page.click(".nav-btn-next");
+      await Promise.all([
+        page.waitForResponse((resp) => resp.request().method() === "GET"),
+        page.click(".nav-btn-next"),
+      ]);
       // Wait for next question to load (htmx swap)
       await expect(page.locator("#question-form")).toBeVisible();
     }
@@ -51,6 +60,8 @@ test.describe("quiz session", () => {
     await registerUser(page);
     quizName = `SessionQuiz_${Date.now()}`;
     await createQuiz(page, quizName);
+    // Ensure HTMX scripts are fully loaded after page navigation
+    await page.waitForLoadState("networkidle");
   });
 
   test("start session and answer first question", async ({
@@ -59,11 +70,11 @@ test.describe("quiz session", () => {
   }) => {
     // Go to start session page
     await page.click("text=Start New Session");
-    await expect(page.locator('input[name="name"]')).toBeVisible();
-
-    // Set question count to 5 (our test quiz has exactly 5 questions)
     await page.fill('input[name="question_count"]', "5");
-    await page.click('input[type="submit"]');
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/start-session")),
+      page.click('input[type="submit"]'),
+    ]);
 
     // First question should be displayed
     await expect(page.locator("h3")).toBeVisible();
@@ -79,7 +90,10 @@ test.describe("quiz session", () => {
     await expect(page.locator("#submit-btn")).not.toBeDisabled();
 
     // Submit the answer
-    await page.click("#submit-btn");
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/submit-answer")),
+      page.click("#submit-btn"),
+    ]);
 
     // Answer feedback should be displayed
     await expect(
@@ -95,13 +109,19 @@ test.describe("quiz session", () => {
     // Start session
     await page.click("text=Start New Session");
     await page.fill('input[name="question_count"]', "5");
-    await page.click('input[type="submit"]');
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/start-session")),
+      page.click('input[type="submit"]'),
+    ]);
 
     // Answer all 5 questions
     await answerAllQuestions(page, 5);
 
     // After last question, click "See Results"
-    await page.click(".nav-btn-next");
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/results")),
+      page.click(".nav-btn-next"),
+    ]);
 
     // Results page should show score
     await expect(page.locator("h1 mark")).toBeVisible();
@@ -113,7 +133,10 @@ test.describe("quiz session", () => {
     // Start session
     await page.click("text=Start New Session");
     await page.fill('input[name="question_count"]', "5");
-    await page.click('input[type="submit"]');
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/start-session")),
+      page.click('input[type="submit"]'),
+    ]);
 
     // Bookmark button should exist and not be active
     const bookmarkBtn = page.locator(".bookmark-btn");
@@ -136,17 +159,24 @@ test.describe("quiz session", () => {
   test("session appears in session history", async ({ page, jsErrors }) => {
     // Start session
     await page.click("text=Start New Session");
+    await expect(page.locator('input[name="name"]')).toBeVisible({ timeout: 30_000 });
     const sessionName = await page
       .locator('input[name="name"]')
       .inputValue();
     await page.fill('input[name="question_count"]', "5");
-    await page.click('input[type="submit"]');
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/start-session")),
+      page.click('input[type="submit"]'),
+    ]);
 
     // Answer all 5 questions
     await answerAllQuestions(page, 5);
 
     // Go to results
-    await page.click(".nav-btn-next");
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/results")),
+      page.click(".nav-btn-next"),
+    ]);
     await expect(page.locator("h1 mark")).toBeVisible();
 
     // Navigate to dashboard

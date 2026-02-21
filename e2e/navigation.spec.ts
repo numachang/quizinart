@@ -36,6 +36,58 @@ test.describe("unauthenticated navigation", () => {
   });
 });
 
+test.describe("mobile navigation", () => {
+  test.use({ viewport: { width: 375, height: 667 } });
+
+  test("hamburger menu toggles on mobile", async ({ page, jsErrors }) => {
+    await page.goto("/");
+
+    // Hamburger should be visible on mobile
+    const toggle = page.locator("#nav-toggle");
+    await expect(toggle).toBeVisible();
+
+    // Nav menu should be hidden initially
+    const menu = page.locator("#nav-menu");
+    await expect(menu).not.toHaveClass(/open/);
+
+    // Click hamburger to open
+    await toggle.click();
+    await expect(menu).toHaveClass(/open/);
+
+    // Click hamburger again to close
+    await toggle.click();
+    await expect(menu).not.toHaveClass(/open/);
+  });
+
+  test("hamburger menu closes on Escape", async ({ page, jsErrors }) => {
+    await page.goto("/");
+    const toggle = page.locator("#nav-toggle");
+    const menu = page.locator("#nav-menu");
+
+    await toggle.click();
+    await expect(menu).toHaveClass(/open/);
+
+    await page.keyboard.press("Escape");
+    await expect(menu).not.toHaveClass(/open/);
+  });
+
+  test("hamburger menu closes on outside click", async ({
+    page,
+    jsErrors,
+  }) => {
+    await page.goto("/");
+    const toggle = page.locator("#nav-toggle");
+    const menu = page.locator("#nav-menu");
+
+    await toggle.click();
+    await expect(menu).toHaveClass(/open/);
+
+    // Click on the main content area (outside menu)
+    await page.locator("main").click();
+    await expect(menu).not.toHaveClass(/open/);
+  });
+});
+
 test.describe("authenticated navigation", () => {
   test.beforeEach(async ({ page }) => {
     await registerUser(page);
@@ -51,7 +103,40 @@ test.describe("authenticated navigation", () => {
 
   test("logout works without JS errors", async ({ page, jsErrors }) => {
     // The logout button uses hx-post with HX-Redirect to /
-    await page.click("text=Log Out");
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/logout")),
+      page.click("text=Log Out"),
+    ]);
+    await expect(page.locator("h1")).toContainText("Welcome back");
+  });
+});
+
+test.describe("mobile authenticated navigation", () => {
+  test.use({ viewport: { width: 375, height: 667 } });
+
+  test.beforeEach(async ({ page }) => {
+    await registerUser(page);
+  });
+
+  test("account link works via hamburger menu", async ({
+    page,
+    jsErrors,
+  }) => {
+    const toggle = page.locator("#nav-toggle");
+    await toggle.click();
+
+    await page.click('a[href="/account"]');
+    await expect(page.locator("h1")).toContainText("Account");
+  });
+
+  test("logout works via hamburger menu", async ({ page, jsErrors }) => {
+    const toggle = page.locator("#nav-toggle");
+    await toggle.click();
+
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/logout")),
+      page.click("text=Log Out"),
+    ]);
     await expect(page.locator("h1")).toContainText("Welcome back");
   });
 });

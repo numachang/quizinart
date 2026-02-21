@@ -39,6 +39,12 @@ impl Db {
 
         let conn = db.connect()?;
 
+        if url.starts_with("file:") {
+            // Enable WAL mode and busy timeout for concurrent access
+            conn.query("PRAGMA journal_mode=WAL", ()).await?;
+            conn.query("PRAGMA busy_timeout=5000", ()).await?;
+        }
+
         // Verify connection
         let one = conn
             .query("SELECT 1", ())

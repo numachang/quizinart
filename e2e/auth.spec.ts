@@ -6,7 +6,10 @@ test.describe("authentication", () => {
     const email = await registerUser(page);
 
     // Logout
-    await page.click("text=Log Out");
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/logout")),
+      page.click("text=Log Out"),
+    ]);
     await expect(page.locator("h1")).toContainText("Welcome back");
 
     // Login with the same credentials
@@ -22,13 +25,19 @@ test.describe("authentication", () => {
     const email = await registerUser(page);
 
     // Logout
-    await page.click("text=Log Out");
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/logout")),
+      page.click("text=Log Out"),
+    ]);
     await expect(page.locator("h1")).toContainText("Welcome back");
 
     // Try to login with wrong password
     await page.fill('input[name="email"]', email);
     await page.fill('input[name="password"]', "wrongpassword");
-    await page.click('button[type="submit"]');
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/login")),
+      page.click('button[type="submit"]'),
+    ]);
 
     // Should show error
     await expect(page.locator("small")).toBeVisible();
@@ -42,15 +51,24 @@ test.describe("authentication", () => {
     const email = await registerUser(page);
 
     // Logout
-    await page.click("text=Log Out");
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/logout")),
+      page.click("text=Log Out"),
+    ]);
     await expect(page.locator("h1")).toContainText("Welcome back");
 
     // Try to register again with the same email
     await page.goto("/register");
+    await page.waitForFunction(() => typeof (window as any).htmx !== "undefined");
     await page.fill('input[name="email"]', email);
     await page.fill('input[name="display_name"]', "Another User");
     await page.fill('input[name="password"]', "anotherpass");
-    await page.click('button[type="submit"]');
+    await Promise.all([
+      page.waitForResponse(
+        (resp) => resp.url().includes("/register") && resp.request().method() === "POST"
+      ),
+      page.click('button[type="submit"]'),
+    ]);
 
     // Should show error
     await expect(page.locator("small")).toBeVisible();
