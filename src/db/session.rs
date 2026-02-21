@@ -72,9 +72,7 @@ impl Db {
             )
             .await
         {
-            tracing::warn!(
-                "cleaning up session {session_id} after question insertion failed: {e}"
-            );
+            tracing::warn!("cleaning up session {session_id} after question insertion failed: {e}");
             let _ = conn
                 .execute(
                     "DELETE FROM quiz_sessions WHERE id = ?",
@@ -328,9 +326,7 @@ impl Db {
         .await;
 
         if let Err(e) = insert_result {
-            tracing::warn!(
-                "cleaning up session {session_id} after question insertion failed: {e}"
-            );
+            tracing::warn!("cleaning up session {session_id} after question insertion failed: {e}");
             let _ = conn
                 .execute(
                     "DELETE FROM quiz_sessions WHERE id = ?",
