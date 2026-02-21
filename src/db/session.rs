@@ -73,12 +73,15 @@ impl Db {
             .await
         {
             tracing::warn!("cleaning up session {session_id} after question insertion failed: {e}");
-            let _ = conn
-                .execute(
-                    "DELETE FROM quiz_sessions WHERE id = ?",
-                    params![session_id],
-                )
-                .await;
+            // Use a fresh connection — the original conn's Hrana stream may be dead
+            if let Ok(cleanup_conn) = self.db.connect() {
+                let _ = cleanup_conn
+                    .execute(
+                        "DELETE FROM quiz_sessions WHERE id = ?",
+                        params![session_id],
+                    )
+                    .await;
+            }
             return Err(e);
         }
 
@@ -327,12 +330,15 @@ impl Db {
 
         if let Err(e) = insert_result {
             tracing::warn!("cleaning up session {session_id} after question insertion failed: {e}");
-            let _ = conn
-                .execute(
-                    "DELETE FROM quiz_sessions WHERE id = ?",
-                    params![session_id],
-                )
-                .await;
+            // Use a fresh connection — the original conn's Hrana stream may be dead
+            if let Ok(cleanup_conn) = self.db.connect() {
+                let _ = cleanup_conn
+                    .execute(
+                        "DELETE FROM quiz_sessions WHERE id = ?",
+                        params![session_id],
+                    )
+                    .await;
+            }
             return Err(e);
         }
 
