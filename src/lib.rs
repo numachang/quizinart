@@ -51,8 +51,11 @@ async fn refresh_session_cookie(
 
     if response.status().is_success() {
         if let Some(value) = session_value {
-            let cookie_str =
-                utils::cookie(names::USER_SESSION_COOKIE_NAME, &value, state.secure_cookies);
+            let cookie_str = utils::cookie(
+                names::USER_SESSION_COOKIE_NAME,
+                &value,
+                state.secure_cookies,
+            );
             if let Ok(header_value) = cookie_str.parse() {
                 response
                     .headers_mut()
