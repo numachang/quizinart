@@ -178,6 +178,14 @@ pub fn dashboard(data: DashboardData, locale: &str) -> Markup {
 pub fn session_history(data: SessionHistoryData, locale: &str) -> Markup {
     html! {
         h1 { (data.quiz_name) }
+        div style="margin-bottom: 1rem;" {
+            button hx-get=(names::quiz_dashboard_url(data.quiz_id))
+                   hx-push-url="true"
+                   hx-target="main"
+                   style="width: fit-content;" {
+                (t!("dashboard.back_to_dashboard", locale = locale))
+            }
+        }
         article {
             h4 { (t!("dashboard.session_history", locale = locale)) }
             @if data.sessions.is_empty() {
