@@ -36,62 +36,9 @@ Light/Dark theme and multi-language support (English, Japanese, Simplified Chine
 
 ## Quick Start
 
-### Prerequisites (Windows)
+### Prerequisites
 
-Run in an **administrator** terminal:
-
-```powershell
-# Rust toolchain
-winget install Rustlang.Rustup
-
-# C++ build tools (required by Rust linker)
-winget install Microsoft.VisualStudio.2022.BuildTools --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
-```
-
-After installation, open a new terminal and verify:
-
-```powershell
-rustup --version
-cargo --version
-```
-
-To run E2E tests, you also need Node.js:
-
-```powershell
-winget install Volta.Volta
-volta install node
-```
-
-### Prerequisites (WSL / Linux)
-
-For development on WSL Ubuntu:
-
-```bash
-# Rust toolchain
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
-
-# C compiler & build tools (required by libsql-ffi)
-sudo apt update && sudo apt install -y build-essential pkg-config libssl-dev
-```
-
-Verify:
-
-```bash
-rustup --version
-cargo --version
-```
-
-To run E2E tests, you also need Node.js and Playwright:
-
-```bash
-# Node.js
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-sudo apt install -y nodejs
-
-# Playwright browsers (run in the project directory)
-npx playwright install --with-deps chromium
-```
+See the **[platform admin repo's setup guide](https://github.com/numachang/quizinart-salesforce-platform-admin/blob/main/docs/setup.md)** for full environment setup instructions (Rust, Docker, Node.js, Playwright).
 
 ### Run locally
 

@@ -8,21 +8,21 @@ CREATE TABLE IF NOT EXISTS admin_sessions (
 );
 
 CREATE TABLE IF NOT EXISTS quizzes (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     name TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS questions (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     question TEXT NOT NULL,
     category TEXT,
-    is_multiple_choice BOOLEAN DEFAULT 0,
+    is_multiple_choice BOOLEAN DEFAULT FALSE,
     quiz_id INTEGER NOT NULL,
     FOREIGN KEY(quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS options (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     option TEXT NOT NULL,
     is_answer BOOLEAN NOT NULL,
     explanation TEXT,
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS options (
 );
 
 CREATE TABLE IF NOT EXISTS quiz_sessions (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     session_token TEXT NOT NULL,
     shuffle_seed INTEGER,
@@ -45,7 +45,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_quiz_sessions_unique_name_quiz
 ON quiz_sessions(name, quiz_id);
 
 CREATE TABLE IF NOT EXISTS session_questions (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     session_id INTEGER NOT NULL,
     question_id INTEGER NOT NULL,
     question_number INTEGER NOT NULL,
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS session_questions (
 );
 
 CREATE TABLE IF NOT EXISTS user_answers (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     is_correct BOOLEAN NOT NULL,
     option_id INTEGER NOT NULL,
     question_id INTEGER NOT NULL,
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS user_answers (
     FOREIGN KEY(session_id) REFERENCES quiz_sessions(id) ON DELETE CASCADE
 );
 
-CREATE VIEW IF NOT EXISTS session_stats AS
+CREATE OR REPLACE VIEW session_stats AS
 SELECT
     s.id AS session_id,
     s.name,
@@ -74,28 +74,28 @@ SELECT
     s.quiz_id,
     s.question_count,
     s.selection_mode,
-    (SELECT COUNT(*) FROM session_questions WHERE session_id = s.id) AS total_questions,
-    (SELECT COUNT(*) FROM session_questions WHERE session_id = s.id AND is_correct IS NOT NULL) AS answered_questions,
-    (SELECT COUNT(*) FROM session_questions WHERE session_id = s.id AND is_correct = 1) AS correct_answers,
+    (SELECT COUNT(*)::INTEGER FROM session_questions WHERE session_id = s.id) AS total_questions,
+    (SELECT COUNT(*)::INTEGER FROM session_questions WHERE session_id = s.id AND is_correct IS NOT NULL) AS answered_questions,
+    (SELECT COUNT(*)::INTEGER FROM session_questions WHERE session_id = s.id AND is_correct IS TRUE) AS correct_answers,
     CASE WHEN
         (SELECT COUNT(*) FROM session_questions WHERE session_id = s.id AND is_correct IS NOT NULL)
         >= (SELECT COUNT(*) FROM session_questions WHERE session_id = s.id)
         AND (SELECT COUNT(*) FROM session_questions WHERE session_id = s.id) > 0
-    THEN 1 ELSE 0 END AS is_complete
+    THEN TRUE ELSE FALSE END AS is_complete
 FROM quiz_sessions s;
 
-CREATE VIEW IF NOT EXISTS question_stats AS
+CREATE OR REPLACE VIEW question_stats AS
 SELECT
     q.id AS question_id,
     q.quiz_id,
-    COUNT(DISTINCT sq.session_id) AS times_asked,
-    COUNT(DISTINCT CASE WHEN sq.is_correct = 0 THEN sq.session_id END) AS times_incorrect,
+    COUNT(DISTINCT sq.session_id)::INTEGER AS times_asked,
+    COUNT(DISTINCT CASE WHEN sq.is_correct IS FALSE THEN sq.session_id END)::INTEGER AS times_incorrect,
     CASE
         WHEN COUNT(DISTINCT sq.session_id) = 0 THEN NULL
         ELSE ROUND(
-            CAST(COUNT(DISTINCT sq.session_id) - COUNT(DISTINCT CASE WHEN sq.is_correct = 0 THEN sq.session_id END) AS REAL)
+            CAST(COUNT(DISTINCT sq.session_id) - COUNT(DISTINCT CASE WHEN sq.is_correct IS FALSE THEN sq.session_id END) AS NUMERIC)
             / COUNT(DISTINCT sq.session_id), 2
-        )
+        )::FLOAT8
     END AS accuracy
 FROM questions q
 LEFT JOIN session_questions sq ON sq.question_id = q.id AND sq.is_correct IS NOT NULL

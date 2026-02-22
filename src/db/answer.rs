@@ -1,25 +1,19 @@
-use color_eyre::{eyre::OptionExt, Result};
-use libsql::params;
+use color_eyre::Result;
 
-use super::helpers;
 use super::models::{AnswerModel, CategoryStats};
 use super::Db;
 
 impl Db {
     pub async fn is_question_answered(&self, session_id: i32, question_id: i32) -> Result<bool> {
-        let conn = self.db.connect()?;
-        let result = conn
-            .query(
-                "SELECT COUNT(*) FROM user_answers WHERE session_id = ? AND question_id = ?",
-                params![session_id, question_id],
-            )
-            .await?
-            .next()
-            .await?
-            .ok_or_eyre("failed to count answers")?
-            .get::<i32>(0)?;
+        let exists: bool = sqlx::query_scalar(
+            "SELECT EXISTS(SELECT 1 FROM user_answers WHERE session_id = $1 AND question_id = $2)",
+        )
+        .bind(session_id)
+        .bind(question_id)
+        .fetch_one(&self.pool)
+        .await?;
 
-        Ok(result > 0)
+        Ok(exists)
     }
 
     pub async fn get_selected_answers(
@@ -27,18 +21,13 @@ impl Db {
         session_id: i32,
         question_id: i32,
     ) -> Result<Vec<i32>> {
-        let conn = self.db.connect()?;
-        let mut rows = conn
-            .query(
-                "SELECT option_id FROM user_answers WHERE session_id = ? AND question_id = ?",
-                params![session_id, question_id],
-            )
-            .await?;
-
-        let mut option_ids = Vec::new();
-        while let Some(row) = rows.next().await? {
-            option_ids.push(row.get::<i32>(0)?);
-        }
+        let option_ids: Vec<i32> = sqlx::query_scalar(
+            "SELECT option_id FROM user_answers WHERE session_id = $1 AND question_id = $2",
+        )
+        .bind(session_id)
+        .bind(question_id)
+        .fetch_all(&self.pool)
+        .await?;
 
         Ok(option_ids)
     }
@@ -50,16 +39,20 @@ impl Db {
         option_id: i32,
         is_correct: bool,
     ) -> Result<()> {
-        let conn = self.db.connect()?;
+        let result = sqlx::query(
+            "INSERT INTO user_answers (is_correct, option_id, question_id, session_id) VALUES ($1, $2, $3, $4)",
+        )
+        .bind(is_correct)
+        .bind(option_id)
+        .bind(question_id)
+        .bind(session_id)
+        .execute(&self.pool)
+        .await?;
 
-        let rows = conn
-            .execute(
-                "INSERT INTO user_answers (is_correct, option_id, question_id, session_id) VALUES (?, ?, ?, ?)",
-                params![is_correct, option_id, question_id, session_id],
-            )
-            .await?;
-
-        tracing::info!("answer created for session={session_id} question={question_id}: {rows:?}");
+        tracing::info!(
+            "answer created for session={session_id} question={question_id}: {:?}",
+            result.rows_affected()
+        );
 
         Ok(())
     }
@@ -71,11 +64,13 @@ impl Db {
         question_id: i32,
         is_correct: bool,
     ) -> Result<()> {
-        let conn = self.db.connect()?;
-        conn.execute(
-            "UPDATE session_questions SET is_correct = ? WHERE session_id = ? AND question_id = ?",
-            params![is_correct, session_id, question_id],
+        sqlx::query(
+            "UPDATE session_questions SET is_correct = $1 WHERE session_id = $2 AND question_id = $3",
         )
+        .bind(is_correct)
+        .bind(session_id)
+        .bind(question_id)
+        .execute(&self.pool)
         .await?;
 
         Ok(())
@@ -83,69 +78,63 @@ impl Db {
 
     /// 正解数カウント（問題単位で正確）
     pub async fn correct_answers(&self, session_id: i32) -> Result<i32> {
-        let conn = self.db.connect()?;
-        Ok(conn
-            .query(
-                "SELECT COUNT(*) FROM session_questions WHERE session_id = ? AND is_correct = 1",
-                params![session_id],
-            )
-            .await?
-            .next()
-            .await?
-            .ok_or_eyre("could not get correct answers count")?
-            .get::<i32>(0)?)
+        let count: i32 = sqlx::query_scalar(
+            "SELECT COUNT(*)::INT FROM session_questions WHERE session_id = $1 AND is_correct = TRUE",
+        )
+        .bind(session_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(count)
     }
 
     pub async fn get_answers(&self, session_id: i32) -> Result<Vec<AnswerModel>> {
-        let conn = self.db.connect()?;
-        helpers::query_all(
-            &conn,
+        let answers = sqlx::query_as::<_, AnswerModel>(
             r#"
             SELECT q.question AS question, sq.is_correct AS is_correct, sq.question_number AS question_idx,
                    sq.is_bookmarked AS is_bookmarked
             FROM session_questions sq
             JOIN questions q ON sq.question_id = q.id
-            WHERE sq.session_id = ? AND sq.is_correct IS NOT NULL
+            WHERE sq.session_id = $1 AND sq.is_correct IS NOT NULL
             ORDER BY sq.question_number
             "#,
-            params![session_id],
         )
-        .await
+        .bind(session_id)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(answers)
     }
 
     pub async fn get_incorrect_questions(&self, session_id: i32) -> Result<Vec<i32>> {
-        let conn = self.db.connect()?;
-        let mut rows = conn
-            .query(
-                "SELECT DISTINCT question_id FROM session_questions WHERE session_id = ? AND is_correct = 0",
-                params![session_id],
-            )
-            .await?;
+        let ids: Vec<i32> = sqlx::query_scalar(
+            "SELECT DISTINCT question_id FROM session_questions WHERE session_id = $1 AND is_correct = FALSE",
+        )
+        .bind(session_id)
+        .fetch_all(&self.pool)
+        .await?;
 
-        let mut ids = Vec::new();
-        while let Some(row) = rows.next().await? {
-            ids.push(row.get::<i32>(0)?);
-        }
         Ok(ids)
     }
 
     pub async fn get_category_stats(&self, session_id: i32) -> Result<Vec<CategoryStats>> {
-        let conn = self.db.connect()?;
-        helpers::query_all(
-            &conn,
+        let stats = sqlx::query_as::<_, CategoryStats>(
             r#"
             SELECT
                 q.category AS category,
                 COUNT(*) AS total,
                 SUM(CASE WHEN sq.is_correct THEN 1 ELSE 0 END) AS correct,
-                ROUND(CAST(SUM(CASE WHEN sq.is_correct THEN 1 ELSE 0 END) AS REAL) * 100.0 / COUNT(*), 1) AS accuracy
+                ROUND(SUM(CASE WHEN sq.is_correct THEN 1 ELSE 0 END)::NUMERIC * 100.0 / COUNT(*), 1)::FLOAT8 AS accuracy
             FROM session_questions sq
             JOIN questions q ON sq.question_id = q.id
-            WHERE sq.session_id = ? AND q.category IS NOT NULL AND sq.is_correct IS NOT NULL
+            WHERE sq.session_id = $1 AND q.category IS NOT NULL AND sq.is_correct IS NOT NULL
             GROUP BY q.category
             "#,
-            params![session_id],
         )
-        .await
+        .bind(session_id)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(stats)
     }
 }

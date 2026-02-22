@@ -1,5 +1,4 @@
 use color_eyre::Result;
-use libsql::params;
 
 struct Migration {
     version: &'static str,
@@ -33,39 +32,37 @@ const MIGRATIONS: &[Migration] = &[
     },
 ];
 
-pub async fn run(conn: &libsql::Connection) -> Result<()> {
-    conn.execute(
+pub async fn run(pool: &sqlx::PgPool) -> Result<()> {
+    sqlx::query(
         r#"
         CREATE TABLE IF NOT EXISTS schema_migrations (
             version TEXT PRIMARY KEY,
-            applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            applied_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
         "#,
-        (),
     )
+    .execute(pool)
     .await?;
 
     for migration in MIGRATIONS {
-        let already_applied = conn
-            .query(
-                "SELECT version FROM schema_migrations WHERE version = ?",
-                params![migration.version],
-            )
-            .await?
-            .next()
-            .await?
-            .is_some();
+        let already_applied: bool = sqlx::query_scalar(
+            "SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE version = $1)"
+        )
+        .bind(migration.version)
+        .fetch_one(pool)
+        .await?;
 
         if already_applied {
             continue;
         }
 
-        conn.execute_batch(migration.sql).await?;
-        conn.execute(
-            "INSERT INTO schema_migrations (version) VALUES (?)",
-            params![migration.version],
-        )
-        .await?;
+        // Execute multi-statement SQL using raw_sql
+        sqlx::raw_sql(migration.sql).execute(pool).await?;
+
+        sqlx::query("INSERT INTO schema_migrations (version) VALUES ($1)")
+            .bind(migration.version)
+            .execute(pool)
+            .await?;
 
         tracing::info!(version = migration.version, "applied database migration");
     }

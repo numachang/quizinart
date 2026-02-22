@@ -1,30 +1,23 @@
 use color_eyre::{eyre::OptionExt, Result};
-use libsql::params;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
 use rand::SeedableRng;
 use ulid::Ulid;
 
-use super::helpers;
 use super::models::QuizSessionModel;
 use super::Db;
 
 impl Db {
     pub async fn session_name_exists(&self, name: &str, quiz_id: i32) -> Result<bool> {
-        let conn = self.db.connect()?;
-        let mut rows = conn
-            .query(
-                "SELECT COUNT(*) FROM quiz_sessions WHERE name = ? AND quiz_id = ?",
-                params![name, quiz_id],
-            )
-            .await?;
+        let exists: bool = sqlx::query_scalar(
+            "SELECT EXISTS(SELECT 1 FROM quiz_sessions WHERE name = $1 AND quiz_id = $2)",
+        )
+        .bind(name)
+        .bind(quiz_id)
+        .fetch_one(&self.pool)
+        .await?;
 
-        if let Some(row) = rows.next().await? {
-            let count: i32 = row.get(0)?;
-            Ok(count > 0)
-        } else {
-            Ok(false)
-        }
+        Ok(exists)
     }
 
     /// Returns `(session_token, session_id)`.
@@ -44,27 +37,23 @@ impl Db {
         }
 
         let session_token = Ulid::new().to_string();
-        let token_str = session_token.as_str();
         let shuffle_seed = rand::random::<i32>();
 
-        // Each step uses a fresh connection to avoid Hrana stream timeouts.
         // Step 1: Insert session row
-        let session_id = {
-            let conn = self.db.connect()?;
-            conn.query(
-                "INSERT INTO quiz_sessions (name, session_token, quiz_id, shuffle_seed, question_count, selection_mode, user_id) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id",
-                params![name, token_str, quiz_id, shuffle_seed, question_count, selection_mode, user_id],
-            )
-            .await?
-            .next()
-            .await?
-            .ok_or_eyre("could not get session id")?
-            .get::<i32>(0)?
-        };
+        let session_id: i32 = sqlx::query_scalar(
+            "INSERT INTO quiz_sessions (name, session_token, quiz_id, shuffle_seed, question_count, selection_mode, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
+        )
+        .bind(name)
+        .bind(&session_token)
+        .bind(quiz_id)
+        .bind(shuffle_seed)
+        .bind(question_count)
+        .bind(selection_mode)
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await?;
 
-        // Step 2: Select questions (fresh conn per query inside)
-        // Step 3: Batch insert session_questions (fresh conn inside)
-        // Cleanup session row on failure
+        // Step 2: Insert session_questions; cleanup on failure
         if let Err(e) = self
             .insert_session_questions(
                 session_id,
@@ -76,14 +65,10 @@ impl Db {
             .await
         {
             tracing::warn!("cleaning up session {session_id} after question insertion failed: {e}");
-            if let Ok(cleanup_conn) = self.db.connect() {
-                let _ = cleanup_conn
-                    .execute(
-                        "DELETE FROM quiz_sessions WHERE id = ?",
-                        params![session_id],
-                    )
-                    .await;
-            }
+            let _ = sqlx::query("DELETE FROM quiz_sessions WHERE id = $1")
+                .bind(session_id)
+                .execute(&self.pool)
+                .await;
             return Err(e);
         }
 
@@ -109,7 +94,7 @@ impl Db {
             .await
     }
 
-    /// Batch insert session_questions in a single round-trip using a fresh connection.
+    /// Batch insert session_questions in a single round-trip using UNNEST with ORDINALITY.
     async fn batch_insert_session_questions(
         &self,
         session_id: i32,
@@ -118,17 +103,19 @@ impl Db {
         if question_ids.is_empty() {
             return Ok(());
         }
-        let values: Vec<String> = question_ids
-            .iter()
-            .enumerate()
-            .map(|(idx, qid)| format!("({session_id}, {qid}, {idx})"))
-            .collect();
-        let sql = format!(
-            "INSERT INTO session_questions (session_id, question_id, question_number) VALUES {}",
-            values.join(", ")
-        );
-        let conn = self.db.connect()?;
-        conn.execute(&sql, ()).await?;
+
+        sqlx::query(
+            r#"
+            INSERT INTO session_questions (session_id, question_id, question_number)
+            SELECT $1, q, (n - 1)::INT
+            FROM UNNEST($2::INT4[]) WITH ORDINALITY AS t(q, n)
+            "#,
+        )
+        .bind(session_id)
+        .bind(question_ids)
+        .execute(&self.pool)
+        .await?;
+
         Ok(())
     }
 
@@ -143,20 +130,20 @@ impl Db {
 
         match selection_mode {
             "unanswered" => {
-                let mut unanswered = self
-                    .query_id_column(
-                        r#"
-                        SELECT id FROM questions
-                        WHERE quiz_id = ? AND id NOT IN (
-                            SELECT DISTINCT question_id FROM session_questions
-                            JOIN quiz_sessions ON quiz_sessions.id = session_questions.session_id
-                            WHERE quiz_sessions.quiz_id = ?
-                        )
-                        ORDER BY id
-                        "#,
-                        params![quiz_id, quiz_id],
+                let mut unanswered: Vec<i32> = sqlx::query_scalar(
+                    r#"
+                    SELECT id FROM questions
+                    WHERE quiz_id = $1 AND id NOT IN (
+                        SELECT DISTINCT question_id FROM session_questions
+                        JOIN quiz_sessions ON quiz_sessions.id = session_questions.session_id
+                        WHERE quiz_sessions.quiz_id = $1
                     )
-                    .await?;
+                    ORDER BY id
+                    "#,
+                )
+                .bind(quiz_id)
+                .fetch_all(&self.pool)
+                .await?;
 
                 unanswered.shuffle(&mut rng);
 
@@ -179,16 +166,16 @@ impl Db {
                 }
             }
             "incorrect" => {
-                let mut incorrect = self
-                    .query_id_column(
-                        r#"
-                        SELECT question_id FROM question_stats
-                        WHERE quiz_id = ? AND times_incorrect > 0
-                        ORDER BY accuracy ASC, times_incorrect DESC
-                        "#,
-                        params![quiz_id],
-                    )
-                    .await?;
+                let mut incorrect: Vec<i32> = sqlx::query_scalar(
+                    r#"
+                    SELECT question_id FROM question_stats
+                    WHERE quiz_id = $1 AND times_incorrect > 0
+                    ORDER BY accuracy ASC, times_incorrect DESC
+                    "#,
+                )
+                .bind(quiz_id)
+                .fetch_all(&self.pool)
+                .await?;
 
                 incorrect.shuffle(&mut rng);
 
@@ -219,76 +206,60 @@ impl Db {
         }
     }
 
-    /// Execute a query returning a single i32 column, using a fresh connection.
-    async fn query_id_column(
-        &self,
-        sql: &str,
-        params: impl libsql::params::IntoParams,
-    ) -> Result<Vec<i32>> {
-        let conn = self.db.connect()?;
-        let mut rows = conn.query(sql, params).await?;
-        let mut ids = Vec::new();
-        while let Some(row) = rows.next().await? {
-            ids.push(row.get::<i32>(0)?);
-        }
+    async fn get_all_question_ids(&self, quiz_id: i32) -> Result<Vec<i32>> {
+        let ids = sqlx::query_scalar(
+            "SELECT id FROM questions WHERE quiz_id = $1 ORDER BY id",
+        )
+        .bind(quiz_id)
+        .fetch_all(&self.pool)
+        .await?;
+
         Ok(ids)
     }
 
-    async fn get_all_question_ids(&self, quiz_id: i32) -> Result<Vec<i32>> {
-        self.query_id_column(
-            "SELECT id FROM questions WHERE quiz_id = ? ORDER BY id",
-            params![quiz_id],
-        )
-        .await
-    }
-
     pub async fn sessions_count(&self, quiz_id: i32) -> Result<i32> {
-        let conn = self.db.connect()?;
-        Ok(conn
-            .query(
-                "SELECT count(*) FROM quiz_sessions WHERE quiz_id = ?",
-                params![quiz_id],
-            )
-            .await?
-            .next()
-            .await?
-            .ok_or_eyre("could not get sessions count")?
-            .get::<i32>(0)?)
+        let count: i32 = sqlx::query_scalar(
+            "SELECT COUNT(*)::INT FROM quiz_sessions WHERE quiz_id = $1",
+        )
+        .bind(quiz_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(count)
     }
 
     pub async fn get_session(&self, token: &str) -> Result<QuizSessionModel> {
-        let conn = self.db.connect()?;
-        helpers::query_one(
-            &conn,
-            "SELECT id, quiz_id, name, question_count, selection_mode FROM quiz_sessions WHERE session_token = ?",
-            params![token],
+        let session = sqlx::query_as::<_, QuizSessionModel>(
+            "SELECT id, quiz_id, name, question_count, selection_mode FROM quiz_sessions WHERE session_token = $1",
         )
-        .await
+        .bind(token)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(session)
     }
 
     pub async fn get_session_by_id(&self, session_id: i32) -> Result<QuizSessionModel> {
-        let conn = self.db.connect()?;
-        helpers::query_one(
-            &conn,
-            "SELECT id, quiz_id, name, question_count, selection_mode FROM quiz_sessions WHERE id = ?",
-            params![session_id],
+        let session = sqlx::query_as::<_, QuizSessionModel>(
+            "SELECT id, quiz_id, name, question_count, selection_mode FROM quiz_sessions WHERE id = $1",
         )
-        .await
+        .bind(session_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(session)
     }
 
     /// 回答済み問題数を返す（= 次の未回答問題の question_number）
     pub async fn current_question_index(&self, session_id: i32) -> Result<i32> {
-        let conn = self.db.connect()?;
-        Ok(conn
-            .query(
-                "SELECT COUNT(*) FROM session_questions WHERE session_id = ? AND is_correct IS NOT NULL",
-                params![session_id],
-            )
-            .await?
-            .next()
-            .await?
-            .ok_or_eyre("could not get current question index")?
-            .get::<i32>(0)?)
+        let count: i32 = sqlx::query_scalar(
+            "SELECT COUNT(*)::INT FROM session_questions WHERE session_id = $1 AND is_correct IS NOT NULL",
+        )
+        .bind(session_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(count)
     }
 
     pub async fn create_session_with_questions(
@@ -307,37 +278,31 @@ impl Db {
             .collect();
 
         let session_token = Ulid::new().to_string();
-        let token_str = session_token.as_str();
         let question_count = deduped_question_ids.len() as i32;
 
-        // Step 1: Insert session row (fresh connection)
-        let session_id = {
-            let conn = self.db.connect()?;
-            conn.query(
-                "INSERT INTO quiz_sessions (name, session_token, quiz_id, shuffle_seed, question_count, selection_mode, user_id) VALUES (?, ?, ?, 0, ?, ?, ?) RETURNING id",
-                params![name, token_str, quiz_id, question_count, selection_mode, user_id],
-            )
-            .await?
-            .next()
-            .await?
-            .ok_or_eyre("could not get session id")?
-            .get::<i32>(0)?
-        };
+        // Step 1: Insert session row
+        let session_id: i32 = sqlx::query_scalar(
+            "INSERT INTO quiz_sessions (name, session_token, quiz_id, shuffle_seed, question_count, selection_mode, user_id) VALUES ($1, $2, $3, 0, $4, $5, $6) RETURNING id",
+        )
+        .bind(name)
+        .bind(&session_token)
+        .bind(quiz_id)
+        .bind(question_count)
+        .bind(selection_mode)
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await?;
 
-        // Step 2: Batch insert session_questions (fresh connection inside)
+        // Step 2: Batch insert session_questions; cleanup on failure
         if let Err(e) = self
             .batch_insert_session_questions(session_id, &deduped_question_ids)
             .await
         {
             tracing::warn!("cleaning up session {session_id} after question insertion failed: {e}");
-            if let Ok(cleanup_conn) = self.db.connect() {
-                let _ = cleanup_conn
-                    .execute(
-                        "DELETE FROM quiz_sessions WHERE id = ?",
-                        params![session_id],
-                    )
-                    .await;
-            }
+            let _ = sqlx::query("DELETE FROM quiz_sessions WHERE id = $1")
+                .bind(session_id)
+                .execute(&self.pool)
+                .await;
             return Err(e);
         }
 
@@ -348,12 +313,11 @@ impl Db {
     }
 
     pub async fn delete_session(&self, session_id: i32) -> Result<()> {
-        let conn = self.db.connect()?;
-        conn.execute(
-            "DELETE FROM quiz_sessions WHERE id = ?",
-            params![session_id],
-        )
-        .await?;
+        sqlx::query("DELETE FROM quiz_sessions WHERE id = $1")
+            .bind(session_id)
+            .execute(&self.pool)
+            .await?;
+
         tracing::info!("deleted session {session_id}");
         Ok(())
     }
@@ -370,54 +334,51 @@ impl Db {
                 new_name
             ));
         }
-        let conn = self.db.connect()?;
-        conn.execute(
-            "UPDATE quiz_sessions SET name = ? WHERE id = ?",
-            params![new_name, session_id],
-        )
-        .await?;
+
+        sqlx::query("UPDATE quiz_sessions SET name = $1 WHERE id = $2")
+            .bind(new_name)
+            .bind(session_id)
+            .execute(&self.pool)
+            .await?;
+
         tracing::info!("renamed session {session_id} to '{new_name}'");
         Ok(())
     }
 
     pub async fn is_question_bookmarked(&self, session_id: i32, question_id: i32) -> Result<bool> {
-        let conn = self.db.connect()?;
-        let result = conn
-            .query(
-                "SELECT is_bookmarked FROM session_questions WHERE session_id = ? AND question_id = ?",
-                params![session_id, question_id],
-            )
-            .await?
-            .next()
-            .await?
-            .ok_or_eyre("session_question not found")?
-            .get::<i32>(0)?;
-        Ok(result != 0)
+        let bookmarked: bool = sqlx::query_scalar(
+            "SELECT is_bookmarked FROM session_questions WHERE session_id = $1 AND question_id = $2",
+        )
+        .bind(session_id)
+        .bind(question_id)
+        .fetch_optional(&self.pool)
+        .await?
+        .ok_or_eyre("session_question not found")?;
+
+        Ok(bookmarked)
     }
 
     /// ブックマーク状態をトグルし、新しい状態を返す
     pub async fn toggle_bookmark(&self, session_id: i32, question_id: i32) -> Result<bool> {
-        let conn = self.db.connect()?;
-        conn.execute(
-            "UPDATE session_questions SET is_bookmarked = CASE WHEN is_bookmarked = 0 THEN 1 ELSE 0 END WHERE session_id = ? AND question_id = ?",
-            params![session_id, question_id],
+        sqlx::query(
+            "UPDATE session_questions SET is_bookmarked = NOT is_bookmarked WHERE session_id = $1 AND question_id = $2",
         )
+        .bind(session_id)
+        .bind(question_id)
+        .execute(&self.pool)
         .await?;
+
         self.is_question_bookmarked(session_id, question_id).await
     }
 
     pub async fn get_bookmarked_questions(&self, session_id: i32) -> Result<Vec<i32>> {
-        let conn = self.db.connect()?;
-        let mut rows = conn
-            .query(
-                "SELECT question_id FROM session_questions WHERE session_id = ? AND is_bookmarked = 1",
-                params![session_id],
-            )
-            .await?;
-        let mut ids = Vec::new();
-        while let Some(row) = rows.next().await? {
-            ids.push(row.get::<i32>(0)?);
-        }
+        let ids: Vec<i32> = sqlx::query_scalar(
+            "SELECT question_id FROM session_questions WHERE session_id = $1 AND is_bookmarked = TRUE",
+        )
+        .bind(session_id)
+        .fetch_all(&self.pool)
+        .await?;
+
         Ok(ids)
     }
 
@@ -426,41 +387,40 @@ impl Db {
         name: &str,
         quiz_id: i32,
     ) -> Result<Option<(i32, String)>> {
-        let conn = self.db.connect()?;
-
-        let mut rows = conn.query(
-            "SELECT session_id, session_token FROM session_stats WHERE name = ? AND quiz_id = ? AND is_complete = 0 ORDER BY session_id DESC",
-            params![name, quiz_id],
+        let row = sqlx::query_as::<_, (i32, String)>(
+            "SELECT session_id, session_token FROM session_stats WHERE name = $1 AND quiz_id = $2 AND is_complete = FALSE ORDER BY session_id DESC",
         )
+        .bind(name)
+        .bind(quiz_id)
+        .fetch_optional(&self.pool)
         .await?;
 
-        if let Some(row) = rows.next().await? {
-            let session_id = row.get::<i32>(0)?;
-            let session_token = row.get::<String>(1)?;
-
-            tracing::info!(
-                "Found incomplete session {} for user '{}'",
-                session_id,
-                name
-            );
-            return Ok(Some((session_id, session_token)));
+        match row {
+            Some((session_id, session_token)) => {
+                tracing::info!(
+                    "Found incomplete session {} for user '{}'",
+                    session_id,
+                    name
+                );
+                Ok(Some((session_id, session_token)))
+            }
+            None => {
+                tracing::info!("No incomplete session found for user '{}'", name);
+                Ok(None)
+            }
         }
-
-        tracing::info!("No incomplete session found for user '{}'", name);
-        Ok(None)
     }
 
     /// Verify that a session belongs to the given user
     pub async fn verify_session_owner(&self, session_id: i32, user_id: i32) -> Result<bool> {
-        let conn = self.db.connect()?;
-        let row = conn
-            .query(
-                "SELECT 1 FROM quiz_sessions WHERE id = ? AND user_id = ?",
-                params![session_id, user_id],
-            )
-            .await?
-            .next()
-            .await?;
-        Ok(row.is_some())
+        let exists: bool = sqlx::query_scalar(
+            "SELECT EXISTS(SELECT 1 FROM quiz_sessions WHERE id = $1 AND user_id = $2)",
+        )
+        .bind(session_id)
+        .bind(user_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(exists)
     }
 }

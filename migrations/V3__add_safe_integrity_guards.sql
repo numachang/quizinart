@@ -23,40 +23,7 @@ ON user_answers(session_id, question_id);
 CREATE INDEX IF NOT EXISTS idx_user_answers_session_question_option
 ON user_answers(session_id, question_id, option_id);
 
--- Forward-looking integrity guards (do not alter existing rows)
-CREATE TRIGGER IF NOT EXISTS trg_quiz_sessions_unique_token
-BEFORE INSERT ON quiz_sessions
-FOR EACH ROW
-WHEN EXISTS (
-    SELECT 1 FROM quiz_sessions WHERE session_token = NEW.session_token
-)
-BEGIN
-    SELECT RAISE(ABORT, 'duplicate session_token');
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_session_questions_unique_pair
-BEFORE INSERT ON session_questions
-FOR EACH ROW
-WHEN EXISTS (
-    SELECT 1
-    FROM session_questions
-    WHERE session_id = NEW.session_id
-      AND question_id = NEW.question_id
-)
-BEGIN
-    SELECT RAISE(ABORT, 'duplicate session_questions(session_id, question_id)');
-END;
-
-CREATE TRIGGER IF NOT EXISTS trg_user_answers_unique_triplet
-BEFORE INSERT ON user_answers
-FOR EACH ROW
-WHEN EXISTS (
-    SELECT 1
-    FROM user_answers
-    WHERE session_id = NEW.session_id
-      AND question_id = NEW.question_id
-      AND option_id = NEW.option_id
-)
-BEGIN
-    SELECT RAISE(ABORT, 'duplicate user_answers(session_id, question_id, option_id)');
-END;
+-- Integrity guards: replace SQLite triggers with PostgreSQL unique constraints
+ALTER TABLE quiz_sessions ADD CONSTRAINT uq_quiz_sessions_session_token UNIQUE (session_token);
+ALTER TABLE session_questions ADD CONSTRAINT uq_session_questions_session_question UNIQUE (session_id, question_id);
+ALTER TABLE user_answers ADD CONSTRAINT uq_user_answers_triplet UNIQUE (session_id, question_id, option_id);

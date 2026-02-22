@@ -36,62 +36,9 @@
 
 ## クイックスタート
 
-### 前提条件（Windows）
+### 前提条件
 
-**管理者権限**のターミナルで実行してください：
-
-```powershell
-# Rust ツールチェーン
-winget install Rustlang.Rustup
-
-# C++ ビルドツール（Rust のリンカに必要）
-winget install Microsoft.VisualStudio.2022.BuildTools --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
-```
-
-インストール後、新しいターミナルを開いて確認：
-
-```powershell
-rustup --version
-cargo --version
-```
-
-E2E テストを実行する場合は Node.js も必要です：
-
-```powershell
-winget install Volta.Volta
-volta install node
-```
-
-### 前提条件（WSL / Linux）
-
-WSL Ubuntu で開発する場合：
-
-```bash
-# Rust ツールチェーン
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
-
-# C コンパイラ・ビルドツール（libsql-ffi のビルドに必要）
-sudo apt update && sudo apt install -y build-essential pkg-config libssl-dev
-```
-
-確認：
-
-```bash
-rustup --version
-cargo --version
-```
-
-E2E テストを実行する場合は Node.js と Playwright も必要です：
-
-```bash
-# Node.js
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-sudo apt install -y nodejs
-
-# Playwright ブラウザ（プロジェクトディレクトリで実行）
-npx playwright install --with-deps chromium
-```
+環境構築の詳細手順（Rust、Docker、Node.js、Playwright）は **[プラットフォームリポジトリのセットアップガイド](https://github.com/numachang/quizinart-salesforce-platform-admin/blob/main/docs/setup_ja.md)** を参照してください。
 
 ### ローカル実行
 

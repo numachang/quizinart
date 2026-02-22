@@ -1,1 +1,1 @@
-ALTER TABLE session_questions ADD COLUMN is_bookmarked INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE session_questions ADD COLUMN is_bookmarked BOOLEAN NOT NULL DEFAULT FALSE;
