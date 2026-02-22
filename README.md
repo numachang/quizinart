@@ -38,7 +38,7 @@ Light/Dark theme and multi-language support (English, Japanese, Simplified Chine
 
 ### Prerequisites
 
-See the **[platform admin repo's setup guide](https://github.com/numachang/quizinart-salesforce-platform-admin/blob/main/docs/setup.md)** for full environment setup instructions (Rust, Docker, Node.js, Playwright).
+See **[docs/setup.md](docs/setup.md)** for full environment setup instructions (Rust, Docker, Node.js, Playwright). ([日本語](docs/setup_ja.md))
 
 ### Run locally
 

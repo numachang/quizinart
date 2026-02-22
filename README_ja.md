@@ -38,7 +38,7 @@
 
 ### 前提条件
 
-環境構築の詳細手順（Rust、Docker、Node.js、Playwright）は **[プラットフォームリポジトリのセットアップガイド](https://github.com/numachang/quizinart-salesforce-platform-admin/blob/main/docs/setup_ja.md)** を参照してください。
+環境構築の詳細手順（Rust、Docker、Node.js、Playwright）は **[docs/setup_ja.md](docs/setup_ja.md)** を参照してください。（[English](docs/setup.md)）
 
 ### ローカル実行
 
