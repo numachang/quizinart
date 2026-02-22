@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "=== pre-push: cargo fmt --check ==="
+cargo fmt --all -- --check
+
+echo "=== pre-push: cargo clippy ==="
+cargo clippy --all-targets --all-features -- -D warnings
+
+echo "=== pre-push: playwright e2e tests ==="
+npx playwright test
+
+echo "=== pre-push: all checks passed ==="
