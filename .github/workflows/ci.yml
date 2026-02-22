@@ -40,6 +40,13 @@ jobs:
       - name: Format Check
         run: cargo fmt --all -- --check
 
+      - name: Run database migrations
+        run: |
+          for f in migrations/V*__*.sql; do
+            echo "Applying $f..."
+            PGPASSWORD=password psql -h localhost -U quizinart -d quizinart -f "$f"
+          done
+
       - name: Install sqlx-cli
         run: cargo install sqlx-cli --no-default-features --features postgres,rustls
 

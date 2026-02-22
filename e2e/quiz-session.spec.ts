@@ -266,6 +266,108 @@ test.describe("quiz session", () => {
     ).toBeVisible();
   });
 
+  test("next button navigates sequentially after going back", async ({
+    page,
+    jsErrors,
+  }) => {
+    // Start session with 5 questions
+    await page.click("text=Start New Session");
+    await page.fill('input[name="question_count"]', "5");
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/start-session")),
+      page.click('input[type="submit"]'),
+    ]);
+
+    // Answer Q1
+    await answerCurrentQuestion(page);
+    // Verify we're on Q1 answer page
+    await expect(page.locator("main strong")).toContainText("1");
+
+    // Go to Q2
+    await Promise.all([
+      page.waitForResponse((resp) => resp.request().method() === "GET"),
+      page.click(".nav-btn-next"),
+    ]);
+    await expect(page.locator("#question-form")).toBeVisible();
+
+    // Answer Q2
+    await answerCurrentQuestion(page);
+    // Verify we're on Q2 answer page
+    await expect(page.locator("main strong")).toContainText("2");
+
+    // Now go back to Q1 via Previous twice (Q2 answer → Q1 answer)
+    await page.click(".nav-btn-back");
+    await expect(page.locator("main strong")).toContainText("1");
+
+    // Click Next — should go to Q2 (not Q3)
+    await page.click(".nav-btn-next");
+    await expect(page.locator("main strong")).toContainText("2");
+
+    // Click Next again — should go to Q3 (the next unanswered)
+    await page.click(".nav-btn-next");
+    await expect(page.locator("main strong")).toContainText("3");
+    await expect(page.locator("#question-form")).toBeVisible();
+  });
+
+  test("next button navigates sequentially after resuming session", async ({
+    page,
+    jsErrors,
+  }) => {
+    // Start session and note the session name
+    await page.click("text=Start New Session");
+    await expect(page.locator('input[name="name"]')).toBeVisible({
+      timeout: 30_000,
+    });
+    const sessionName = await page
+      .locator('input[name="name"]')
+      .inputValue();
+    await page.fill('input[name="question_count"]', "5");
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/start-session")),
+      page.click('input[type="submit"]'),
+    ]);
+
+    // Answer Q1 and Q2
+    await answerCurrentQuestion(page);
+    await Promise.all([
+      page.waitForResponse((resp) => resp.request().method() === "GET"),
+      page.click(".nav-btn-next"),
+    ]);
+    await answerCurrentQuestion(page);
+
+    // Abandon session
+    await page.click("text=Quit");
+    await page.locator("#abandon-dialog button:not(.secondary)").click();
+    await expect(page.locator("h1")).toContainText(quizName);
+
+    // Resume via session history
+    await page.click("text=Open Session History");
+    await expect(
+      page.locator("td", { hasText: sessionName })
+    ).toBeVisible();
+    const sessionRow = page.locator("tr", { hasText: sessionName });
+    await sessionRow.locator("a", { hasText: /2\/5/ }).click();
+
+    // Should resume at Q3 (first unanswered)
+    await expect(page.locator("#question-form")).toBeVisible();
+    await expect(page.locator("main strong")).toContainText("3");
+
+    // Go back to Q1
+    await page.click(".nav-btn-back");
+    await expect(page.locator("main strong")).toContainText("2");
+    await page.click(".nav-btn-back");
+    await expect(page.locator("main strong")).toContainText("1");
+
+    // Click Next — should go to Q2 (not Q3)
+    await page.click(".nav-btn-next");
+    await expect(page.locator("main strong")).toContainText("2");
+
+    // Click Next — should go to Q3
+    await page.click(".nav-btn-next");
+    await expect(page.locator("main strong")).toContainText("3");
+    await expect(page.locator("#question-form")).toBeVisible();
+  });
+
   test("resume incomplete session from session history", async ({
     page,
     jsErrors,

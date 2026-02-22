@@ -252,8 +252,9 @@ pub fn answer(data: AnswerData, locale: &str) -> Markup {
                                    hx-target="main" { (t!("quiz.see_results", locale = locale)) }
                         } @else {
                             button class="nav-btn nav-btn-next"
-                                   hx-get=(names::quiz_page_url(&data.quiz_id))
-                                   hx-target="main" { (t!("quiz.next", locale = locale)) }
+                                   hx-get=(format!("/question/{}?question_idx={}", data.session_id, data.question_idx + 1))
+                                   hx-target="main"
+                                   hx-swap="innerHTML" { (t!("quiz.next", locale = locale)) }
                         }
                     }
                 }
