@@ -5,10 +5,10 @@ use rust_i18n::t;
 pub struct StartPageData {
     pub quiz_name: String,
     pub total_questions: i32,
-    pub quiz_id: i32,
+    pub quiz_id: String,
 }
 
-pub fn session_name_error_page(session_name: &str, quiz_id: i32, locale: &str) -> Markup {
+pub fn session_name_error_page(session_name: &str, quiz_id: &str, locale: &str) -> Markup {
     html! {
         article style="margin-top: 2rem;" {
             header {
@@ -51,7 +51,7 @@ pub fn start_page(data: StartPageData, locale: &str) -> Markup {
             (t!("quiz.doing_quiz_intro_3", locale = locale))
         }
         article style="width: fit-content;" {
-            form hx-post=(names::start_session_url(data.quiz_id))
+            form hx-post=(names::start_session_url(&data.quiz_id))
                  hx-ext="json-enc"
                  hx-target="main"
                  hx-swap="innerHTML" {

@@ -21,7 +21,7 @@ pub struct AnswerData {
     pub question_idx: i32,
     pub questions_count: i32,
     pub session_id: i32,
-    pub quiz_id: i32,
+    pub quiz_id: String,
     pub selected: Vec<i32>,
     pub from_context: Option<String>,
     pub current_idx: Option<i32>,
@@ -230,7 +230,7 @@ pub fn answer(data: AnswerData, locale: &str) -> Markup {
                                    hx-target="main" { (t!("quiz.see_results", locale = locale)) }
                         } @else {
                             button class="nav-btn nav-btn-next"
-                                   hx-get=(names::quiz_page_url(data.quiz_id))
+                                   hx-get=(names::quiz_page_url(&data.quiz_id))
                                    hx-target="main" { (t!("quiz.next", locale = locale)) }
                         }
                     }

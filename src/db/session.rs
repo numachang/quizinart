@@ -39,7 +39,14 @@ impl Db {
         let session_token = Ulid::new().to_string();
         let shuffle_seed = rand::random::<i32>();
 
-        // Step 1: Insert session row
+        // Select questions before transaction (read-only)
+        let selected_ids = self
+            .select_questions(quiz_id, question_count, selection_mode, shuffle_seed)
+            .await?;
+
+        // Transaction: insert session + session_questions atomically
+        let mut tx = self.pool.begin().await?;
+
         let session_id: i32 = sqlx::query_scalar(
             "INSERT INTO quiz_sessions (name, session_token, quiz_id, shuffle_seed, question_count, selection_mode, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
         )
@@ -50,27 +57,12 @@ impl Db {
         .bind(question_count)
         .bind(selection_mode)
         .bind(user_id)
-        .fetch_one(&self.pool)
+        .fetch_one(&mut *tx)
         .await?;
 
-        // Step 2: Insert session_questions; cleanup on failure
-        if let Err(e) = self
-            .insert_session_questions(
-                session_id,
-                quiz_id,
-                question_count,
-                selection_mode,
-                shuffle_seed,
-            )
-            .await
-        {
-            tracing::warn!("cleaning up session {session_id} after question insertion failed: {e}");
-            let _ = sqlx::query("DELETE FROM quiz_sessions WHERE id = $1")
-                .bind(session_id)
-                .execute(&self.pool)
-                .await;
-            return Err(e);
-        }
+        Self::batch_insert_session_questions_tx(&mut tx, session_id, &selected_ids).await?;
+
+        tx.commit().await?;
 
         tracing::info!(
             "session created for quiz={quiz_id}: session_id={session_id}, mode={selection_mode}, user_id={user_id}"
@@ -78,25 +70,9 @@ impl Db {
         Ok((session_token, session_id))
     }
 
-    async fn insert_session_questions(
-        &self,
-        session_id: i32,
-        quiz_id: i32,
-        question_count: i32,
-        selection_mode: &str,
-        shuffle_seed: i32,
-    ) -> Result<()> {
-        let selected_ids = self
-            .select_questions(quiz_id, question_count, selection_mode, shuffle_seed)
-            .await?;
-
-        self.batch_insert_session_questions(session_id, &selected_ids)
-            .await
-    }
-
-    /// Batch insert session_questions in a single round-trip using UNNEST with ORDINALITY.
-    async fn batch_insert_session_questions(
-        &self,
+    /// Batch insert session_questions using a transaction executor.
+    async fn batch_insert_session_questions_tx(
+        tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         session_id: i32,
         question_ids: &[i32],
     ) -> Result<()> {
@@ -113,7 +89,7 @@ impl Db {
         )
         .bind(session_id)
         .bind(question_ids)
-        .execute(&self.pool)
+        .execute(&mut **tx)
         .await?;
 
         Ok(())
@@ -277,7 +253,9 @@ impl Db {
         let session_token = Ulid::new().to_string();
         let question_count = deduped_question_ids.len() as i32;
 
-        // Step 1: Insert session row
+        // Transaction: insert session + session_questions atomically
+        let mut tx = self.pool.begin().await?;
+
         let session_id: i32 = sqlx::query_scalar(
             "INSERT INTO quiz_sessions (name, session_token, quiz_id, shuffle_seed, question_count, selection_mode, user_id) VALUES ($1, $2, $3, 0, $4, $5, $6) RETURNING id",
         )
@@ -287,21 +265,12 @@ impl Db {
         .bind(question_count)
         .bind(selection_mode)
         .bind(user_id)
-        .fetch_one(&self.pool)
+        .fetch_one(&mut *tx)
         .await?;
 
-        // Step 2: Batch insert session_questions; cleanup on failure
-        if let Err(e) = self
-            .batch_insert_session_questions(session_id, &deduped_question_ids)
-            .await
-        {
-            tracing::warn!("cleaning up session {session_id} after question insertion failed: {e}");
-            let _ = sqlx::query("DELETE FROM quiz_sessions WHERE id = $1")
-                .bind(session_id)
-                .execute(&self.pool)
-                .await;
-            return Err(e);
-        }
+        Self::batch_insert_session_questions_tx(&mut tx, session_id, &deduped_question_ids).await?;
+
+        tx.commit().await?;
 
         tracing::info!(
             "session created with specific questions: session_id={session_id}, questions={question_count}, mode={selection_mode}"

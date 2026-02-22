@@ -55,6 +55,24 @@ fn make_questions(n: usize) -> Vec<Question> {
         .collect()
 }
 
+/// Helper: load a quiz and return (public_id, internal quiz_id)
+async fn load_quiz_with_id(
+    db: &Db,
+    name: &str,
+    questions: Vec<Question>,
+    user_id: i32,
+) -> (String, i32) {
+    let public_id = db
+        .load_quiz(name.to_string(), questions, user_id)
+        .await
+        .expect("load quiz");
+    let quiz_id = db
+        .resolve_quiz_id(&public_id)
+        .await
+        .expect("resolve quiz id");
+    (public_id, quiz_id)
+}
+
 async fn get_session_question_ids(db: &Db, session_id: i32) -> Vec<i32> {
     let count = db.questions_count_for_session(session_id).await.unwrap();
     let mut ids = Vec::new();
@@ -123,11 +141,9 @@ async fn test_quiz_crud() {
     let db = create_test_db().await;
     let user_id = create_test_user(&db).await;
 
-    let quiz_id = db
-        .load_quiz("Test Quiz".to_string(), sample_questions(), user_id)
-        .await
-        .unwrap();
-    assert!(quiz_id > 0);
+    let (public_id, quiz_id) =
+        load_quiz_with_id(&db, "Test Quiz", sample_questions(), user_id).await;
+    assert!(!public_id.is_empty());
 
     let quizzes = db.quizzes(user_id).await.unwrap();
     assert_eq!(quizzes.len(), 1);
@@ -146,10 +162,7 @@ async fn test_session_creation() {
     let db = create_test_db().await;
     let user_id = create_test_user(&db).await;
 
-    let quiz_id = db
-        .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
-        .await
-        .unwrap();
+    let (_public_id, quiz_id) = load_quiz_with_id(&db, "Quiz", minimal_questions(), user_id).await;
     let (token, session_id) = db
         .create_session("session-1", quiz_id, 5, "random", user_id)
         .await
@@ -167,10 +180,7 @@ async fn test_duplicate_session_name() {
     let db = create_test_db().await;
     let user_id = create_test_user(&db).await;
 
-    let quiz_id = db
-        .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
-        .await
-        .unwrap();
+    let (_public_id, quiz_id) = load_quiz_with_id(&db, "Quiz", minimal_questions(), user_id).await;
     db.create_session("dupe", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
@@ -188,10 +198,7 @@ async fn test_session_count() {
     let db = create_test_db().await;
     let user_id = create_test_user(&db).await;
 
-    let quiz_id = db
-        .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
-        .await
-        .unwrap();
+    let (_public_id, quiz_id) = load_quiz_with_id(&db, "Quiz", minimal_questions(), user_id).await;
     assert_eq!(db.sessions_count(quiz_id).await.unwrap(), 0);
 
     db.create_session("s1", quiz_id, 5, "random", user_id)
@@ -210,10 +217,7 @@ async fn test_delete_session() {
     let db = create_test_db().await;
     let user_id = create_test_user(&db).await;
 
-    let quiz_id = db
-        .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
-        .await
-        .unwrap();
+    let (_public_id, quiz_id) = load_quiz_with_id(&db, "Quiz", minimal_questions(), user_id).await;
     let (token, session_id) = db
         .create_session("to-delete", quiz_id, 5, "random", user_id)
         .await
@@ -233,10 +237,7 @@ async fn test_rename_session() {
     let db = create_test_db().await;
     let user_id = create_test_user(&db).await;
 
-    let quiz_id = db
-        .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
-        .await
-        .unwrap();
+    let (_public_id, quiz_id) = load_quiz_with_id(&db, "Quiz", minimal_questions(), user_id).await;
     let (_, session_id) = db
         .create_session("old-name", quiz_id, 5, "random", user_id)
         .await
@@ -255,10 +256,7 @@ async fn test_rename_session_duplicate() {
     let db = create_test_db().await;
     let user_id = create_test_user(&db).await;
 
-    let quiz_id = db
-        .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
-        .await
-        .unwrap();
+    let (_public_id, quiz_id) = load_quiz_with_id(&db, "Quiz", minimal_questions(), user_id).await;
     db.create_session("existing", quiz_id, 5, "random", user_id)
         .await
         .unwrap();
@@ -279,10 +277,7 @@ async fn test_rename_session_duplicate() {
 async fn test_random_mode_no_duplicates() {
     let db = create_test_db().await;
     let user_id = create_test_user(&db).await;
-    let quiz_id = db
-        .load_quiz("Quiz".to_string(), make_questions(10), user_id)
-        .await
-        .unwrap();
+    let (_public_id, quiz_id) = load_quiz_with_id(&db, "Quiz", make_questions(10), user_id).await;
 
     let (_, session_id) = db
         .create_session("random-session", quiz_id, 5, "random", user_id)
@@ -305,10 +300,7 @@ async fn test_random_mode_no_duplicates() {
 async fn test_random_mode_cap_at_total() {
     let db = create_test_db().await;
     let user_id = create_test_user(&db).await;
-    let quiz_id = db
-        .load_quiz("Quiz".to_string(), make_questions(3), user_id)
-        .await
-        .unwrap();
+    let (_public_id, quiz_id) = load_quiz_with_id(&db, "Quiz", make_questions(3), user_id).await;
 
     // Request more questions than exist
     let (_, session_id) = db
@@ -332,10 +324,7 @@ async fn test_random_mode_cap_at_total() {
 async fn test_unanswered_mode_no_duplicates() {
     let db = create_test_db().await;
     let user_id = create_test_user(&db).await;
-    let quiz_id = db
-        .load_quiz("Quiz".to_string(), make_questions(10), user_id)
-        .await
-        .unwrap();
+    let (_public_id, quiz_id) = load_quiz_with_id(&db, "Quiz", make_questions(10), user_id).await;
 
     // Session 1: pick 4 unanswered questions
     let (_, s1_id) = db
@@ -382,10 +371,7 @@ async fn test_unanswered_mode_no_duplicates() {
 async fn test_unanswered_mode_fallback_no_duplicates() {
     let db = create_test_db().await;
     let user_id = create_test_user(&db).await;
-    let quiz_id = db
-        .load_quiz("Quiz".to_string(), make_questions(5), user_id)
-        .await
-        .unwrap();
+    let (_public_id, quiz_id) = load_quiz_with_id(&db, "Quiz", make_questions(5), user_id).await;
 
     // Session 1: exhaust all 5 questions
     let (_, s1_id) = db
@@ -421,10 +407,7 @@ async fn test_unanswered_mode_fallback_no_duplicates() {
 async fn test_unanswered_mode_partial_fallback() {
     let db = create_test_db().await;
     let user_id = create_test_user(&db).await;
-    let quiz_id = db
-        .load_quiz("Quiz".to_string(), make_questions(6), user_id)
-        .await
-        .unwrap();
+    let (_public_id, quiz_id) = load_quiz_with_id(&db, "Quiz", make_questions(6), user_id).await;
 
     // Session 1: use 4 out of 6
     let (_, s1_id) = db
@@ -475,10 +458,7 @@ async fn test_unanswered_mode_partial_fallback() {
 async fn test_create_session_with_questions_deduplicates_question_ids() {
     let db = create_test_db().await;
     let user_id = create_test_user(&db).await;
-    let quiz_id = db
-        .load_quiz("Quiz".to_string(), make_questions(5), user_id)
-        .await
-        .unwrap();
+    let (_public_id, quiz_id) = load_quiz_with_id(&db, "Quiz", make_questions(5), user_id).await;
 
     let mut all_questions = Vec::new();
     for idx in 0..5 {
@@ -511,10 +491,7 @@ async fn test_create_session_with_questions_deduplicates_question_ids() {
 async fn test_bookmark_default_false() {
     let db = create_test_db().await;
     let user_id = create_test_user(&db).await;
-    let quiz_id = db
-        .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
-        .await
-        .unwrap();
+    let (_public_id, quiz_id) = load_quiz_with_id(&db, "Quiz", minimal_questions(), user_id).await;
     let (_, session_id) = db
         .create_session("bm-test", quiz_id, 5, "random", user_id)
         .await
@@ -532,10 +509,7 @@ async fn test_bookmark_default_false() {
 async fn test_bookmark_toggle() {
     let db = create_test_db().await;
     let user_id = create_test_user(&db).await;
-    let quiz_id = db
-        .load_quiz("Quiz".to_string(), minimal_questions(), user_id)
-        .await
-        .unwrap();
+    let (_public_id, quiz_id) = load_quiz_with_id(&db, "Quiz", minimal_questions(), user_id).await;
     let (_, session_id) = db
         .create_session("bm-toggle", quiz_id, 5, "random", user_id)
         .await
@@ -559,10 +533,7 @@ async fn test_bookmark_toggle() {
 async fn test_get_bookmarked_questions() {
     let db = create_test_db().await;
     let user_id = create_test_user(&db).await;
-    let quiz_id = db
-        .load_quiz("Quiz".to_string(), make_questions(5), user_id)
-        .await
-        .unwrap();
+    let (_public_id, quiz_id) = load_quiz_with_id(&db, "Quiz", make_questions(5), user_id).await;
     let (_, session_id) = db
         .create_session("bm-list", quiz_id, 5, "random", user_id)
         .await
@@ -668,12 +639,8 @@ async fn test_quiz_isolation_between_users() {
         .await
         .unwrap();
 
-    db.load_quiz("User1 Quiz".to_string(), minimal_questions(), user1)
-        .await
-        .unwrap();
-    db.load_quiz("User2 Quiz".to_string(), minimal_questions(), user2)
-        .await
-        .unwrap();
+    load_quiz_with_id(&db, "User1 Quiz", minimal_questions(), user1).await;
+    load_quiz_with_id(&db, "User2 Quiz", minimal_questions(), user2).await;
 
     let quizzes1 = db.quizzes(user1).await.unwrap();
     assert_eq!(quizzes1.len(), 1);

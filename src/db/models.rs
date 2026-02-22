@@ -10,6 +10,7 @@ pub struct AuthUser {
 #[derive(sqlx::FromRow)]
 pub struct Quiz {
     pub id: i32,
+    pub public_id: String,
     pub name: String,
     pub count: i64,
 }
@@ -93,4 +94,27 @@ pub struct QuizCategoryOverallStats {
     pub unique_asked: i64,
     pub total_correct: i64,
     pub total_answered: i64,
+}
+
+/// Combined question context from session_questions + questions + quizzes (single JOIN query)
+#[derive(sqlx::FromRow)]
+pub struct QuestionContext {
+    pub quiz_name: String,
+    pub quiz_public_id: String,
+    pub question_id: i32,
+    pub question: String,
+    pub is_multiple_choice: bool,
+    pub is_answered: bool,
+    pub is_bookmarked: bool,
+    pub questions_count: i32,
+}
+
+/// Option with selection status for the current session (avoids separate selected_answers query)
+#[derive(sqlx::FromRow)]
+pub struct OptionWithSelection {
+    pub id: i32,
+    pub is_answer: bool,
+    pub option: String,
+    pub explanation: Option<String>,
+    pub is_selected: bool,
 }

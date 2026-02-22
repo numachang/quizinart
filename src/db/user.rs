@@ -285,7 +285,7 @@ impl Db {
     /// Migrate existing admin data to user system (V5 migration logic)
     pub async fn migrate_admin_to_user(&self) -> Result<()> {
         let needs_migration: bool =
-            sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM quizzes WHERE user_id IS NULL)")
+            sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM quizzes WHERE owner_id IS NULL)")
                 .fetch_one(&self.pool)
                 .await?;
 
@@ -310,10 +310,18 @@ impl Db {
             }
         };
 
-        sqlx::query("UPDATE quizzes SET user_id = $1 WHERE user_id IS NULL")
+        sqlx::query("UPDATE quizzes SET owner_id = $1 WHERE owner_id IS NULL")
             .bind(user_id)
             .execute(&self.pool)
             .await?;
+
+        // Ensure migrated quizzes are in user_quizzes library
+        sqlx::query(
+            "INSERT INTO user_quizzes (user_id, quiz_id) SELECT $1, id FROM quizzes WHERE owner_id = $1 ON CONFLICT DO NOTHING",
+        )
+        .bind(user_id)
+        .execute(&self.pool)
+        .await?;
 
         sqlx::query("UPDATE quiz_sessions SET user_id = $1 WHERE user_id IS NULL")
             .bind(user_id)
@@ -321,6 +329,30 @@ impl Db {
             .await?;
 
         tracing::info!("admin-to-user migration complete: assigned to user_id={user_id}");
+        Ok(())
+    }
+
+    /// Backfill public_id (ULID) for quizzes that don't have one yet.
+    pub async fn backfill_quiz_public_ids(&self) -> Result<()> {
+        let orphan_ids: Vec<i32> =
+            sqlx::query_scalar("SELECT id FROM quizzes WHERE public_id IS NULL")
+                .fetch_all(&self.pool)
+                .await?;
+
+        if orphan_ids.is_empty() {
+            return Ok(());
+        }
+
+        for quiz_id in &orphan_ids {
+            let public_id = Ulid::new().to_string();
+            sqlx::query("UPDATE quizzes SET public_id = $1 WHERE id = $2")
+                .bind(&public_id)
+                .bind(quiz_id)
+                .execute(&self.pool)
+                .await?;
+        }
+
+        tracing::info!("backfilled public_id for {} quizzes", orphan_ids.len());
         Ok(())
     }
 }

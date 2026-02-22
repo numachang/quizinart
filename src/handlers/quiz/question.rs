@@ -19,10 +19,16 @@ pub(crate) async fn quiz_page(
     AuthGuard(user): AuthGuard,
     IsHtmx(is_htmx): IsHtmx,
     State(state): State<AppState>,
-    Path(quiz_id): Path<i32>,
+    Path(public_id): Path<String>,
     jar: CookieJar,
     Locale(locale): Locale,
 ) -> Result<Markup, AppError> {
+    let quiz_id = state
+        .db
+        .resolve_quiz_id(&public_id)
+        .await
+        .reject("quiz not found")?;
+
     let token = jar
         .get(names::QUIZ_SESSION_COOKIE_NAME)
         .map(|c| c.value().to_string());
@@ -50,15 +56,15 @@ pub(crate) async fn quiz_page(
                 }
                 Ok(_) => {
                     // Session belongs to a different quiz; show start page for this quiz
-                    super::session::page(&state.db, quiz_id, &locale).await?
+                    super::session::page(&state.db, quiz_id, &public_id, &locale).await?
                 }
                 Err(e) => {
                     tracing::error!("could not get session for {token}: {e}");
-                    super::session::page(&state.db, quiz_id, &locale).await?
+                    super::session::page(&state.db, quiz_id, &public_id, &locale).await?
                 }
             }
         }
-        None => super::session::page(&state.db, quiz_id, &locale).await?,
+        None => super::session::page(&state.db, quiz_id, &public_id, &locale).await?,
     };
 
     Ok(views::render(
@@ -137,11 +143,12 @@ async fn submit_answer(
         return Err(AppError::Input("no options provided"));
     };
 
-    let question_idx = state
-        .db
-        .current_question_index(session.id)
-        .await
-        .reject("could not get current question index")?;
+    // Parallel: current_question_index + questions_count (both only need session.id)
+    let (question_idx, questions_count) = tokio::try_join!(
+        state.db.current_question_index(session.id),
+        state.db.questions_count_for_session(session.id),
+    )
+    .reject("could not get question state")?;
 
     let question_id = state
         .db
@@ -149,57 +156,41 @@ async fn submit_answer(
         .await
         .reject("could not get question id")?;
 
-    let question_data = state
-        .db
-        .get_question(question_id)
-        .await
-        .reject("could not get question")?;
+    // Parallel: get_question + get_correct_option_ids (both only need question_id)
+    let (question_data, correct_ids) = tokio::try_join!(
+        state.db.get_question(question_id),
+        state.db.get_correct_option_ids(question_id),
+    )
+    .reject("could not get question data")?;
 
-    let is_correct = {
-        let correct_ids = state
-            .db
-            .get_correct_option_ids(question_id)
-            .await
-            .reject("could not get correct option ids")?;
+    let is_correct = if question_data.is_multiple_choice {
+        let mut selected_sorted = selected_ids.clone();
+        selected_sorted.sort();
+        let mut correct_sorted = correct_ids.clone();
+        correct_sorted.sort();
 
-        if question_data.is_multiple_choice {
-            let mut selected_sorted = selected_ids.clone();
-            selected_sorted.sort();
-            let mut correct_sorted = correct_ids.clone();
-            correct_sorted.sort();
-
-            tracing::info!(
-                "Multiple choice validation: selected={:?}, correct={:?}, match={}",
-                selected_sorted,
-                correct_sorted,
-                selected_sorted == correct_sorted
-            );
-
+        tracing::info!(
+            "Multiple choice validation: selected={:?}, correct={:?}, match={}",
+            selected_sorted,
+            correct_sorted,
             selected_sorted == correct_sorted
-        } else {
-            correct_ids.contains(&selected_ids[0])
-        }
+        );
+
+        selected_sorted == correct_sorted
+    } else {
+        correct_ids.contains(&selected_ids[0])
     };
 
-    for option_id in &selected_ids {
+    // Parallel: create_answers_batch + update_question_result (independent writes)
+    tokio::try_join!(
         state
             .db
-            .create_answer(session.id, question_id, *option_id, is_correct)
-            .await
-            .reject("could not create answer")?;
-    }
-
-    state
-        .db
-        .update_question_result(session.id, question_id, is_correct)
-        .await
-        .reject("could not update question result")?;
-
-    let questions_count = state
-        .db
-        .questions_count_for_session(session.id)
-        .await
-        .reject("could not get question count")?;
+            .create_answers_batch(session.id, question_id, &selected_ids, is_correct),
+        state
+            .db
+            .update_question_result(session.id, question_id, is_correct),
+    )
+    .reject("could not save answer")?;
 
     let is_final = question_idx + 1 == questions_count;
 
@@ -312,6 +303,7 @@ pub(crate) async fn toggle_bookmark(
 }
 
 // --- Helper functions: DB queries + view delegation ---
+// Phase 1 optimization: merged queries (7 → 2 for question, 5 → 2 for answer)
 
 pub async fn question(
     db: &crate::db::Db,
@@ -321,53 +313,48 @@ pub async fn question(
     is_resuming: bool,
     locale: &str,
 ) -> Result<Markup, AppError> {
-    let quiz_name = db
-        .quiz_name(quiz_id)
+    let ctx = db
+        .get_question_context(session_id, quiz_id, question_idx)
         .await
-        .reject("could not get quiz name")?;
+        .reject("could not get question context")?;
 
-    let question_id = db
-        .get_question_by_idx(session_id, question_idx)
+    let options_with_sel = db
+        .get_options_with_selection(session_id, ctx.question_id)
         .await
-        .reject("could not get question id")?;
+        .reject("could not get options")?;
 
-    let question_data = db
-        .get_question(question_id)
-        .await
-        .reject("could not get question")?;
+    let selected_answers: Vec<i32> = options_with_sel
+        .iter()
+        .filter(|o| o.is_selected)
+        .map(|o| o.id)
+        .collect();
 
-    let questions_count = db
-        .questions_count_for_session(session_id)
-        .await
-        .reject("could not get question count")?;
-
-    let is_answered = db
-        .is_question_answered(session_id, question_id)
-        .await
-        .reject("could not check if question is answered")?;
-
-    let selected_answers = db
-        .get_selected_answers(session_id, question_id)
-        .await
-        .reject("could not get selected answers")?;
-
-    let is_bookmarked = db
-        .is_question_bookmarked(session_id, question_id)
-        .await
-        .reject("could not check bookmark status")?;
+    let options: Vec<crate::db::QuestionOptionModel> = options_with_sel
+        .into_iter()
+        .map(|o| crate::db::QuestionOptionModel {
+            id: o.id,
+            is_answer: o.is_answer,
+            option: o.option,
+            explanation: o.explanation,
+        })
+        .collect();
 
     Ok(quiz_views::question(
         quiz_views::QuestionData {
-            quiz_name,
-            question: question_data,
+            quiz_name: ctx.quiz_name,
+            question: crate::db::QuestionModel {
+                question: ctx.question,
+                is_multiple_choice: ctx.is_multiple_choice,
+                options,
+            },
             question_idx,
-            questions_count,
-            is_answered,
+            questions_count: ctx.questions_count,
+            is_answered: ctx.is_answered,
             selected_answers,
             is_resuming,
             session_id,
-            question_id,
-            is_bookmarked,
+            question_id: ctx.question_id,
+            is_bookmarked: ctx.is_bookmarked,
         },
         locale,
     ))
@@ -384,44 +371,33 @@ pub async fn answer(
     current_idx: Option<i32>,
     locale: &str,
 ) -> Result<Markup, AppError> {
-    let quiz_name = db
-        .quiz_name(quiz_id)
+    let ctx = db
+        .get_question_context(session_id, quiz_id, question_idx)
         .await
-        .reject("could not get quiz name")?;
+        .reject("could not get question context")?;
 
-    let question_id = db
-        .get_question_by_idx(session_id, question_idx)
+    let options = db
+        .get_options(ctx.question_id)
         .await
-        .reject("could not get question id")?;
-
-    let question_data = db
-        .get_question(question_id)
-        .await
-        .reject("could not get question")?;
-
-    let questions_count = db
-        .questions_count_for_session(session_id)
-        .await
-        .reject("could not get question count")?;
-
-    let is_bookmarked = db
-        .is_question_bookmarked(session_id, question_id)
-        .await
-        .reject("could not check bookmark status")?;
+        .reject("could not get options")?;
 
     Ok(quiz_views::answer(
         quiz_views::AnswerData {
-            quiz_name,
-            question: question_data,
+            quiz_name: ctx.quiz_name,
+            question: crate::db::QuestionModel {
+                question: ctx.question,
+                is_multiple_choice: ctx.is_multiple_choice,
+                options,
+            },
             question_idx,
-            questions_count,
+            questions_count: ctx.questions_count,
             session_id,
-            quiz_id,
+            quiz_id: ctx.quiz_public_id,
             selected,
             from_context,
             current_idx,
-            question_id,
-            is_bookmarked,
+            question_id: ctx.question_id,
+            is_bookmarked: ctx.is_bookmarked,
         },
         locale,
     ))

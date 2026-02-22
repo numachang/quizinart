@@ -11,7 +11,7 @@ use rust_i18n::t;
 
 pub struct DashboardData {
     pub quiz_name: String,
-    pub quiz_id: i32,
+    pub quiz_id: String,
     pub sessions_count: i32,
     pub overall: QuizOverallStats,
     pub cat_stats: Vec<QuizCategoryOverallStats>,
@@ -20,14 +20,14 @@ pub struct DashboardData {
 
 pub struct SessionHistoryData {
     pub quiz_name: String,
-    pub quiz_id: i32,
+    pub quiz_id: String,
     pub sessions: Vec<SessionReportModel>,
 }
 
 pub struct SessionResultData {
     pub session_name: String,
     pub session_id: i32,
-    pub quiz_id: i32,
+    pub quiz_id: String,
     pub quiz_name: String,
     pub selection_mode: String,
     pub questions_count: i32,
@@ -49,13 +49,13 @@ pub fn dashboard(data: DashboardData, locale: &str) -> Markup {
         h1 { (data.quiz_name) }
 
         div style="display:flex; gap:1rem; margin-bottom:1rem; flex-wrap:wrap;" {
-            button hx-get=(names::quiz_page_url(data.quiz_id))
+            button hx-get=(names::quiz_page_url(&data.quiz_id))
                    hx-push-url="true"
                    hx-target="main"
                    style="width: fit-content; background-color: #007bff; color: white; font-weight: 500;" {
                 (t!("dashboard.start_new", locale = locale))
             }
-            button hx-get=(names::quiz_session_history_url(data.quiz_id))
+            button hx-get=(names::quiz_session_history_url(&data.quiz_id))
                    hx-push-url="true"
                    hx-target="main"
                    style="width: fit-content;" {
@@ -179,7 +179,7 @@ pub fn session_history(data: SessionHistoryData, locale: &str) -> Markup {
     html! {
         h1 { (data.quiz_name) }
         div style="margin-bottom: 1rem;" {
-            button hx-get=(names::quiz_dashboard_url(data.quiz_id))
+            button hx-get=(names::quiz_dashboard_url(&data.quiz_id))
                    hx-push-url="true"
                    hx-target="main"
                    style="width: fit-content;" {
@@ -196,7 +196,7 @@ pub fn session_history(data: SessionHistoryData, locale: &str) -> Markup {
         }
 
         div style="margin-top: 2rem;" {
-            button hx-get=(names::quiz_dashboard_url(data.quiz_id))
+            button hx-get=(names::quiz_dashboard_url(&data.quiz_id))
                    hx-push-url="true"
                    hx-target="main"
                    style="width: fit-content;" {
@@ -495,7 +495,7 @@ pub fn session_result(data: SessionResultData, locale: &str) -> Markup {
         }
 
         div style="margin-top: 2rem;" {
-            button hx-get=(names::quiz_dashboard_url(data.quiz_id))
+            button hx-get=(names::quiz_dashboard_url(&data.quiz_id))
                    hx-push-url="true"
                    hx-target="main"
                    style="width: fit-content;" {

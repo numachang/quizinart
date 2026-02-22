@@ -14,24 +14,24 @@ pub const RESET_PASSWORD_URL: &str = "/reset-password";
 pub const ACCOUNT_URL: &str = "/account";
 pub const CHANGE_PASSWORD_URL: &str = "/change-password";
 
-pub fn quiz_dashboard_url(quiz_id: i32) -> String {
-    format!("/quiz/{quiz_id}/dashboard")
+pub fn quiz_dashboard_url(public_id: &str) -> String {
+    format!("/quiz/{public_id}/dashboard")
 }
 
-pub fn quiz_session_history_url(quiz_id: i32) -> String {
-    format!("/quiz/{quiz_id}/sessions")
+pub fn quiz_session_history_url(public_id: &str) -> String {
+    format!("/quiz/{public_id}/sessions")
 }
 
-pub fn quiz_page_url(quiz_id: i32) -> String {
-    format!("/quiz/{quiz_id}")
+pub fn quiz_page_url(public_id: &str) -> String {
+    format!("/quiz/{public_id}")
 }
 
-pub fn delete_quiz_url(quiz_id: i32) -> String {
-    format!("/delete-quiz/{quiz_id}")
+pub fn delete_quiz_url(public_id: &str) -> String {
+    format!("/delete-quiz/{public_id}")
 }
 
-pub fn start_session_url(quiz_id: i32) -> String {
-    format!("/start-session/{quiz_id}")
+pub fn start_session_url(public_id: &str) -> String {
+    format!("/start-session/{public_id}")
 }
 
 pub fn results_url(session_id: i32) -> String {

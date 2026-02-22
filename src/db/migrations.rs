@@ -30,6 +30,10 @@ const MIGRATIONS: &[Migration] = &[
         version: "V6",
         sql: include_str!("../../migrations/V6__add_password_reset.sql"),
     },
+    Migration {
+        version: "V7",
+        sql: include_str!("../../migrations/V7__global_quizzes.sql"),
+    },
 ];
 
 pub async fn run(pool: &sqlx::PgPool) -> Result<()> {

@@ -44,6 +44,9 @@ impl Db {
         // Run data migration: assign orphan quizzes/sessions to a default user
         instance.migrate_admin_to_user().await?;
 
+        // Backfill public_id (ULID) for quizzes that don't have one yet
+        instance.backfill_quiz_public_ids().await?;
+
         Ok(instance)
     }
 

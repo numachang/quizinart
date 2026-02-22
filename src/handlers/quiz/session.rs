@@ -20,10 +20,16 @@ use crate::{
 pub(crate) async fn start_session(
     AuthGuard(user): AuthGuard,
     State(state): State<AppState>,
-    Path(quiz_id): Path<i32>,
+    Path(public_id): Path<String>,
     Locale(locale): Locale,
     Json(body): Json<StartSessionBody>,
 ) -> Result<axum::response::Response, AppError> {
+    let quiz_id = state
+        .db
+        .resolve_quiz_id(&public_id)
+        .await
+        .reject("quiz not found")?;
+
     let question_count = body
         .question_count
         .clamp(names::MIN_QUESTION_COUNT, names::MAX_QUESTION_COUNT);
@@ -55,7 +61,7 @@ pub(crate) async fn start_session(
 
             let error_html = views::titled(
                 "Error",
-                quiz_views::session_name_error_page(&body.name, quiz_id, &locale),
+                quiz_views::session_name_error_page(&body.name, &public_id, &locale),
             );
 
             return Ok(error_html.into_response());
@@ -311,6 +317,12 @@ pub(crate) async fn delete_session(
         .reject("could not get session")?;
     let quiz_id = session.quiz_id;
 
+    let quiz_public_id = state
+        .db
+        .quiz_public_id(quiz_id)
+        .await
+        .reject("could not get quiz public id")?;
+
     state
         .db
         .delete_session(session_id)
@@ -319,7 +331,7 @@ pub(crate) async fn delete_session(
 
     Ok(views::titled(
         "Quiz Dashboard",
-        super::dashboard::dashboard(&state.db, quiz_id, &locale).await?,
+        super::dashboard::dashboard(&state.db, quiz_id, &quiz_public_id, &locale).await?,
     ))
 }
 
@@ -337,6 +349,12 @@ pub(crate) async fn rename_session(
         .reject("could not get session")?;
     let quiz_id = session.quiz_id;
 
+    let quiz_public_id = state
+        .db
+        .quiz_public_id(quiz_id)
+        .await
+        .reject("could not get quiz public id")?;
+
     if let Err(e) = state
         .db
         .rename_session(session_id, &body.name, quiz_id)
@@ -347,13 +365,14 @@ pub(crate) async fn rename_session(
 
     Ok(views::titled(
         "Quiz Dashboard",
-        super::dashboard::dashboard(&state.db, quiz_id, &locale).await?,
+        super::dashboard::dashboard(&state.db, quiz_id, &quiz_public_id, &locale).await?,
     ))
 }
 
 pub(crate) async fn page(
     db: &crate::db::Db,
     quiz_id: i32,
+    quiz_public_id: &str,
     locale: &str,
 ) -> Result<Markup, AppError> {
     let quiz_name = db
@@ -370,7 +389,7 @@ pub(crate) async fn page(
         quiz_views::StartPageData {
             quiz_name,
             total_questions,
-            quiz_id,
+            quiz_id: quiz_public_id.to_string(),
         },
         locale,
     ))

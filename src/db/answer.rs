@@ -57,6 +57,40 @@ impl Db {
         Ok(())
     }
 
+    /// Batch insert answers for multiple selected options in a single round-trip using UNNEST.
+    pub async fn create_answers_batch(
+        &self,
+        session_id: i32,
+        question_id: i32,
+        option_ids: &[i32],
+        is_correct: bool,
+    ) -> Result<()> {
+        if option_ids.is_empty() {
+            return Ok(());
+        }
+
+        let result = sqlx::query(
+            r#"
+            INSERT INTO user_answers (is_correct, option_id, question_id, session_id)
+            SELECT $1, o, $3, $4
+            FROM UNNEST($2::INT4[]) AS t(o)
+            "#,
+        )
+        .bind(is_correct)
+        .bind(option_ids)
+        .bind(question_id)
+        .bind(session_id)
+        .execute(&self.pool)
+        .await?;
+
+        tracing::info!(
+            "batch answers created for session={session_id} question={question_id}: {:?}",
+            result.rows_affected()
+        );
+
+        Ok(())
+    }
+
     /// session_questions の is_correct を更新
     pub async fn update_question_result(
         &self,

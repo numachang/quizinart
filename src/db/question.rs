@@ -2,7 +2,8 @@ use color_eyre::{eyre::OptionExt, Result};
 use sqlx::Row;
 
 use super::models::{
-    QuestionModel, QuestionOptionModel, QuizCategoryOverallStats, QuizOverallStats,
+    OptionWithSelection, QuestionContext, QuestionModel, QuestionOptionModel,
+    QuizCategoryOverallStats, QuizOverallStats,
 };
 use super::Db;
 
@@ -142,5 +143,75 @@ impl Db {
         .await?;
 
         Ok(ids)
+    }
+
+    /// Combined query: question metadata + session state in a single JOIN (replaces 5 separate queries)
+    pub async fn get_question_context(
+        &self,
+        session_id: i32,
+        quiz_id: i32,
+        question_idx: i32,
+    ) -> Result<QuestionContext> {
+        let ctx = sqlx::query_as::<_, QuestionContext>(
+            r#"
+            SELECT
+                qz.name AS quiz_name,
+                qz.public_id AS quiz_public_id,
+                sq.question_id,
+                q.question,
+                q.is_multiple_choice,
+                sq.is_correct IS NOT NULL AS is_answered,
+                sq.is_bookmarked,
+                (SELECT COUNT(*)::INT FROM session_questions WHERE session_id = $1) AS questions_count
+            FROM session_questions sq
+            JOIN questions q ON q.id = sq.question_id
+            JOIN quizzes qz ON qz.id = $2
+            WHERE sq.session_id = $1 AND sq.question_number = $3
+            "#,
+        )
+        .bind(session_id)
+        .bind(quiz_id)
+        .bind(question_idx)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(ctx)
+    }
+
+    /// Options with per-session selection status (replaces separate get_question + get_selected_answers)
+    pub async fn get_options_with_selection(
+        &self,
+        session_id: i32,
+        question_id: i32,
+    ) -> Result<Vec<OptionWithSelection>> {
+        let options = sqlx::query_as::<_, OptionWithSelection>(
+            r#"
+            SELECT o.id, o.is_answer, o.option, o.explanation,
+                   EXISTS(
+                       SELECT 1 FROM user_answers ua
+                       WHERE ua.option_id = o.id AND ua.session_id = $1 AND ua.question_id = $2
+                   ) AS is_selected
+            FROM options o
+            WHERE o.question_id = $2
+            "#,
+        )
+        .bind(session_id)
+        .bind(question_id)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(options)
+    }
+
+    /// Fetch options only (without selection status)
+    pub async fn get_options(&self, question_id: i32) -> Result<Vec<QuestionOptionModel>> {
+        let options = sqlx::query_as::<_, QuestionOptionModel>(
+            "SELECT id, is_answer, option, explanation FROM options WHERE question_id = $1",
+        )
+        .bind(question_id)
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(options)
     }
 }

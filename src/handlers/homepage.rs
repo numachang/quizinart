@@ -559,23 +559,29 @@ async fn create_quiz(
     let questions = serde_json::from_str::<models::Questions>(&quiz_file)
         .reject_input("failed to decode quiz file")?;
 
-    let quiz_id = state
+    let public_id = state
         .db
         .load_quiz(quiz_name, questions, user.id)
         .await
         .reject_input("failed to load quiz")?;
 
+    let quiz_id = state
+        .db
+        .resolve_quiz_id(&public_id)
+        .await
+        .reject("failed to resolve quiz")?;
+
     let mut headers = HeaderMap::new();
     headers.insert(
         "HX-Replace-Url",
-        names::quiz_dashboard_url(quiz_id).parse().unwrap(),
+        names::quiz_dashboard_url(&public_id).parse().unwrap(),
     );
 
     Ok((
         headers,
         views::titled(
             "Quiz Dashboard",
-            quiz::dashboard(&state.db, quiz_id, &locale).await?,
+            quiz::dashboard(&state.db, quiz_id, &public_id, &locale).await?,
         ),
     ))
 }
@@ -583,11 +589,11 @@ async fn create_quiz(
 async fn delete_quiz(
     AuthGuard(user): AuthGuard,
     State(state): State<AppState>,
-    axum::extract::Path(quiz_id): axum::extract::Path<i32>,
+    axum::extract::Path(public_id): axum::extract::Path<String>,
 ) -> Result<maud::Markup, AppError> {
     state
         .db
-        .delete_quiz(quiz_id, user.id)
+        .delete_quiz(&public_id, user.id)
         .await
         .reject("failed to delete quiz")?;
 

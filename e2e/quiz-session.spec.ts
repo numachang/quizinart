@@ -5,11 +5,11 @@ import { registerUser, createQuiz } from "./helpers";
 async function answerCurrentQuestion(
   page: import("@playwright/test").Page
 ): Promise<void> {
-  // Wait for question form and answer options to be ready
+  // Wait for question form and answer options to be fully visible
   await expect(page.locator("#question-form")).toBeVisible();
   await expect(
     page.locator('input[type="radio"][name="option"], input[type="checkbox"][name="options"]').first()
-  ).toBeAttached();
+  ).toBeVisible();
 
   const radioCount = await page
     .locator('input[type="radio"][name="option"]')
@@ -77,14 +77,25 @@ test.describe("quiz session", () => {
     ]);
 
     // First question should be displayed
-    await expect(page.locator("h3")).toBeVisible();
     await expect(page.locator("#question-form")).toBeVisible();
+    await expect(page.locator("h3")).toBeVisible();
+
+    // Wait for answer options to be fully rendered (same pattern as answerCurrentQuestion)
+    await expect(
+      page.locator('input[type="radio"][name="option"], input[type="checkbox"][name="options"]').first()
+    ).toBeVisible();
 
     // Submit button should be disabled initially
     await expect(page.locator("#submit-btn")).toBeDisabled();
 
-    // Click the first radio option
-    await page.locator('input[type="radio"][name="option"]').first().click();
+    // Click the first option (questions are shuffled, so first question may be
+    // single-choice radio or multiple-choice checkbox)
+    const radioCount = await page.locator('input[type="radio"][name="option"]').count();
+    if (radioCount > 0) {
+      await page.locator('input[type="radio"][name="option"]').first().click();
+    } else {
+      await page.locator('input[type="checkbox"][name="options"]').first().click();
+    }
 
     // Submit button should now be enabled
     await expect(page.locator("#submit-btn")).not.toBeDisabled();

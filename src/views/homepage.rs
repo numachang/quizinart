@@ -368,13 +368,13 @@ pub fn quiz_list(quizzes: Vec<Quiz>, locale: &str) -> Markup {
                             hx-target="main"
                             hx-swap="innerHTML"
                             hx-push-url="true"
-                            hx-get=(names::quiz_dashboard_url(quiz.id)) { (t!("homepage.view", locale = locale)) }
+                            hx-get=(names::quiz_dashboard_url(&quiz.public_id)) { (t!("homepage.view", locale = locale)) }
                         button."contrast"
                             hx-trigger="click"
                             hx-target="closest article"
                             hx-swap="outerHTML"
                             hx-confirm=(t!("homepage.delete_confirm", locale = locale))
-                            hx-delete=(names::delete_quiz_url(quiz.id)) { (t!("homepage.delete", locale = locale)) }
+                            hx-delete=(names::delete_quiz_url(&quiz.public_id)) { (t!("homepage.delete", locale = locale)) }
                     }
                 }
             }

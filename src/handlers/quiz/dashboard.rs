@@ -13,13 +13,19 @@ pub(crate) async fn quiz_dashboard(
     AuthGuard(user): AuthGuard,
     IsHtmx(is_htmx): IsHtmx,
     State(state): State<AppState>,
-    Path(quiz_id): Path<i32>,
+    Path(public_id): Path<String>,
     Locale(locale): Locale,
 ) -> Result<Markup, AppError> {
+    let quiz_id = state
+        .db
+        .resolve_quiz_id(&public_id)
+        .await
+        .reject("quiz not found")?;
+
     Ok(views::render(
         is_htmx,
         "Quiz Dashboard",
-        dashboard(&state.db, quiz_id, &locale).await?,
+        dashboard(&state.db, quiz_id, &public_id, &locale).await?,
         &locale,
         Some(&user.display_name),
     ))
@@ -29,13 +35,19 @@ pub(crate) async fn quiz_session_history(
     AuthGuard(user): AuthGuard,
     IsHtmx(is_htmx): IsHtmx,
     State(state): State<AppState>,
-    Path(quiz_id): Path<i32>,
+    Path(public_id): Path<String>,
     Locale(locale): Locale,
 ) -> Result<Markup, AppError> {
+    let quiz_id = state
+        .db
+        .resolve_quiz_id(&public_id)
+        .await
+        .reject("quiz not found")?;
+
     Ok(views::render(
         is_htmx,
         "Session History",
-        session_history(&state.db, quiz_id, &locale).await?,
+        session_history(&state.db, quiz_id, &public_id, &locale).await?,
         &locale,
         Some(&user.display_name),
     ))
@@ -54,50 +66,33 @@ pub(crate) async fn session_result(
         .await
         .reject("could not get session")?;
 
-    let questions_count = state
-        .db
-        .questions_count_for_session(session.id)
-        .await
-        .reject("could not get question count")?;
-
-    let current_idx = state
-        .db
-        .current_question_index(session.id)
-        .await
-        .reject("could not get current question index")?;
+    let (
+        questions_count,
+        current_idx,
+        correct_answers,
+        answers,
+        quiz_name,
+        category_stats,
+        quiz_public_id,
+    ) = tokio::try_join!(
+        state.db.questions_count_for_session(session.id),
+        state.db.current_question_index(session.id),
+        state.db.correct_answers(session.id),
+        state.db.get_answers(session.id),
+        state.db.quiz_name(session.quiz_id),
+        state.db.get_category_stats(session.id),
+        state.db.quiz_public_id(session.quiz_id),
+    )
+    .reject("could not get session result data")?;
 
     let is_complete = current_idx >= questions_count;
     let answered_count = current_idx;
-
-    let correct_answers = state
-        .db
-        .correct_answers(session.id)
-        .await
-        .reject("could not get correct answer count")?;
-
-    let answers = state
-        .db
-        .get_answers(session.id)
-        .await
-        .reject("could not get answers")?;
-
-    let quiz_name = state
-        .db
-        .quiz_name(session.quiz_id)
-        .await
-        .reject("could not get quiz name")?;
-
-    let category_stats = state
-        .db
-        .get_category_stats(session.id)
-        .await
-        .reject("could not get category stats")?;
 
     let page = quiz_views::session_result(
         quiz_views::SessionResultData {
             session_name: session.name,
             session_id,
-            quiz_id: session.quiz_id,
+            quiz_id: quiz_public_id,
             quiz_name,
             selection_mode: session
                 .selection_mode
@@ -121,36 +116,25 @@ pub(crate) async fn session_result(
     ))
 }
 
-pub async fn dashboard(db: &crate::db::Db, quiz_id: i32, locale: &str) -> Result<Markup, AppError> {
-    let quiz_name = db
-        .quiz_name(quiz_id)
-        .await
-        .reject("could not get quiz name")?;
-
-    let sessions_count = db
-        .sessions_count(quiz_id)
-        .await
-        .reject("could not get sessions count")?;
-
-    let overall = db
-        .get_quiz_overall_stats(quiz_id)
-        .await
-        .reject("could not get quiz overall stats")?;
-
-    let cat_stats = db
-        .get_quiz_category_stats(quiz_id)
-        .await
-        .reject("could not get quiz category stats")?;
-
-    let daily_accuracy = db
-        .get_daily_accuracy(quiz_id)
-        .await
-        .reject("could not get daily accuracy")?;
+pub async fn dashboard(
+    db: &crate::db::Db,
+    quiz_id: i32,
+    quiz_public_id: &str,
+    locale: &str,
+) -> Result<Markup, AppError> {
+    let (quiz_name, sessions_count, overall, cat_stats, daily_accuracy) = tokio::try_join!(
+        db.quiz_name(quiz_id),
+        db.sessions_count(quiz_id),
+        db.get_quiz_overall_stats(quiz_id),
+        db.get_quiz_category_stats(quiz_id),
+        db.get_daily_accuracy(quiz_id),
+    )
+    .reject("could not get dashboard data")?;
 
     Ok(quiz_views::dashboard(
         quiz_views::DashboardData {
             quiz_name,
-            quiz_id,
+            quiz_id: quiz_public_id.to_string(),
             sessions_count,
             overall,
             cat_stats,
@@ -163,22 +147,17 @@ pub async fn dashboard(db: &crate::db::Db, quiz_id: i32, locale: &str) -> Result
 pub async fn session_history(
     db: &crate::db::Db,
     quiz_id: i32,
+    quiz_public_id: &str,
     locale: &str,
 ) -> Result<Markup, AppError> {
-    let quiz_name = db
-        .quiz_name(quiz_id)
-        .await
-        .reject("could not get quiz name")?;
-
-    let sessions = db
-        .get_sessions_report(quiz_id)
-        .await
-        .reject("could not get sessions report")?;
+    let (quiz_name, sessions) =
+        tokio::try_join!(db.quiz_name(quiz_id), db.get_sessions_report(quiz_id),)
+            .reject("could not get session history data")?;
 
     Ok(quiz_views::session_history(
         quiz_views::SessionHistoryData {
             quiz_name,
-            quiz_id,
+            quiz_id: quiz_public_id.to_string(),
             sessions,
         },
         locale,
