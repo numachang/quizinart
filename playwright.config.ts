@@ -42,6 +42,7 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       DATABASE_URL:
+        process.env.E2E_DATABASE_URL ||
         "postgresql://quizinart:password@localhost:5432/quizinart_e2e",
       ADDRESS: `127.0.0.1:${port}`,
       SECURE_COOKIES: "false",

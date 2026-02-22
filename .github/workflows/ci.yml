@@ -57,3 +57,4 @@ jobs:
         run: npx playwright test
         env:
           CI: true
+          E2E_DATABASE_URL: postgresql://quizinart:quizinart@localhost:5432/quizinart_e2e
