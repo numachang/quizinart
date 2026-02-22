@@ -8,6 +8,9 @@ cargo fmt --all -- --check
 echo "Running cargo clippy..."
 cargo clippy --all-targets -- -D warnings
 
+echo "Running Biome check..."
+npx biome ci static/
+
 echo "Running TypeScript type check..."
 npx tsc --noEmit
 
