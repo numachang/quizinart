@@ -42,16 +42,16 @@ pub fn bookmark_button(
         t!("quiz.bookmark", locale = locale).to_string()
     };
     let class = if is_bookmarked {
-        "bookmark-btn active"
+        "bookmark-btn active material-symbols-rounded"
     } else {
-        "bookmark-btn"
+        "bookmark-btn material-symbols-rounded"
     };
     html! {
         button type="button" class=(class)
                hx-post=(format!("/toggle-bookmark/{session_id}/{question_id}"))
                hx-swap="outerHTML"
                title=(title) {
-            "\u{1F516}"
+            "bookmark"
         }
     }
 }

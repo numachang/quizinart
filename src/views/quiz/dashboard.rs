@@ -267,23 +267,43 @@ fn session_history_table(sessions: &[SessionReportModel], locale: &str) -> Marku
                         }
                         td style="white-space: nowrap;" {
                             @let safe_name = serde_json::to_string(&s.name).unwrap_or_default();
-                            @let prompt_label = serde_json::to_string(&t!("dashboard.rename_prompt", locale = locale).to_string()).unwrap_or_default();
-                            @let rename_js = format!(
-                                "var n=prompt({},{});if(n)htmx.ajax('PATCH','{}',{{target:'main',swap:'innerHTML',values:{{name:n}}}})",
-                                prompt_label, safe_name, names::rename_session_url(s.id),
+                            @let open_rename_js = format!(
+                                "document.getElementById('rename-input').value={};document.getElementById('rename-url').value='{}';document.getElementById('rename-dialog').showModal()",
+                                safe_name, names::rename_session_url(s.id),
                             );
-                            button onclick=(rename_js)
-                                    style="width:fit-content;padding:0.25rem 0.5rem;font-size:0.8rem;margin-right:0.25rem;" {
-                                (t!("dashboard.rename_btn", locale = locale))
+                            a."material-symbols-rounded"
+                              onclick=(open_rename_js)
+                              title=(t!("dashboard.rename_btn", locale = locale))
+                              style="cursor: pointer; font-size: 1.2rem; opacity: 0.5; transition: opacity 0.15s; margin-right: 0.5rem;" {
+                                "edit"
                             }
-                            button hx-delete=(names::delete_session_url(s.id))
-                                    hx-target="main"
-                                    hx-swap="innerHTML"
-                                    hx-confirm=(t!("dashboard.delete_session_confirm", locale = locale))
-                                    style="width:fit-content;padding:0.25rem 0.5rem;font-size:0.8rem;background-color:#dc3545;color:white;" {
-                                (t!("dashboard.delete_btn", locale = locale))
+                            a."material-symbols-rounded"
+                              hx-delete=(names::delete_session_url(s.id))
+                              hx-target="main"
+                              hx-swap="innerHTML"
+                              hx-confirm=(t!("dashboard.delete_session_confirm", locale = locale))
+                              title=(t!("dashboard.delete_btn", locale = locale))
+                              style="cursor: pointer; color: var(--pico-del-color, #dc3545); font-size: 1.2rem; opacity: 0.5; transition: opacity 0.15s;" {
+                                "delete"
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        dialog id="rename-dialog" {
+            article {
+                p { (t!("dashboard.rename_prompt", locale = locale)) }
+                input id="rename-input" type="text" required="true" autocomplete="off";
+                input id="rename-url" type="hidden";
+                footer style="display: flex; gap: 0.5rem; justify-content: flex-end;" {
+                    button onclick="document.getElementById('rename-dialog').close()"
+                           class="secondary" {
+                        (t!("quiz.abandon_cancel", locale = locale))
+                    }
+                    button onclick="var u=document.getElementById('rename-url').value;var n=document.getElementById('rename-input').value;if(n){htmx.ajax('PATCH',u,{target:'main',swap:'innerHTML',values:{name:n}})};document.getElementById('rename-dialog').close()" {
+                        (t!("dashboard.rename_btn", locale = locale))
                     }
                 }
             }
@@ -480,7 +500,7 @@ pub fn session_result(data: SessionResultData, locale: &str) -> Markup {
                     th { (t!("result.question_hash", locale = locale)) }
                     th { (t!("result.question_col", locale = locale)) }
                     th { (t!("result.correct_col", locale = locale)) }
-                    th { (t!("result.bookmark_col", locale = locale)) }
+                    th { span."material-symbols-rounded" style="font-size: 1.1rem;" { "bookmark" } }
                 } }
                 tbody {
                     @for a in &data.answers {
@@ -495,8 +515,18 @@ pub fn session_result(data: SessionResultData, locale: &str) -> Markup {
                            hx-target="main" {
                             td { (a.question_idx + 1) }
                             td { (a.question) }
-                            td { (if a.is_correct { "\u{1F7E2}" } else { "\u{1F534}" }) }
-                            td { @if a.is_bookmarked { "\u{1F516}" } }
+                            td {
+                                span."material-symbols-rounded" style=(if a.is_correct { "color: #28a745; font-size: 1.1rem;" } else { "color: #dc3545; font-size: 1.1rem;" }) {
+                                    (if a.is_correct { "check_circle" } else { "cancel" })
+                                }
+                            }
+                            td {
+                                @if a.is_bookmarked {
+                                    span."material-symbols-rounded" style="font-size: 1.1rem;" {
+                                        "bookmark"
+                                    }
+                                }
+                            }
                          }
                     }
                 }
