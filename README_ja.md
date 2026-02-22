@@ -2,7 +2,7 @@
 
 [English](README.md)
 
-セルフホスト型の学習特化クイズアプリケーション。Rust、HTMX、libSQL で構築。
+セルフホスト型の学習特化クイズアプリケーション。Rust、HTMX、PostgreSQL で構築。
 
 [frectonz/quizzy](https://github.com/frectonz/quizzy) をフォークし、効果的な学習のための機能を追加しています。
 
@@ -30,9 +30,9 @@
 
 | レイヤー | 技術 |
 |---------|------|
-| バックエンド | Rust, Warp, Maud |
+| バックエンド | Rust, Axum, Maud |
 | フロントエンド | HTMX, PicoCSS |
-| データベース | libSQL (SQLite互換、リモートはTurso) |
+| データベース | PostgreSQL（Docker ローカル、本番は Neon） |
 
 ## クイックスタート
 
@@ -50,7 +50,7 @@ cp .env.example .env
 cargo run --manifest-path quizinart/Cargo.toml
 ```
 
-`.env.example` にはローカル開発用のデフォルト値（SQLiteファイルDB、ポート1414）が含まれています。
+`.env.example` にはローカル開発用のデフォルト値（ポート1414）が含まれています。`docker compose up -d` で PostgreSQL コンテナを起動してから実行してください。
 
 ブラウザで http://127.0.0.1:1414 を開きます。
 
