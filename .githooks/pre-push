@@ -7,6 +7,9 @@ cargo fmt --all -- --check
 echo "=== pre-push: cargo clippy ==="
 cargo clippy --all-targets --all-features -- -D warnings
 
+echo "=== pre-push: biome check ==="
+npx biome ci static/
+
 echo "=== pre-push: playwright e2e tests ==="
 npx playwright test
 
