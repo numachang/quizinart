@@ -72,8 +72,10 @@ source "$HOME/.cargo/env"
 #### 2. Build tools (required by libsql-ffi / pq)
 
 ```bash
-sudo apt update && sudo apt install -y build-essential pkg-config libssl-dev
+sudo apt update && sudo apt install -y build-essential pkg-config libssl-dev postgresql-client
 ```
+
+`postgresql-client` provides `psql`, useful for inspecting the local database directly.
 
 #### 3. Docker (required for local PostgreSQL)
 

@@ -33,6 +33,7 @@ node_modules/
 /test-results/
 /playwright-report/
 /e2e_test.db*
+.playwright-port
 
 # Accidental files
 nul

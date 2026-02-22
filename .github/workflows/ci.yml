@@ -42,3 +42,18 @@ jobs:
 
       - name: Test
         run: cargo test --all-targets --all-features
+
+      - name: Create E2E database
+        run: PGPASSWORD=quizinart psql -h localhost -U quizinart -d quizinart_test -c "CREATE DATABASE quizinart_e2e OWNER quizinart;"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Playwright dependencies
+        run: npm ci && npx playwright install --with-deps chromium
+
+      - name: E2E Tests
+        run: npx playwright test
+        env:
+          CI: true

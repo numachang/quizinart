@@ -72,8 +72,10 @@ source "$HOME/.cargo/env"
 #### 2. ビルドツール（libsql-ffi / pq のビルドに必要）
 
 ```bash
-sudo apt update && sudo apt install -y build-essential pkg-config libssl-dev
+sudo apt update && sudo apt install -y build-essential pkg-config libssl-dev postgresql-client
 ```
+
+`postgresql-client` は `psql` コマンドを提供し、ローカルデータベースの直接確認に便利です。
 
 #### 3. Docker（ローカル PostgreSQL に必要）
 
