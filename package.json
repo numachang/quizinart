@@ -1,6 +1,7 @@
 {
   "private": true,
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks",
     "check": "biome check static/",
     "check:ci": "biome ci static/",
     "format": "biome check --write static/",
