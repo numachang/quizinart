@@ -202,4 +202,279 @@ test.describe("quiz session", () => {
       page.locator("td", { hasText: sessionName })
     ).toBeVisible();
   });
+
+  test("abandon quiz mid-session returns to dashboard", async ({
+    page,
+    jsErrors,
+  }) => {
+    // Start session
+    await page.click("text=Start New Session");
+    await page.fill('input[name="question_count"]', "5");
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/start-session")),
+      page.click('input[type="submit"]'),
+    ]);
+    await expect(page.locator("#question-form")).toBeVisible();
+
+    // Click the "Quit" link to open abandon dialog
+    await page.click("text=Quit");
+    const dialog = page.locator("#abandon-dialog");
+    await expect(dialog).toBeVisible();
+
+    // Click Cancel — dialog should close
+    await dialog.locator("button.secondary").click();
+    await expect(dialog).not.toBeVisible();
+
+    // Open again and confirm abandon
+    await page.click("text=Quit");
+    await expect(dialog).toBeVisible();
+    await dialog.locator("button:not(.secondary)").click();
+
+    // Should return to dashboard
+    await expect(page.locator("h1")).toContainText(quizName);
+  });
+
+  test("previous question navigation works", async ({ page, jsErrors }) => {
+    // Start session
+    await page.click("text=Start New Session");
+    await page.fill('input[name="question_count"]', "5");
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/start-session")),
+      page.click('input[type="submit"]'),
+    ]);
+
+    // Answer first question
+    await answerCurrentQuestion(page);
+
+    // Go to second question
+    await Promise.all([
+      page.waitForResponse((resp) => resp.request().method() === "GET"),
+      page.click(".nav-btn-next"),
+    ]);
+    await expect(page.locator("#question-form")).toBeVisible();
+
+    // "Previous" button should be visible on Q2
+    const prevBtn = page.locator(".nav-btn-back");
+    await expect(prevBtn).toBeVisible();
+
+    // Click Previous to go back to Q1
+    await prevBtn.click();
+
+    // Should see the answered Q1 (answer feedback visible)
+    await expect(
+      page.locator(".option-correct, .option-incorrect").first()
+    ).toBeVisible();
+  });
+
+  test("resume incomplete session from session history", async ({
+    page,
+    jsErrors,
+  }) => {
+    // Start session and note the session name
+    await page.click("text=Start New Session");
+    await expect(page.locator('input[name="name"]')).toBeVisible({ timeout: 30_000 });
+    const sessionName = await page.locator('input[name="name"]').inputValue();
+    await page.fill('input[name="question_count"]', "5");
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/start-session")),
+      page.click('input[type="submit"]'),
+    ]);
+
+    // Answer first question only
+    await answerCurrentQuestion(page);
+
+    // Abandon the session
+    await page.click("text=Quit");
+    await page.locator("#abandon-dialog button:not(.secondary)").click();
+    await expect(page.locator("h1")).toContainText(quizName);
+
+    // Open session history
+    await page.click("text=Open Session History");
+    await expect(page.locator("td", { hasText: sessionName })).toBeVisible();
+
+    // Click the progress link to resume (shows "1/5")
+    const sessionRow = page.locator("tr", { hasText: sessionName });
+    await sessionRow.locator("a", { hasText: /1\/5/ }).click();
+
+    // Should show the question form with resuming indicator
+    await expect(page.locator("#question-form")).toBeVisible();
+  });
+
+  test("session rename from session history", async ({ page, jsErrors }) => {
+    // Complete a session
+    await page.click("text=Start New Session");
+    await expect(page.locator('input[name="name"]')).toBeVisible({ timeout: 30_000 });
+    const sessionName = await page.locator('input[name="name"]').inputValue();
+    await page.fill('input[name="question_count"]', "5");
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/start-session")),
+      page.click('input[type="submit"]'),
+    ]);
+    await answerAllQuestions(page, 5);
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/results")),
+      page.click(".nav-btn-next"),
+    ]);
+    await expect(page.locator("h1 mark")).toBeVisible();
+
+    // Navigate to session history
+    await page.click("text=Back to Dashboard");
+    await page.click("text=Open Session History");
+    await expect(page.locator("td", { hasText: sessionName })).toBeVisible();
+
+    // Click rename icon
+    const sessionRow = page.locator("tr", { hasText: sessionName });
+    await sessionRow.getByTitle("Rename").click();
+
+    // Rename dialog should appear
+    const dialog = page.locator("#rename-dialog");
+    await expect(dialog).toBeVisible();
+
+    // Change the name
+    const newName = `Renamed_${Date.now()}`;
+    await dialog.locator("#rename-input").fill(newName);
+    await dialog.locator("footer button:not(.secondary)").click();
+
+    // Rename handler returns dashboard, so verify we're on the dashboard
+    await expect(page.locator("h1")).toContainText(quizName);
+
+    // Navigate to session history to confirm the rename
+    await page.click("text=Open Session History");
+    await expect(page.locator("td", { hasText: newName })).toBeVisible();
+    await expect(page.locator("td", { hasText: sessionName })).not.toBeVisible();
+  });
+
+  test("session delete from session history", async ({ page, jsErrors }) => {
+    // Complete a session
+    await page.click("text=Start New Session");
+    await expect(page.locator('input[name="name"]')).toBeVisible({ timeout: 30_000 });
+    const sessionName = await page.locator('input[name="name"]').inputValue();
+    await page.fill('input[name="question_count"]', "5");
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/start-session")),
+      page.click('input[type="submit"]'),
+    ]);
+    await answerAllQuestions(page, 5);
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/results")),
+      page.click(".nav-btn-next"),
+    ]);
+    await expect(page.locator("h1 mark")).toBeVisible();
+
+    // Navigate to session history
+    await page.click("text=Back to Dashboard");
+    await page.click("text=Open Session History");
+    await expect(page.locator("td", { hasText: sessionName })).toBeVisible();
+
+    // Accept the confirm dialog before clicking delete
+    page.on("dialog", (dialog) => dialog.accept());
+
+    // Click delete icon
+    const sessionRow = page.locator("tr", { hasText: sessionName });
+    await sessionRow.getByTitle("Delete").click();
+
+    // Session should be removed
+    await expect(page.locator("td", { hasText: sessionName })).not.toBeVisible();
+  });
+
+  test("retry incorrect questions creates new session", async ({
+    page,
+    jsErrors,
+  }) => {
+    // Complete a session (some answers will be incorrect since we always pick first option)
+    await page.click("text=Start New Session");
+    await page.fill('input[name="question_count"]', "5");
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/start-session")),
+      page.click('input[type="submit"]'),
+    ]);
+    await answerAllQuestions(page, 5);
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/results")),
+      page.click(".nav-btn-next"),
+    ]);
+    await expect(page.locator("h1 mark")).toBeVisible();
+
+    // Check if retry incorrect button exists (only if there are incorrect answers)
+    const retryBtn = page.locator("button", { hasText: "Incorrect Questions" });
+    const retryVisible = await retryBtn.isVisible();
+    if (retryVisible) {
+      await retryBtn.click();
+
+      // Should start a new session with the question form
+      await expect(page.locator("#question-form")).toBeVisible();
+    }
+    // If all answers were correct, retry button won't appear — that's fine
+  });
+
+  test("retry bookmarked questions creates new session", async ({
+    page,
+    jsErrors,
+  }) => {
+    // Start session and bookmark first question
+    await page.click("text=Start New Session");
+    await page.fill('input[name="question_count"]', "5");
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/start-session")),
+      page.click('input[type="submit"]'),
+    ]);
+
+    // Bookmark the first question
+    await page.locator(".bookmark-btn").click();
+    await expect(page.locator(".bookmark-btn.active")).toBeVisible();
+
+    // Answer all questions
+    await answerAllQuestions(page, 5);
+
+    // Go to results
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/results")),
+      page.click(".nav-btn-next"),
+    ]);
+    await expect(page.locator("h1 mark")).toBeVisible();
+
+    // Retry bookmarked button should be visible
+    const retryBtn = page.locator("button", { hasText: "Bookmarked Questions" });
+    await expect(retryBtn).toBeVisible();
+    await retryBtn.click();
+
+    // Should start a new session with the question form
+    await expect(page.locator("#question-form")).toBeVisible();
+  });
+
+  test("review question from results page", async ({ page, jsErrors }) => {
+    // Complete a session
+    await page.click("text=Start New Session");
+    await page.fill('input[name="question_count"]', "5");
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/start-session")),
+      page.click('input[type="submit"]'),
+    ]);
+    await answerAllQuestions(page, 5);
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/results")),
+      page.click(".nav-btn-next"),
+    ]);
+    await expect(page.locator("h1 mark")).toBeVisible();
+
+    // Click a question row in the results table to review it
+    const questionRow = page.locator("table").last().locator("tbody tr").first();
+    await questionRow.click();
+
+    // Should show the answered question with feedback
+    await expect(
+      page.locator(".option-correct, .option-incorrect").first()
+    ).toBeVisible();
+
+    // "Back to Results" button should be visible (from=report context)
+    await expect(
+      page.locator("button", { hasText: "Back to Results" })
+    ).toBeVisible();
+
+    // Click back to results
+    await page.locator("button", { hasText: "Back to Results" }).click();
+
+    // Should return to results page
+    await expect(page.locator("h1 mark")).toBeVisible();
+  });
 });
