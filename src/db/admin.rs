@@ -5,11 +5,10 @@ use super::Db;
 
 impl Db {
     pub async fn admin_password(&self) -> Result<Option<String>> {
-        let password: Option<String> = sqlx::query_scalar(
-            "SELECT password FROM admin WHERE id = 1"
-        )
-        .fetch_optional(&self.pool)
-        .await?;
+        let password: Option<String> =
+            sqlx::query_scalar("SELECT password FROM admin WHERE id = 1")
+                .fetch_optional(&self.pool)
+                .await?;
 
         Ok(password)
     }
@@ -39,12 +38,11 @@ impl Db {
     }
 
     pub async fn admin_session_exists(&self, session: String) -> Result<bool> {
-        let exists: bool = sqlx::query_scalar(
-            "SELECT EXISTS(SELECT 1 FROM admin_sessions WHERE id = $1)"
-        )
-        .bind(&session)
-        .fetch_one(&self.pool)
-        .await?;
+        let exists: bool =
+            sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM admin_sessions WHERE id = $1)")
+                .bind(&session)
+                .fetch_one(&self.pool)
+                .await?;
 
         tracing::info!("admin session {session:?} exists: {exists}");
         Ok(exists)

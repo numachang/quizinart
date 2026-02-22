@@ -4,13 +4,9 @@ use quizinart::{db::Db, AppState};
 #[derive(Parser, Debug)]
 #[command(version, about)]
 struct Args {
-    /// libSQL server address
+    /// PostgreSQL connection URL.
     #[clap(env)]
-    url: String,
-
-    /// libSQL authentication token.
-    #[clap(env, default_value = "")]
-    auth_token: String,
+    database_url: String,
 
     /// The address to bind to.
     #[arg(short, long, env, default_value = "127.0.0.1:1414")]
@@ -53,7 +49,7 @@ fn main() -> color_eyre::Result<()> {
 async fn run() -> color_eyre::Result<()> {
     let args = Args::parse();
 
-    let db = Db::new(args.url, args.auth_token).await?;
+    let db = Db::new(args.database_url).await?;
     let state = AppState {
         db,
         secure_cookies: args.secure_cookies,

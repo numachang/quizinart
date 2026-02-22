@@ -207,23 +207,20 @@ impl Db {
     }
 
     async fn get_all_question_ids(&self, quiz_id: i32) -> Result<Vec<i32>> {
-        let ids = sqlx::query_scalar(
-            "SELECT id FROM questions WHERE quiz_id = $1 ORDER BY id",
-        )
-        .bind(quiz_id)
-        .fetch_all(&self.pool)
-        .await?;
+        let ids = sqlx::query_scalar("SELECT id FROM questions WHERE quiz_id = $1 ORDER BY id")
+            .bind(quiz_id)
+            .fetch_all(&self.pool)
+            .await?;
 
         Ok(ids)
     }
 
     pub async fn sessions_count(&self, quiz_id: i32) -> Result<i32> {
-        let count: i32 = sqlx::query_scalar(
-            "SELECT COUNT(*)::INT FROM quiz_sessions WHERE quiz_id = $1",
-        )
-        .bind(quiz_id)
-        .fetch_one(&self.pool)
-        .await?;
+        let count: i32 =
+            sqlx::query_scalar("SELECT COUNT(*)::INT FROM quiz_sessions WHERE quiz_id = $1")
+                .bind(quiz_id)
+                .fetch_one(&self.pool)
+                .await?;
 
         Ok(count)
     }

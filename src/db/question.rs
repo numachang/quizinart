@@ -8,13 +8,11 @@ use super::Db;
 
 impl Db {
     pub async fn get_question(&self, question_id: i32) -> Result<QuestionModel> {
-        let row = sqlx::query(
-            "SELECT question, is_multiple_choice FROM questions WHERE id = $1",
-        )
-        .bind(question_id)
-        .fetch_optional(&self.pool)
-        .await?
-        .ok_or_eyre("could not get question")?;
+        let row = sqlx::query("SELECT question, is_multiple_choice FROM questions WHERE id = $1")
+            .bind(question_id)
+            .fetch_optional(&self.pool)
+            .await?
+            .ok_or_eyre("could not get question")?;
 
         let question: String = row.get("question");
         let is_multiple_choice: bool = row.get("is_multiple_choice");
@@ -34,14 +32,13 @@ impl Db {
     }
 
     pub async fn question_id_from_idx(&self, quiz_id: i32, question_idx: i32) -> Result<i32> {
-        let question_id: i32 = sqlx::query_scalar(
-            "SELECT id FROM questions WHERE quiz_id = $1 LIMIT 1 OFFSET $2",
-        )
-        .bind(quiz_id)
-        .bind(question_idx)
-        .fetch_optional(&self.pool)
-        .await?
-        .ok_or_eyre("no question id found")?;
+        let question_id: i32 =
+            sqlx::query_scalar("SELECT id FROM questions WHERE quiz_id = $1 LIMIT 1 OFFSET $2")
+                .bind(quiz_id)
+                .bind(question_idx)
+                .fetch_optional(&self.pool)
+                .await?
+                .ok_or_eyre("no question id found")?;
 
         Ok(question_id)
     }

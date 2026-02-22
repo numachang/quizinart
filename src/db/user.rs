@@ -2,7 +2,7 @@ use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
-use color_eyre::{eyre::OptionExt, Result};
+use color_eyre::Result;
 use ulid::Ulid;
 
 use super::models::AuthUser;

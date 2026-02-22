@@ -13,13 +13,12 @@ impl Db {
         user_id: i32,
     ) -> Result<i32> {
         // 1. Insert quiz (1 round-trip)
-        let quiz_id: i32 = sqlx::query_scalar(
-            "INSERT INTO quizzes (name, user_id) VALUES ($1, $2) RETURNING id",
-        )
-        .bind(&quiz_name)
-        .bind(user_id)
-        .fetch_one(&self.pool)
-        .await?;
+        let quiz_id: i32 =
+            sqlx::query_scalar("INSERT INTO quizzes (name, user_id) VALUES ($1, $2) RETURNING id")
+                .bind(&quiz_name)
+                .bind(user_id)
+                .fetch_one(&self.pool)
+                .await?;
 
         if questions.is_empty() {
             tracing::info!("new quiz created with id: {quiz_id} for user_id: {user_id}");
@@ -122,12 +121,11 @@ impl Db {
     }
 
     pub async fn quiz_name(&self, quiz_id: i32) -> Result<String> {
-        let name: String =
-            sqlx::query_scalar("SELECT name FROM quizzes WHERE id = $1")
-                .bind(quiz_id)
-                .fetch_optional(&self.pool)
-                .await?
-                .ok_or_eyre("could not get quiz name")?;
+        let name: String = sqlx::query_scalar("SELECT name FROM quizzes WHERE id = $1")
+            .bind(quiz_id)
+            .fetch_optional(&self.pool)
+            .await?
+            .ok_or_eyre("could not get quiz name")?;
 
         Ok(name)
     }

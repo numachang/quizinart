@@ -45,12 +45,11 @@ pub async fn run(pool: &sqlx::PgPool) -> Result<()> {
     .await?;
 
     for migration in MIGRATIONS {
-        let already_applied: bool = sqlx::query_scalar(
-            "SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE version = $1)"
-        )
-        .bind(migration.version)
-        .fetch_one(pool)
-        .await?;
+        let already_applied: bool =
+            sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE version = $1)")
+                .bind(migration.version)
+                .fetch_one(pool)
+                .await?;
 
         if already_applied {
             continue;
