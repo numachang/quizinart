@@ -46,6 +46,15 @@ pub fn dashboard(data: DashboardData, locale: &str) -> Markup {
     };
 
     html! {
+        nav style="font-size: 0.85rem; margin-bottom: 0.25rem;" {
+            a hx-get="/"
+              hx-push-url="true"
+              hx-target="main"
+              href="#"
+              style="color: #666; text-decoration: none;" {
+                "← " (t!("dashboard.back_to_quiz_list", locale = locale))
+            }
+        }
         h1 { (data.quiz_name) }
 
         div style="display:flex; gap:1rem; margin-bottom:1rem; flex-wrap:wrap;" {

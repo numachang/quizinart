@@ -369,6 +369,33 @@ pub(crate) async fn rename_session(
     ))
 }
 
+pub(crate) async fn abandon_session(
+    AuthGuard(_user): AuthGuard,
+    State(state): State<AppState>,
+    Path(public_id): Path<String>,
+    Locale(locale): Locale,
+) -> Result<impl IntoResponse, AppError> {
+    let quiz_id = state
+        .db
+        .resolve_quiz_id(&public_id)
+        .await
+        .reject("quiz not found")?;
+
+    let page = views::titled(
+        "Quiz Dashboard",
+        super::dashboard::dashboard(&state.db, quiz_id, &public_id, &locale).await?,
+    );
+    let cookie = utils::cookie(names::QUIZ_SESSION_COOKIE_NAME, "", state.secure_cookies);
+    let mut headers = HeaderMap::new();
+    headers.insert(SET_COOKIE, cookie.parse().unwrap());
+    headers.insert(
+        "HX-Push-Url",
+        names::quiz_dashboard_url(&public_id).parse().unwrap(),
+    );
+
+    Ok((headers, page))
+}
+
 pub(crate) async fn page(
     db: &crate::db::Db,
     quiz_id: i32,

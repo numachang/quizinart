@@ -34,6 +34,10 @@ pub fn start_session_url(public_id: &str) -> String {
     format!("/start-session/{public_id}")
 }
 
+pub fn abandon_quiz_url(public_id: &str) -> String {
+    format!("/quiz/{public_id}/abandon")
+}
+
 pub fn results_url(session_id: i32) -> String {
     format!("/results/{session_id}")
 }

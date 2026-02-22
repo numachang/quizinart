@@ -355,6 +355,7 @@ pub async fn question(
             session_id,
             question_id: ctx.question_id,
             is_bookmarked: ctx.is_bookmarked,
+            quiz_id: ctx.quiz_public_id,
         },
         locale,
     ))

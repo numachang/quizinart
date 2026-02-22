@@ -94,6 +94,7 @@ pub fn routes() -> Router<AppState> {
         .route("/session/{id}/delete", delete(session::delete_session))
         .route("/session/{id}/rename", patch(session::rename_session))
         .route("/quiz/{id}/sessions", get(dashboard::quiz_session_history))
+        .route("/quiz/{id}/abandon", get(session::abandon_session))
 }
 
 #[cfg(test)]

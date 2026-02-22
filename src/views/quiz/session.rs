@@ -108,5 +108,13 @@ pub fn start_page(data: StartPageData, locale: &str) -> Markup {
                 input type="submit" value=(t!("quiz.start", locale = locale));
             }
         }
+        p {
+            button hx-get=(names::quiz_dashboard_url(&data.quiz_id))
+                   hx-push-url="true"
+                   hx-target="main"
+                   style="width: fit-content;" {
+                (t!("quiz.back_to_dashboard", locale = locale))
+            }
+        }
     }
 }

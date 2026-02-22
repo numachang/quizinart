@@ -13,6 +13,7 @@ pub struct QuestionData {
     pub session_id: i32,
     pub question_id: i32,
     pub is_bookmarked: bool,
+    pub quiz_id: String,
 }
 
 pub struct AnswerData {
@@ -125,6 +126,27 @@ pub fn question(data: QuestionData, locale: &str) -> Markup {
                 "function enableNextButton() { document.getElementById('submit-btn').disabled = false; }"
             }
         }
+        p style="margin-top: 0.5rem; font-size: 0.8rem;" {
+            a onclick="document.getElementById('abandon-dialog').showModal()"
+              style="color: #888; text-decoration: underline; cursor: pointer;" {
+                (t!("quiz.abandon", locale = locale))
+            }
+        }
+        dialog id="abandon-dialog" {
+            article {
+                p { (t!("quiz.abandon_confirm", locale = locale)) }
+                footer style="display: flex; gap: 0.5rem; justify-content: flex-end;" {
+                    button onclick="document.getElementById('abandon-dialog').close()"
+                           class="secondary" {
+                        (t!("quiz.abandon_cancel", locale = locale))
+                    }
+                    button hx-get=(names::abandon_quiz_url(&data.quiz_id))
+                           hx-target="main" {
+                        (t!("quiz.abandon", locale = locale))
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -233,6 +255,27 @@ pub fn answer(data: AnswerData, locale: &str) -> Markup {
                                    hx-get=(names::quiz_page_url(&data.quiz_id))
                                    hx-target="main" { (t!("quiz.next", locale = locale)) }
                         }
+                    }
+                }
+            }
+        }
+        p style="margin-top: 0.5rem; font-size: 0.8rem;" {
+            a onclick="document.getElementById('abandon-dialog').showModal()"
+              style="color: #888; text-decoration: underline; cursor: pointer;" {
+                (t!("quiz.abandon", locale = locale))
+            }
+        }
+        dialog id="abandon-dialog" {
+            article {
+                p { (t!("quiz.abandon_confirm", locale = locale)) }
+                footer style="display: flex; gap: 0.5rem; justify-content: flex-end;" {
+                    button onclick="document.getElementById('abandon-dialog').close()"
+                           class="secondary" {
+                        (t!("quiz.abandon_cancel", locale = locale))
+                    }
+                    button hx-get=(names::abandon_quiz_url(&data.quiz_id))
+                           hx-target="main" {
+                        (t!("quiz.abandon", locale = locale))
                     }
                 }
             }
