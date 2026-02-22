@@ -344,7 +344,7 @@ button.htmx-request {
     width: 100%;
   }
 
-  #nav-menu a[role="button"] {
+  #nav-menu a[role='button'] {
     display: block;
     text-align: center;
     width: 100%;
