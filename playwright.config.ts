@@ -14,7 +14,8 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {
-      URL: "file:e2e_test.db",
+      DATABASE_URL:
+        "postgresql://quizinart:password@localhost:5432/quizinart_e2e",
       ADDRESS: "127.0.0.1:1414",
       SECURE_COOKIES: "false",
       RESEND_API_KEY: "",

@@ -50,7 +50,7 @@ cp .env.example .env
 cargo run --manifest-path quizinart/Cargo.toml
 ```
 
-The `.env.example` file contains sensible defaults for local development (SQLite file DB, port 1414).
+The `.env.example` file contains sensible defaults for local development (port 1414). Run `docker compose up -d` to start the local PostgreSQL container before starting the app.
 
 Open http://127.0.0.1:1414 in your browser.
 
