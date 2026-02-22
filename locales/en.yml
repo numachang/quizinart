@@ -82,8 +82,11 @@ homepage.quiz_file_hint: "The JSON file that includes the questions in this quiz
 homepage.create: "Create"
 homepage.questions_suffix: " questions."
 homepage.view: "View"
+homepage.rename: "Rename"
+homepage.rename_prompt: "Enter new name:"
 homepage.delete: "Delete"
 homepage.delete_confirm: "Are you sure you want to delete this Quiz?"
+homepage.delete_blocked: "This quiz cannot be deleted because other users have imported it."
 
 # Quiz - Start Page
 quiz.welcome: "Welcome to Quizinart!"

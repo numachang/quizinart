@@ -82,8 +82,11 @@ homepage.quiz_file_hint: "请选择包含测验题目的 JSON 文件。"
 homepage.create: "创建"
 homepage.questions_suffix: " 题"
 homepage.view: "查看"
+homepage.rename: "重命名"
+homepage.rename_prompt: "请输入新名称："
 homepage.delete: "删除"
 homepage.delete_confirm: "确定要删除此测验吗？"
+homepage.delete_blocked: "其他用户已导入此测验，无法删除。"
 
 # Quiz - Start Page
 quiz.welcome: "欢迎使用 Quizinart！"

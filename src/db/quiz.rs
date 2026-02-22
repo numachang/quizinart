@@ -129,6 +129,24 @@ impl Db {
         Ok(quizzes)
     }
 
+    pub async fn quiz_has_other_users(&self, public_id: &str, owner_id: i32) -> Result<bool> {
+        let exists: bool = sqlx::query_scalar(
+            r#"
+            SELECT EXISTS(
+                SELECT 1 FROM user_quizzes uq
+                JOIN quizzes q ON q.id = uq.quiz_id
+                WHERE q.public_id = $1 AND uq.user_id != $2
+            )
+            "#,
+        )
+        .bind(public_id)
+        .bind(owner_id)
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(exists)
+    }
+
     pub async fn delete_quiz(&self, public_id: &str, user_id: i32) -> Result<()> {
         sqlx::query("DELETE FROM quizzes WHERE public_id = $1 AND owner_id = $2")
             .bind(public_id)
@@ -170,6 +188,18 @@ impl Db {
             .ok_or_eyre("quiz not found")?;
 
         Ok(public_id)
+    }
+
+    pub async fn rename_quiz(&self, public_id: &str, name: &str, user_id: i32) -> Result<()> {
+        sqlx::query("UPDATE quizzes SET name = $1 WHERE public_id = $2 AND owner_id = $3")
+            .bind(name)
+            .bind(public_id)
+            .bind(user_id)
+            .execute(&self.pool)
+            .await?;
+
+        tracing::info!("quiz renamed with public_id: {public_id} by user_id: {user_id}");
+        Ok(())
     }
 
     /// Verify that a quiz belongs to the given user (owner check)

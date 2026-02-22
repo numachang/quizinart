@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Path, State},
+    extract::{Form, Path, State},
     http::{header::SET_COOKIE, HeaderMap},
     response::IntoResponse,
     Json,
@@ -340,7 +340,7 @@ pub(crate) async fn rename_session(
     State(state): State<AppState>,
     Path(session_id): Path<i32>,
     Locale(locale): Locale,
-    Json(body): Json<super::RenameSessionBody>,
+    Form(body): Form<super::RenameSessionBody>,
 ) -> Result<Markup, AppError> {
     let session = state
         .db

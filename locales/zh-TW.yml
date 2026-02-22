@@ -82,8 +82,11 @@ homepage.quiz_file_hint: "請選擇包含測驗題目的 JSON 檔案。"
 homepage.create: "建立"
 homepage.questions_suffix: " 題"
 homepage.view: "檢視"
+homepage.rename: "重新命名"
+homepage.rename_prompt: "請輸入新名稱："
 homepage.delete: "刪除"
 homepage.delete_confirm: "確定要刪除此測驗嗎？"
+homepage.delete_blocked: "其他用戶已匯入此測驗，無法刪除。"
 
 # Quiz - Start Page
 quiz.welcome: "歡迎使用 Quizinart！"

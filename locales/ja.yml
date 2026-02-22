@@ -82,8 +82,11 @@ homepage.quiz_file_hint: "クイズの問題が含まれた JSON ファイルを
 homepage.create: "作成"
 homepage.questions_suffix: " 問"
 homepage.view: "表示"
+homepage.rename: "名前変更"
+homepage.rename_prompt: "新しい名前を入力："
 homepage.delete: "削除"
 homepage.delete_confirm: "このクイズを削除してもよろしいですか？"
+homepage.delete_blocked: "他のユーザーがインポートしているため、このクイズは削除できません。"
 
 # Quiz - Start Page
 quiz.welcome: "Quizinart へようこそ！"

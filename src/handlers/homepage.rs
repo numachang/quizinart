@@ -7,11 +7,11 @@ use axum::{
         HeaderMap, HeaderValue, StatusCode,
     },
     response::{IntoResponse, Redirect},
-    routing::{delete, get, post},
+    routing::{delete, get, patch, post},
     Json, Router,
 };
 use axum_extra::extract::CookieJar;
-use maud::html;
+use rust_i18n::t;
 use serde::Deserialize;
 
 use crate::{
@@ -40,6 +40,7 @@ pub fn routes() -> Router<AppState> {
         .route("/reset-password", post(reset_password_post))
         .route("/create-quiz", post(create_quiz))
         .route("/delete-quiz/{id}", delete(delete_quiz))
+        .route("/rename-quiz/{id}", patch(rename_quiz))
         .route("/set-locale", post(set_locale))
 }
 
@@ -589,15 +590,60 @@ async fn create_quiz(
 async fn delete_quiz(
     AuthGuard(user): AuthGuard,
     State(state): State<AppState>,
+    Locale(locale): Locale,
     axum::extract::Path(public_id): axum::extract::Path<String>,
 ) -> Result<maud::Markup, AppError> {
+    let has_others = state
+        .db
+        .quiz_has_other_users(&public_id, user.id)
+        .await
+        .reject("failed to check quiz users")?;
+
+    if has_others {
+        let quizzes = state.db.quizzes(user.id).await.reject("failed to get quizzes")?;
+        let msg = t!("homepage.delete_blocked", locale = locale);
+        return Ok(views::titled(
+            "My Quizzes",
+            homepage_views::quiz_list_with_error(quizzes, &locale, Some(&msg)),
+        ));
+    }
+
     state
         .db
         .delete_quiz(&public_id, user.id)
         .await
         .reject("failed to delete quiz")?;
 
-    Ok(html!())
+    let quizzes = state.db.quizzes(user.id).await.reject("failed to get quizzes")?;
+    Ok(views::titled(
+        "My Quizzes",
+        homepage_views::quiz_list(quizzes, &locale),
+    ))
+}
+
+#[derive(Deserialize)]
+struct RenameQuizBody {
+    name: String,
+}
+
+async fn rename_quiz(
+    AuthGuard(user): AuthGuard,
+    State(state): State<AppState>,
+    Locale(locale): Locale,
+    axum::extract::Path(public_id): axum::extract::Path<String>,
+    Form(body): Form<RenameQuizBody>,
+) -> Result<maud::Markup, AppError> {
+    state
+        .db
+        .rename_quiz(&public_id, &body.name, user.id)
+        .await
+        .reject("failed to rename quiz")?;
+
+    let quizzes = state.db.quizzes(user.id).await.reject("failed to get quizzes")?;
+    Ok(views::titled(
+        "My Quizzes",
+        homepage_views::quiz_list(quizzes, &locale),
+    ))
 }
 
 #[derive(Deserialize)]

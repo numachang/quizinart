@@ -30,6 +30,10 @@ pub fn delete_quiz_url(public_id: &str) -> String {
     format!("/delete-quiz/{public_id}")
 }
 
+pub fn rename_quiz_url(public_id: &str) -> String {
+    format!("/rename-quiz/{public_id}")
+}
+
 pub fn start_session_url(public_id: &str) -> String {
     format!("/start-session/{public_id}")
 }

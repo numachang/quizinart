@@ -322,8 +322,18 @@ pub fn reset_password(state: ResetPasswordState, token: &str, locale: &str) -> M
 }
 
 pub fn quiz_list(quizzes: Vec<Quiz>, locale: &str) -> Markup {
+    quiz_list_with_error(quizzes, locale, None)
+}
+
+pub fn quiz_list_with_error(quizzes: Vec<Quiz>, locale: &str, error: Option<&str>) -> Markup {
     html! {
         h1 { (t!("homepage.my_quizzes", locale = locale)) }
+
+        @if let Some(msg) = error {
+            article style="border-left: 4px solid #dc3545; padding: 0.75rem 1rem; margin-bottom: 1rem;" {
+                p style="margin: 0; color: #dc3545;" { (msg) }
+            }
+        }
 
         article style="width: fit-content;" {
             form hx-post=(names::CREATE_QUIZ_URL)
@@ -359,22 +369,55 @@ pub fn quiz_list(quizzes: Vec<Quiz>, locale: &str) -> Markup {
 
         div."quiz-grid" {
             @for quiz in quizzes {
-                article {
-                    h3 { (quiz.name) }
+                article."quiz-card" {
+                    h3 style="display: flex; align-items: center; gap: 0.4rem;" {
+                        a hx-get=(names::quiz_dashboard_url(&quiz.public_id))
+                          hx-push-url="true"
+                          hx-target="main"
+                          href="#"
+                          style="text-decoration: none; color: inherit;" {
+                            (quiz.name)
+                        }
+                        @let safe_name = serde_json::to_string(&quiz.name).unwrap_or_default();
+                        @let open_rename_js = format!(
+                            "document.getElementById('rename-input').value={};document.getElementById('rename-url').value='{}';document.getElementById('rename-dialog').showModal()",
+                            safe_name, names::rename_quiz_url(&quiz.public_id),
+                        );
+                        span."card-actions material-symbols-rounded"
+                             onclick=(open_rename_js)
+                             title=(t!("homepage.rename", locale = locale))
+                             style="cursor: pointer; font-size: 0.7em; opacity: 0.4; transition: opacity 0.15s;" {
+                            "edit"
+                        }
+                    }
                     p { (quiz.count) (t!("homepage.questions_suffix", locale = locale)) }
-                    div role="group" {
-                        button
-                            hx-trigger="click"
-                            hx-target="main"
-                            hx-swap="innerHTML"
-                            hx-push-url="true"
-                            hx-get=(names::quiz_dashboard_url(&quiz.public_id)) { (t!("homepage.view", locale = locale)) }
-                        button."contrast"
-                            hx-trigger="click"
-                            hx-target="closest article"
-                            hx-swap="outerHTML"
-                            hx-confirm=(t!("homepage.delete_confirm", locale = locale))
-                            hx-delete=(names::delete_quiz_url(&quiz.public_id)) { (t!("homepage.delete", locale = locale)) }
+                    div."card-actions" style="display: flex; justify-content: flex-end;" {
+                        a."material-symbols-rounded"
+                          hx-delete=(names::delete_quiz_url(&quiz.public_id))
+                          hx-target="main"
+                          hx-swap="innerHTML"
+                          hx-confirm=(t!("homepage.delete_confirm", locale = locale))
+                          title=(t!("homepage.delete", locale = locale))
+                          style="cursor: pointer; color: var(--pico-del-color, #dc3545); font-size: 1.2rem; opacity: 0.5; transition: opacity 0.15s;" {
+                            "delete"
+                        }
+                    }
+                }
+            }
+        }
+
+        dialog id="rename-dialog" {
+            article {
+                p { (t!("homepage.rename_prompt", locale = locale)) }
+                input id="rename-input" type="text" required="true" autocomplete="off";
+                input id="rename-url" type="hidden";
+                footer style="display: flex; gap: 0.5rem; justify-content: flex-end;" {
+                    button onclick="document.getElementById('rename-dialog').close()"
+                           class="secondary" {
+                        (t!("quiz.abandon_cancel", locale = locale))
+                    }
+                    button onclick="var u=document.getElementById('rename-url').value;var n=document.getElementById('rename-input').value;if(n){htmx.ajax('PATCH',u,{target:'main',swap:'innerHTML',values:{name:n}})};document.getElementById('rename-dialog').close()" {
+                        (t!("homepage.rename", locale = locale))
                     }
                 }
             }
