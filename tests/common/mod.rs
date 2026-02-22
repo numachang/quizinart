@@ -6,9 +6,8 @@ pub async fn create_test_db() -> Db {
     let id = COUNTER.fetch_add(1, Ordering::SeqCst);
 
     dotenvy::dotenv().ok();
-    let base_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| {
-        "postgres://quizinart:password@localhost:5432/quizinart".to_string()
-    });
+    let base_url = std::env::var("DATABASE_URL")
+        .unwrap_or_else(|_| "postgres://quizinart:password@localhost:5432/quizinart".to_string());
 
     // Use a unique schema per test to isolate state
     let schema = format!("test_{}_{}", std::process::id(), id);
