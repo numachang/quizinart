@@ -9,7 +9,5 @@ pub async fn create_test_db() -> Db {
     // Clean up leftover file from previous runs
     let _ = std::fs::remove_file(&path);
     let url = format!("file:{}", path.display());
-    Db::new(url)
-        .await
-        .expect("failed to create test database")
+    Db::new(url).await.expect("failed to create test database")
 }
