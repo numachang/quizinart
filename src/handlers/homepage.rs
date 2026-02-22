@@ -600,7 +600,11 @@ async fn delete_quiz(
         .reject("failed to check quiz users")?;
 
     if has_others {
-        let quizzes = state.db.quizzes(user.id).await.reject("failed to get quizzes")?;
+        let quizzes = state
+            .db
+            .quizzes(user.id)
+            .await
+            .reject("failed to get quizzes")?;
         let msg = t!("homepage.delete_blocked", locale = locale);
         return Ok(views::titled(
             "My Quizzes",
@@ -614,7 +618,11 @@ async fn delete_quiz(
         .await
         .reject("failed to delete quiz")?;
 
-    let quizzes = state.db.quizzes(user.id).await.reject("failed to get quizzes")?;
+    let quizzes = state
+        .db
+        .quizzes(user.id)
+        .await
+        .reject("failed to get quizzes")?;
     Ok(views::titled(
         "My Quizzes",
         homepage_views::quiz_list(quizzes, &locale),
@@ -639,7 +647,11 @@ async fn rename_quiz(
         .await
         .reject("failed to rename quiz")?;
 
-    let quizzes = state.db.quizzes(user.id).await.reject("failed to get quizzes")?;
+    let quizzes = state
+        .db
+        .quizzes(user.id)
+        .await
+        .reject("failed to get quizzes")?;
     Ok(views::titled(
         "My Quizzes",
         homepage_views::quiz_list(quizzes, &locale),
