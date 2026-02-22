@@ -13,6 +13,7 @@ pub struct Quiz {
     pub public_id: String,
     pub name: String,
     pub count: i64,
+    pub last_session_id: Option<i32>,
 }
 
 pub struct QuestionModel {

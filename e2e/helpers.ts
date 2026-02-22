@@ -36,19 +36,24 @@ export async function loginUser(
 /**
  * Create a quiz by uploading the test-quiz.json file.
  * Assumes the quiz list page is already visible.
+ * Clicks the "+" card to open the create dialog, fills in the form, and submits.
  */
 export async function createQuiz(
   page: Page,
   quizName: string
 ): Promise<void> {
-  await page.fill('input[name="quiz_name"]', quizName);
-  const fileInput = page.locator('input[name="quiz_file"]');
+  await page.locator("#create-card").click();
+  const dialog = page.locator("#create-dialog");
+  await expect(dialog).toBeVisible();
+
+  await dialog.locator('input[name="quiz_name"]').fill(quizName);
+  const fileInput = dialog.locator('input[name="quiz_file"]');
   await fileInput.setInputFiles(
     path.join(__dirname, "test-data", "test-quiz.json")
   );
   await Promise.all([
     page.waitForResponse((resp) => resp.url().includes("/create-quiz")),
-    page.click('input[type="submit"]'),
+    dialog.locator('input[type="submit"]').click(),
   ]);
   // Should navigate to quiz dashboard
   await expect(page.locator("h1")).toContainText(quizName);

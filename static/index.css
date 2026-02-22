@@ -337,9 +337,10 @@ button.htmx-request {
     display: list-item;
   }
 
-  /* Position the nav for absolute dropdown */
+  /* Position the nav for absolute dropdown, above main content */
   header nav {
     position: relative;
+    z-index: 100;
   }
 
   /* Hide the right-side nav items; show when .open */

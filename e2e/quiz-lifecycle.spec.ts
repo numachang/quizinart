@@ -83,4 +83,58 @@ test.describe("quiz lifecycle", () => {
     // Quiz card should be removed
     await expect(page.locator("article h3", { hasText: quizName })).not.toBeVisible();
   });
+
+  test("most recently played quiz appears first", async ({
+    page,
+    jsErrors,
+  }) => {
+    // Create two quizzes
+    const quiz1 = `Quiz1_${Date.now()}`;
+    await createQuiz(page, quiz1);
+    await page.goto("/");
+    const quiz2 = `Quiz2_${Date.now()}`;
+    await createQuiz(page, quiz2);
+
+    // Go back to quiz list — quiz2 was created second but neither has sessions
+    await page.goto("/");
+
+    // Play quiz1: click its card to open dashboard
+    await page.locator("article h3 a", { hasText: quiz1 }).click();
+    await expect(page.locator("h1")).toContainText(quiz1);
+    await page.waitForLoadState("networkidle");
+
+    // Start a session and answer one question
+    await page.click("text=Start New Session");
+    await page.fill('input[name="question_count"]', "5");
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/start-session")),
+      page.click('input[type="submit"]'),
+    ]);
+    await expect(page.locator("#question-form")).toBeVisible();
+    await expect(
+      page.locator('input[type="radio"][name="option"], input[type="checkbox"][name="options"]').first()
+    ).toBeVisible();
+    const radioCount = await page.locator('input[type="radio"][name="option"]').count();
+    if (radioCount > 0) {
+      await page.locator('input[type="radio"][name="option"]').first().click();
+    } else {
+      await page.locator('input[type="checkbox"][name="options"]').first().click();
+    }
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/submit-answer")),
+      page.click("#submit-btn"),
+    ]);
+
+    // Abandon and go back to quiz list
+    await page.click("text=Quit");
+    await page.locator("#abandon-dialog button:not(.secondary)").click();
+    await expect(page.locator("h1")).toContainText(quiz1);
+
+    await page.goto("/");
+    await expect(page.locator("h1")).toContainText("My Quizzes");
+
+    // quiz1 (most recently played) should be the first quiz card
+    const firstCard = page.locator(".quiz-card").first();
+    await expect(firstCard.locator("h3")).toContainText(quiz1);
+  });
 });

@@ -335,38 +335,6 @@ pub fn quiz_list_with_error(quizzes: Vec<Quiz>, locale: &str, error: Option<&str
             }
         }
 
-        article style="width: fit-content;" {
-            form hx-post=(names::CREATE_QUIZ_URL)
-                 hx-target="main"
-                 enctype="multipart/form-data"
-                 hx-swap="innerHTML" {
-                    label {
-                        (t!("homepage.quiz_name", locale = locale))
-                        input name="quiz_name"
-                              type="text"
-                              required="true"
-                              autocomplete="off"
-                              placeholder=(t!("homepage.quiz_name", locale = locale))
-                              aria-describedby="quiz-name-helper"
-                              aria-label=(t!("homepage.quiz_name", locale = locale));
-                        small id="quiz-name-helper" { (t!("homepage.quiz_name_hint", locale = locale)) }
-                    }
-
-                    label {
-                        (t!("homepage.quiz_file", locale = locale))
-                        input name="quiz_file"
-                              type="file"
-                              required="true"
-                              aria-describedby="quiz-file-helper"
-                              accept="application/json"
-                              aria-label=(t!("homepage.quiz_file", locale = locale));
-                        small id="quiz-file-helper" { (t!("homepage.quiz_file_hint", locale = locale)) }
-                    }
-
-                    input type="submit" value=(t!("homepage.create", locale = locale));
-            }
-        }
-
         div."quiz-grid" {
             @for quiz in quizzes {
                 article."quiz-card" {
@@ -402,6 +370,52 @@ pub fn quiz_list_with_error(quizzes: Vec<Quiz>, locale: &str, error: Option<&str
                             "delete"
                         }
                     }
+                }
+            }
+
+            // Create Quiz card (always last, uses stretched-link pattern via h3 > a)
+            article."quiz-card" id="create-card"
+                   style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px; opacity: 0.6;" {
+                h3 style="margin: 0;" {
+                    a href="#"
+                      onclick="event.preventDefault();document.getElementById('create-dialog').showModal()"
+                      style="text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center;" {
+                        span."material-symbols-rounded" style="font-size: 2.5rem;" { "add" }
+                    }
+                }
+                p style="margin: 0.5rem 0 0;" { (t!("homepage.import_quiz", locale = locale)) }
+            }
+        }
+
+        dialog id="create-dialog" {
+            article {
+                header {
+                    button aria-label="Close" rel="prev"
+                           onclick="document.getElementById('create-dialog').close()" {}
+                    h3 { (t!("homepage.import_quiz", locale = locale)) }
+                }
+                form hx-post=(names::CREATE_QUIZ_URL)
+                     hx-target="main"
+                     enctype="multipart/form-data"
+                     hx-swap="innerHTML" {
+                    label {
+                        (t!("homepage.quiz_name", locale = locale))
+                        input name="quiz_name"
+                              type="text"
+                              required="true"
+                              autocomplete="off"
+                              placeholder=(t!("homepage.quiz_name", locale = locale))
+                              aria-label=(t!("homepage.quiz_name", locale = locale));
+                    }
+                    label {
+                        (t!("homepage.quiz_file", locale = locale))
+                        input name="quiz_file"
+                              type="file"
+                              required="true"
+                              accept="application/json"
+                              aria-label=(t!("homepage.quiz_file", locale = locale));
+                    }
+                    input type="submit" value=(t!("homepage.create", locale = locale));
                 }
             }
         }

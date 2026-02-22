@@ -111,15 +111,20 @@ impl Db {
               quizzes.id AS id,
               quizzes.public_id AS public_id,
               quizzes.name AS name,
-              COUNT(questions.id) AS count
+              COUNT(DISTINCT questions.id) AS count,
+              MAX(qs.id) AS last_session_id
             FROM
               user_quizzes
               JOIN quizzes ON quizzes.id = user_quizzes.quiz_id
               JOIN questions ON questions.quiz_id = quizzes.id
+              LEFT JOIN quiz_sessions qs ON qs.quiz_id = quizzes.id AND qs.user_id = $1
             WHERE
               user_quizzes.user_id = $1
             GROUP BY
               quizzes.id, quizzes.public_id, quizzes.name
+            ORDER BY
+              last_session_id DESC NULLS LAST,
+              quizzes.id DESC
             "#,
         )
         .bind(user_id)
