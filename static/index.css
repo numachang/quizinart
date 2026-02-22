@@ -84,7 +84,7 @@ header nav ul {
 }
 
 .quiz-card h3 a::after {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
 }
