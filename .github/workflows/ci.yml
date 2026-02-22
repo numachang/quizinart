@@ -42,6 +42,12 @@ jobs:
 
       - name: Run database migrations
         run: |
+          PGPASSWORD=password psql -h localhost -U quizinart -d quizinart -c "
+            CREATE TABLE IF NOT EXISTS schema_migrations (
+              version TEXT PRIMARY KEY,
+              applied_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+          "
           for f in migrations/V*__*.sql; do
             echo "Applying $f..."
             PGPASSWORD=password psql -h localhost -U quizinart -d quizinart -f "$f"
