@@ -1,13 +1,12 @@
 // Database model structs
 
-#[derive(Clone, sqlx::FromRow)]
+#[derive(Clone)]
 pub struct AuthUser {
     pub id: i32,
     pub email: String,
     pub display_name: String,
 }
 
-#[derive(sqlx::FromRow)]
 pub struct Quiz {
     pub id: i32,
     pub public_id: String,
@@ -22,7 +21,6 @@ pub struct QuestionModel {
     pub options: Vec<QuestionOptionModel>,
 }
 
-#[derive(sqlx::FromRow)]
 pub struct QuestionOptionModel {
     pub id: i32,
     pub is_answer: bool,
@@ -30,7 +28,6 @@ pub struct QuestionOptionModel {
     pub explanation: Option<String>,
 }
 
-#[derive(sqlx::FromRow)]
 pub struct QuizSessionModel {
     pub id: i32,
     pub quiz_id: i32,
@@ -39,7 +36,6 @@ pub struct QuizSessionModel {
     pub selection_mode: Option<String>,
 }
 
-#[derive(sqlx::FromRow)]
 pub struct AnswerModel {
     pub question: String,
     pub is_correct: bool,
@@ -47,13 +43,11 @@ pub struct AnswerModel {
     pub is_bookmarked: bool,
 }
 
-#[derive(sqlx::FromRow)]
 pub struct QuestionStatsModel {
     pub question: String,
     pub correct_answers: i64,
 }
 
-#[derive(sqlx::FromRow)]
 pub struct SessionReportModel {
     pub id: i32,
     pub name: String,
@@ -66,7 +60,6 @@ pub struct SessionReportModel {
     pub selection_mode: Option<String>,
 }
 
-#[derive(sqlx::FromRow)]
 pub struct CategoryStats {
     pub category: String,
     pub total: i64,
@@ -74,7 +67,6 @@ pub struct CategoryStats {
     pub accuracy: f64,
 }
 
-#[derive(sqlx::FromRow)]
 pub struct QuizOverallStats {
     pub total_questions: i64,
     pub unique_asked: i64,
@@ -82,13 +74,11 @@ pub struct QuizOverallStats {
     pub total_answered: i64,
 }
 
-#[derive(sqlx::FromRow)]
 pub struct DailyAccuracy {
     pub date_label: String,
     pub accuracy: f64,
 }
 
-#[derive(sqlx::FromRow)]
 pub struct QuizCategoryOverallStats {
     pub category: String,
     pub total_in_category: i64,
@@ -98,7 +88,6 @@ pub struct QuizCategoryOverallStats {
 }
 
 /// Combined question context from session_questions + questions + quizzes (single JOIN query)
-#[derive(sqlx::FromRow)]
 pub struct QuestionContext {
     pub quiz_name: String,
     pub quiz_public_id: String,
@@ -111,7 +100,6 @@ pub struct QuestionContext {
 }
 
 /// Option with selection status for the current session (avoids separate selected_answers query)
-#[derive(sqlx::FromRow)]
 pub struct OptionWithSelection {
     pub id: i32,
     pub is_answer: bool,

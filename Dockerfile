@@ -19,6 +19,8 @@ COPY src/ src/
 COPY static/ static/
 COPY locales/ locales/
 COPY migrations/ migrations/
+COPY .sqlx/ .sqlx/
+ENV SQLX_OFFLINE=true
 RUN cargo build --release
 
 # Stage 4: 軽量ランタイム

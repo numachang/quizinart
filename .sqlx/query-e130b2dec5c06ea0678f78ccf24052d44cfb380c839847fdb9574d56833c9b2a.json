@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE users\n               SET verification_token = $1, token_expires_at = NOW() + INTERVAL '24 hours'\n               WHERE email = $2 AND email_verified = FALSE",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "e130b2dec5c06ea0678f78ccf24052d44cfb380c839847fdb9574d56833c9b2a"
+}

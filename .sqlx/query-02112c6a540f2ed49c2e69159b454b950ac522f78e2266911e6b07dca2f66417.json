@@ -1,0 +1,66 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                qz.name AS quiz_name,\n                qz.public_id AS \"quiz_public_id!\",\n                sq.question_id,\n                q.question,\n                q.is_multiple_choice AS \"is_multiple_choice!\",\n                (sq.is_correct IS NOT NULL) AS \"is_answered!\",\n                sq.is_bookmarked AS \"is_bookmarked!\",\n                (SELECT COUNT(*)::INT FROM session_questions WHERE session_id = $1) AS \"questions_count!\"\n            FROM session_questions sq\n            JOIN questions q ON q.id = sq.question_id\n            JOIN quizzes qz ON qz.id = $2\n            WHERE sq.session_id = $1 AND sq.question_number = $3\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "quiz_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "quiz_public_id!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "question_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "question",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "is_multiple_choice!",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 5,
+        "name": "is_answered!",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 6,
+        "name": "is_bookmarked!",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "questions_count!",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      true,
+      null,
+      false,
+      null
+    ]
+  },
+  "hash": "02112c6a540f2ed49c2e69159b454b950ac522f78e2266911e6b07dca2f66417"
+}

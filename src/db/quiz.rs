@@ -19,21 +19,23 @@ impl Db {
         let mut tx = self.pool.begin().await?;
 
         // 1. Insert quiz with owner_id and public_id
-        let quiz_id: i32 = sqlx::query_scalar(
+        let quiz_id: i32 = sqlx::query_scalar!(
             "INSERT INTO quizzes (name, owner_id, public_id) VALUES ($1, $2, $3) RETURNING id",
+            quiz_name,
+            user_id,
+            public_id
         )
-        .bind(&quiz_name)
-        .bind(user_id)
-        .bind(&public_id)
         .fetch_one(&mut *tx)
         .await?;
 
         // 1b. Add to user's library
-        sqlx::query("INSERT INTO user_quizzes (user_id, quiz_id) VALUES ($1, $2)")
-            .bind(user_id)
-            .bind(quiz_id)
-            .execute(&mut *tx)
-            .await?;
+        sqlx::query!(
+            "INSERT INTO user_quizzes (user_id, quiz_id) VALUES ($1, $2)",
+            user_id,
+            quiz_id
+        )
+        .execute(&mut *tx)
+        .await?;
 
         if questions.is_empty() {
             tx.commit().await?;
@@ -48,25 +50,26 @@ impl Db {
         let q_multiple: Vec<bool> = questions.iter().map(|q| q.is_multiple_choice).collect();
         let q_quiz_ids: Vec<i32> = vec![quiz_id; questions.len()];
 
-        sqlx::query(
+        sqlx::query!(
             r#"
             INSERT INTO questions (question, category, is_multiple_choice, quiz_id)
             SELECT * FROM UNNEST($1::TEXT[], $2::TEXT[], $3::BOOL[], $4::INT4[])
             "#,
+            &q_texts,
+            &q_categories as &[Option<String>],
+            &q_multiple,
+            &q_quiz_ids
         )
-        .bind(&q_texts)
-        .bind(&q_categories)
-        .bind(&q_multiple)
-        .bind(&q_quiz_ids)
         .execute(&mut *tx)
         .await?;
 
         // 3. Retrieve question IDs in insertion order
-        let question_ids: Vec<i32> =
-            sqlx::query_scalar("SELECT id FROM questions WHERE quiz_id = $1 ORDER BY id")
-                .bind(quiz_id)
-                .fetch_all(&mut *tx)
-                .await?;
+        let question_ids: Vec<i32> = sqlx::query_scalar!(
+            "SELECT id FROM questions WHERE quiz_id = $1 ORDER BY id",
+            quiz_id
+        )
+        .fetch_all(&mut *tx)
+        .await?;
 
         // 4. Batch INSERT all options via UNNEST
         let mut o_texts = Vec::new();
@@ -84,16 +87,16 @@ impl Db {
         }
 
         if !o_texts.is_empty() {
-            sqlx::query(
+            sqlx::query!(
                 r#"
                 INSERT INTO options (option, is_answer, explanation, question_id)
                 SELECT * FROM UNNEST($1::TEXT[], $2::BOOL[], $3::TEXT[], $4::INT4[])
                 "#,
+                &o_texts,
+                &o_is_answers,
+                &o_explanations as &[Option<String>],
+                &o_question_ids
             )
-            .bind(&o_texts)
-            .bind(&o_is_answers)
-            .bind(&o_explanations)
-            .bind(&o_question_ids)
             .execute(&mut *tx)
             .await?;
         }
@@ -105,13 +108,14 @@ impl Db {
     }
 
     pub async fn quizzes(&self, user_id: i32) -> Result<Vec<Quiz>> {
-        let quizzes = sqlx::query_as::<_, Quiz>(
+        let quizzes = sqlx::query_as!(
+            Quiz,
             r#"
             SELECT
               quizzes.id AS id,
-              quizzes.public_id AS public_id,
+              quizzes.public_id AS "public_id!",
               quizzes.name AS name,
-              COUNT(DISTINCT questions.id) AS count,
+              COUNT(DISTINCT questions.id) AS "count!",
               MAX(qs.id) AS last_session_id
             FROM
               user_quizzes
@@ -126,8 +130,8 @@ impl Db {
               last_session_id DESC NULLS LAST,
               quizzes.id DESC
             "#,
+            user_id
         )
-        .bind(user_id)
         .fetch_all(&self.pool)
         .await?;
 
@@ -135,7 +139,7 @@ impl Db {
     }
 
     pub async fn quiz_has_other_users(&self, public_id: &str, owner_id: i32) -> Result<bool> {
-        let exists: bool = sqlx::query_scalar(
+        let exists: bool = sqlx::query_scalar!(
             r#"
             SELECT EXISTS(
                 SELECT 1 FROM user_quizzes uq
@@ -143,29 +147,31 @@ impl Db {
                 WHERE q.public_id = $1 AND uq.user_id != $2
             )
             "#,
+            public_id,
+            owner_id
         )
-        .bind(public_id)
-        .bind(owner_id)
         .fetch_one(&self.pool)
-        .await?;
+        .await?
+        .unwrap_or(false);
 
         Ok(exists)
     }
 
     pub async fn delete_quiz(&self, public_id: &str, user_id: i32) -> Result<()> {
-        sqlx::query("DELETE FROM quizzes WHERE public_id = $1 AND owner_id = $2")
-            .bind(public_id)
-            .bind(user_id)
-            .execute(&self.pool)
-            .await?;
+        sqlx::query!(
+            "DELETE FROM quizzes WHERE public_id = $1 AND owner_id = $2",
+            public_id,
+            user_id
+        )
+        .execute(&self.pool)
+        .await?;
 
         tracing::info!("quiz deleted with public_id: {public_id} by user_id: {user_id}");
         Ok(())
     }
 
     pub async fn quiz_name(&self, quiz_id: i32) -> Result<String> {
-        let name: String = sqlx::query_scalar("SELECT name FROM quizzes WHERE id = $1")
-            .bind(quiz_id)
+        let name: String = sqlx::query_scalar!("SELECT name FROM quizzes WHERE id = $1", quiz_id)
             .fetch_optional(&self.pool)
             .await?
             .ok_or_eyre("could not get quiz name")?;
@@ -175,8 +181,7 @@ impl Db {
 
     /// Resolve a public_id (ULID) to the internal quiz id.
     pub async fn resolve_quiz_id(&self, public_id: &str) -> Result<i32> {
-        let id: i32 = sqlx::query_scalar("SELECT id FROM quizzes WHERE public_id = $1")
-            .bind(public_id)
+        let id: i32 = sqlx::query_scalar!("SELECT id FROM quizzes WHERE public_id = $1", public_id)
             .fetch_optional(&self.pool)
             .await?
             .ok_or_eyre("quiz not found")?;
@@ -186,22 +191,26 @@ impl Db {
 
     /// Look up the public_id for a quiz given its internal id.
     pub async fn quiz_public_id(&self, quiz_id: i32) -> Result<String> {
-        let public_id: String = sqlx::query_scalar("SELECT public_id FROM quizzes WHERE id = $1")
-            .bind(quiz_id)
-            .fetch_optional(&self.pool)
-            .await?
-            .ok_or_eyre("quiz not found")?;
+        let public_id: String = sqlx::query_scalar!(
+            r#"SELECT public_id AS "public_id!" FROM quizzes WHERE id = $1"#,
+            quiz_id
+        )
+        .fetch_optional(&self.pool)
+        .await?
+        .ok_or_eyre("quiz not found")?;
 
         Ok(public_id)
     }
 
     pub async fn rename_quiz(&self, public_id: &str, name: &str, user_id: i32) -> Result<()> {
-        sqlx::query("UPDATE quizzes SET name = $1 WHERE public_id = $2 AND owner_id = $3")
-            .bind(name)
-            .bind(public_id)
-            .bind(user_id)
-            .execute(&self.pool)
-            .await?;
+        sqlx::query!(
+            "UPDATE quizzes SET name = $1 WHERE public_id = $2 AND owner_id = $3",
+            name,
+            public_id,
+            user_id
+        )
+        .execute(&self.pool)
+        .await?;
 
         tracing::info!("quiz renamed with public_id: {public_id} by user_id: {user_id}");
         Ok(())
@@ -209,13 +218,14 @@ impl Db {
 
     /// Verify that a quiz belongs to the given user (owner check)
     pub async fn verify_quiz_owner(&self, public_id: &str, user_id: i32) -> Result<bool> {
-        let exists: bool = sqlx::query_scalar(
+        let exists: bool = sqlx::query_scalar!(
             "SELECT EXISTS(SELECT 1 FROM quizzes WHERE public_id = $1 AND owner_id = $2)",
+            public_id,
+            user_id
         )
-        .bind(public_id)
-        .bind(user_id)
         .fetch_one(&self.pool)
-        .await?;
+        .await?
+        .unwrap_or(false);
 
         Ok(exists)
     }

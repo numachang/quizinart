@@ -1,0 +1,47 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT o.id, o.is_answer, o.option, o.explanation,\n                   EXISTS(\n                       SELECT 1 FROM user_answers ua\n                       WHERE ua.option_id = o.id AND ua.session_id = $1 AND ua.question_id = $2\n                   ) AS \"is_selected!\"\n            FROM options o\n            WHERE o.question_id = $2\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "is_answer",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 2,
+        "name": "option",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "explanation",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "is_selected!",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      null
+    ]
+  },
+  "hash": "f0dd9426caacce41dcd6d68dd18c10dc746fc7c5b09b1b22eccedaa864ee77e7"
+}

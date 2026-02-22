@@ -17,12 +17,12 @@ impl Db {
     ) -> Result<i32> {
         let password_hash = hash_password(password)?;
 
-        let user_id: i32 = sqlx::query_scalar(
+        let user_id: i32 = sqlx::query_scalar!(
             "INSERT INTO users (email, password_hash, display_name) VALUES ($1, $2, $3) RETURNING id",
+            email,
+            password_hash,
+            display_name
         )
-        .bind(email)
-        .bind(&password_hash)
-        .bind(display_name)
         .fetch_one(&self.pool)
         .await?;
 
@@ -31,10 +31,11 @@ impl Db {
     }
 
     pub async fn find_user_by_email(&self, email: &str) -> Result<Option<AuthUser>> {
-        let user = sqlx::query_as::<_, AuthUser>(
+        let user = sqlx::query_as!(
+            AuthUser,
             "SELECT id, email, display_name FROM users WHERE email = $1",
+            email
         )
-        .bind(email)
         .fetch_optional(&self.pool)
         .await?;
 
@@ -43,8 +44,7 @@ impl Db {
 
     pub async fn verify_user_password(&self, email: &str, password: &str) -> Result<bool> {
         let stored_hash: Option<String> =
-            sqlx::query_scalar("SELECT password_hash FROM users WHERE email = $1")
-                .bind(email)
+            sqlx::query_scalar!("SELECT password_hash FROM users WHERE email = $1", email)
                 .fetch_optional(&self.pool)
                 .await?;
 
@@ -57,26 +57,29 @@ impl Db {
     pub async fn create_user_session(&self, user_id: i32) -> Result<String> {
         let session = Ulid::new().to_string();
 
-        sqlx::query("INSERT INTO user_sessions (id, user_id) VALUES ($1, $2)")
-            .bind(&session)
-            .bind(user_id)
-            .execute(&self.pool)
-            .await?;
+        sqlx::query!(
+            "INSERT INTO user_sessions (id, user_id) VALUES ($1, $2)",
+            session,
+            user_id
+        )
+        .execute(&self.pool)
+        .await?;
 
         tracing::info!("new user session created for user_id={user_id}");
         Ok(session)
     }
 
     pub async fn get_user_by_session(&self, session_id: &str) -> Result<Option<AuthUser>> {
-        let user = sqlx::query_as::<_, AuthUser>(
+        let user = sqlx::query_as!(
+            AuthUser,
             r#"
             SELECT u.id, u.email, u.display_name
             FROM user_sessions s
             JOIN users u ON u.id = s.user_id
             WHERE s.id = $1
             "#,
+            session_id
         )
-        .bind(session_id)
         .fetch_optional(&self.pool)
         .await?;
 
@@ -84,8 +87,7 @@ impl Db {
     }
 
     pub async fn delete_user_session(&self, session_id: &str) -> Result<()> {
-        sqlx::query("DELETE FROM user_sessions WHERE id = $1")
-            .bind(session_id)
+        sqlx::query!("DELETE FROM user_sessions WHERE id = $1", session_id)
             .execute(&self.pool)
             .await?;
 
@@ -94,10 +96,10 @@ impl Db {
 
     pub async fn email_exists(&self, email: &str) -> Result<bool> {
         let exists: bool =
-            sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
-                .bind(email)
+            sqlx::query_scalar!("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)", email)
                 .fetch_one(&self.pool)
-                .await?;
+                .await?
+                .unwrap_or(false);
 
         Ok(exists)
     }
@@ -113,15 +115,15 @@ impl Db {
         let password_hash = hash_password(password)?;
         let token = Ulid::new().to_string();
 
-        let user_id: i32 = sqlx::query_scalar(
+        let user_id: i32 = sqlx::query_scalar!(
             r#"INSERT INTO users (email, password_hash, display_name, email_verified, verification_token, token_expires_at)
                VALUES ($1, $2, $3, FALSE, $4, NOW() + INTERVAL '24 hours')
                RETURNING id"#,
+            email,
+            password_hash,
+            display_name,
+            token
         )
-        .bind(email)
-        .bind(&password_hash)
-        .bind(display_name)
-        .bind(&token)
         .fetch_one(&self.pool)
         .await?;
 
@@ -132,13 +134,13 @@ impl Db {
     /// Verify a user's email using their verification token.
     /// Returns true if verification succeeded, false if token is invalid/expired.
     pub async fn verify_email_token(&self, token: &str) -> Result<bool> {
-        let result = sqlx::query(
+        let result = sqlx::query!(
             r#"UPDATE users
                SET email_verified = TRUE, verification_token = NULL, token_expires_at = NULL
                WHERE verification_token = $1 AND token_expires_at > NOW()
                AND email_verified = FALSE"#,
+            token
         )
-        .bind(token)
         .execute(&self.pool)
         .await?;
 
@@ -148,8 +150,7 @@ impl Db {
     /// Check if a user's email is verified.
     pub async fn is_email_verified(&self, email: &str) -> Result<bool> {
         let verified: Option<bool> =
-            sqlx::query_scalar("SELECT email_verified FROM users WHERE email = $1")
-                .bind(email)
+            sqlx::query_scalar!("SELECT email_verified FROM users WHERE email = $1", email)
                 .fetch_optional(&self.pool)
                 .await?;
 
@@ -160,13 +161,13 @@ impl Db {
     pub async fn regenerate_verification_token(&self, email: &str) -> Result<Option<String>> {
         let token = Ulid::new().to_string();
 
-        let result = sqlx::query(
+        let result = sqlx::query!(
             r#"UPDATE users
                SET verification_token = $1, token_expires_at = NOW() + INTERVAL '24 hours'
                WHERE email = $2 AND email_verified = FALSE"#,
+            token,
+            email
         )
-        .bind(&token)
-        .bind(email)
         .execute(&self.pool)
         .await?;
 
@@ -181,13 +182,13 @@ impl Db {
     pub async fn create_password_reset_token(&self, email: &str) -> Result<Option<String>> {
         let token = Ulid::new().to_string();
 
-        let result = sqlx::query(
+        let result = sqlx::query!(
             r#"UPDATE users
                SET password_reset_token = $1, password_reset_expires_at = NOW() + INTERVAL '1 hour'
                WHERE email = $2 AND email_verified = TRUE"#,
+            token,
+            email
         )
-        .bind(&token)
-        .bind(email)
         .execute(&self.pool)
         .await?;
 
@@ -200,12 +201,12 @@ impl Db {
 
     /// Validate a password reset token. Returns the user's email if valid and not expired.
     pub async fn validate_password_reset_token(&self, token: &str) -> Result<Option<String>> {
-        let email: Option<String> = sqlx::query_scalar(
+        let email: Option<String> = sqlx::query_scalar!(
             r#"SELECT email FROM users
                WHERE password_reset_token = $1
                AND password_reset_expires_at > NOW()"#,
+            token
         )
-        .bind(token)
         .fetch_optional(&self.pool)
         .await?;
 
@@ -216,14 +217,14 @@ impl Db {
     pub async fn reset_password_with_token(&self, token: &str, new_password: &str) -> Result<bool> {
         let password_hash = hash_password(new_password)?;
 
-        let result = sqlx::query(
+        let result = sqlx::query!(
             r#"UPDATE users
                SET password_hash = $1, password_reset_token = NULL, password_reset_expires_at = NULL
                WHERE password_reset_token = $2
                AND password_reset_expires_at > NOW()"#,
+            password_hash,
+            token
         )
-        .bind(&password_hash)
-        .bind(token)
         .execute(&self.pool)
         .await?;
 
@@ -238,8 +239,7 @@ impl Db {
         new_password: &str,
     ) -> Result<bool> {
         let stored_hash: Option<String> =
-            sqlx::query_scalar("SELECT password_hash FROM users WHERE id = $1")
-                .bind(user_id)
+            sqlx::query_scalar!("SELECT password_hash FROM users WHERE id = $1", user_id)
                 .fetch_optional(&self.pool)
                 .await?;
 
@@ -253,11 +253,13 @@ impl Db {
         }
 
         let new_hash = hash_password(new_password)?;
-        sqlx::query("UPDATE users SET password_hash = $1 WHERE id = $2")
-            .bind(&new_hash)
-            .bind(user_id)
-            .execute(&self.pool)
-            .await?;
+        sqlx::query!(
+            "UPDATE users SET password_hash = $1 WHERE id = $2",
+            new_hash,
+            user_id
+        )
+        .execute(&self.pool)
+        .await?;
 
         Ok(true)
     }
@@ -269,12 +271,12 @@ impl Db {
         password_hash: &str,
         display_name: &str,
     ) -> Result<i32> {
-        let user_id: i32 = sqlx::query_scalar(
+        let user_id: i32 = sqlx::query_scalar!(
             "INSERT INTO users (email, password_hash, display_name) VALUES ($1, $2, $3) RETURNING id",
+            email,
+            password_hash,
+            display_name
         )
-        .bind(email)
-        .bind(password_hash)
-        .bind(display_name)
         .fetch_one(&self.pool)
         .await?;
 
@@ -284,6 +286,7 @@ impl Db {
 
     /// Migrate existing admin data to user system (V5 migration logic)
     pub async fn migrate_admin_to_user(&self) -> Result<()> {
+        // One-time data migration — kept as runtime queries
         let needs_migration: bool =
             sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM quizzes WHERE owner_id IS NULL)")
                 .fetch_one(&self.pool)
@@ -334,6 +337,7 @@ impl Db {
 
     /// Backfill public_id (ULID) for quizzes that don't have one yet.
     pub async fn backfill_quiz_public_ids(&self) -> Result<()> {
+        // One-time data migration — kept as runtime queries
         let orphan_ids: Vec<i32> =
             sqlx::query_scalar("SELECT id FROM quizzes WHERE public_id IS NULL")
                 .fetch_all(&self.pool)

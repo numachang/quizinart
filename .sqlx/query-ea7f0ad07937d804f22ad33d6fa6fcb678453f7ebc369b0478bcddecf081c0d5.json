@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE quizzes SET name = $1 WHERE public_id = $2 AND owner_id = $3",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ea7f0ad07937d804f22ad33d6fa6fcb678453f7ebc369b0478bcddecf081c0d5"
+}

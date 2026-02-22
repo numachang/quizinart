@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT q.question AS question, COUNT(*) AS \"correct_answers!\"\n            FROM questions q\n            JOIN session_questions sq ON sq.question_id = q.id AND sq.is_correct = TRUE\n            WHERE q.quiz_id = $1\n            GROUP BY q.question\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "question",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "correct_answers!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "7ca367280a55f730038ca624ef6b84b4bab1df6ead832214bc8d8ebd1eed171c"
+}

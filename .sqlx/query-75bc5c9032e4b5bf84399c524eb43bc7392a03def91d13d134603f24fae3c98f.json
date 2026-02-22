@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT q.question AS question, sq.is_correct AS \"is_correct!\", sq.question_number AS question_idx,\n                   sq.is_bookmarked AS \"is_bookmarked!\"\n            FROM session_questions sq\n            JOIN questions q ON sq.question_id = q.id\n            WHERE sq.session_id = $1 AND sq.is_correct IS NOT NULL\n            ORDER BY sq.question_number\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "question",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "is_correct!",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 2,
+        "name": "question_idx",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "is_bookmarked!",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "75bc5c9032e4b5bf84399c524eb43bc7392a03def91d13d134603f24fae3c98f"
+}

@@ -1,0 +1,46 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                q.category AS \"category!\",\n                COUNT(DISTINCT q.id) AS \"total_in_category!\",\n                COUNT(DISTINCT CASE WHEN sq.is_correct IS NOT NULL THEN sq.question_id END) AS \"unique_asked!\",\n                COALESCE(SUM(CASE WHEN sq.is_correct THEN 1 ELSE 0 END), 0) AS \"total_correct!\",\n                COUNT(CASE WHEN sq.is_correct IS NOT NULL THEN 1 END) AS \"total_answered!\"\n            FROM questions q\n            LEFT JOIN session_questions sq ON sq.question_id = q.id\n            WHERE q.quiz_id = $1 AND q.category IS NOT NULL\n            GROUP BY q.category\n            ORDER BY q.category\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "category!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "total_in_category!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "unique_asked!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 3,
+        "name": "total_correct!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 4,
+        "name": "total_answered!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      true,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "3b77330e164f22b79b7600718bb13bab88f72eef99b6fa2d6e8050ec88668415"
+}

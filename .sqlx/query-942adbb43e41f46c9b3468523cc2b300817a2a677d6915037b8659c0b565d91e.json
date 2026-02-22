@@ -1,0 +1,70 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                session_id AS \"id!\",\n                name AS \"name!\",\n                session_token AS \"session_token!\",\n                correct_answers AS \"score!\",\n                total_questions AS \"total_questions!\",\n                answered_questions AS \"answered_questions!\",\n                is_complete AS \"is_complete!\",\n                question_count,\n                selection_mode\n            FROM session_stats\n            WHERE quiz_id = $1\n            ORDER BY session_id DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "name!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "session_token!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "score!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "total_questions!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "answered_questions!",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 6,
+        "name": "is_complete!",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "question_count",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 8,
+        "name": "selection_mode",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "942adbb43e41f46c9b3468523cc2b300817a2a677d6915037b8659c0b565d91e"
+}

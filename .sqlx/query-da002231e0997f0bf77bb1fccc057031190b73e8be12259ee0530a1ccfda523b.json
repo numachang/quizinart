@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT EXISTS(\n                SELECT 1 FROM user_quizzes uq\n                JOIN quizzes q ON q.id = uq.quiz_id\n                WHERE q.public_id = $1 AND uq.user_id != $2\n            )\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "exists",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "da002231e0997f0bf77bb1fccc057031190b73e8be12259ee0530a1ccfda523b"
+}

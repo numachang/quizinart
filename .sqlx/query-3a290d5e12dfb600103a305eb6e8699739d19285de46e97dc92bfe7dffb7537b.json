@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, is_answer, option, explanation FROM options WHERE question_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "is_answer",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 2,
+        "name": "option",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "explanation",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "3a290d5e12dfb600103a305eb6e8699739d19285de46e97dc92bfe7dffb7537b"
+}

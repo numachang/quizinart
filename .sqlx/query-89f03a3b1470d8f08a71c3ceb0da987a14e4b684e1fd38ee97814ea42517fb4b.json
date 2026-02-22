@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO admin (id, password) VALUES (1, $1) ON CONFLICT(id) DO UPDATE SET password = EXCLUDED.password",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "89f03a3b1470d8f08a71c3ceb0da987a14e4b684e1fd38ee97814ea42517fb4b"
+}

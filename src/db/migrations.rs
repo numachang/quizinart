@@ -37,7 +37,7 @@ const MIGRATIONS: &[Migration] = &[
 ];
 
 pub async fn run(pool: &sqlx::PgPool) -> Result<()> {
-    sqlx::query(
+    sqlx::query!(
         r#"
         CREATE TABLE IF NOT EXISTS schema_migrations (
             version TEXT PRIMARY KEY,
@@ -49,23 +49,27 @@ pub async fn run(pool: &sqlx::PgPool) -> Result<()> {
     .await?;
 
     for migration in MIGRATIONS {
-        let already_applied: bool =
-            sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE version = $1)")
-                .bind(migration.version)
-                .fetch_one(pool)
-                .await?;
+        let already_applied: bool = sqlx::query_scalar!(
+            "SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE version = $1)",
+            migration.version
+        )
+        .fetch_one(pool)
+        .await?
+        .unwrap_or(false);
 
         if already_applied {
             continue;
         }
 
-        // Execute multi-statement SQL using raw_sql
+        // Execute multi-statement SQL using raw_sql (cannot be macro-checked)
         sqlx::raw_sql(migration.sql).execute(pool).await?;
 
-        sqlx::query("INSERT INTO schema_migrations (version) VALUES ($1)")
-            .bind(migration.version)
-            .execute(pool)
-            .await?;
+        sqlx::query!(
+            "INSERT INTO schema_migrations (version) VALUES ($1)",
+            migration.version
+        )
+        .execute(pool)
+        .await?;
 
         tracing::info!(version = migration.version, "applied database migration");
     }

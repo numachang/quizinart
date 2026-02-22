@@ -31,7 +31,9 @@ impl Db {
             .await?;
 
         // Verify connection
-        let one: i32 = sqlx::query_scalar("SELECT 1").fetch_one(&pool).await?;
+        let one: i32 = sqlx::query_scalar!(r#"SELECT 1::INT4 AS "one!""#)
+            .fetch_one(&pool)
+            .await?;
         assert_eq!(one, 1);
 
         // Run schema migrations
@@ -51,11 +53,13 @@ impl Db {
     }
 
     pub async fn migration_applied(&self, version: &str) -> Result<bool> {
-        let exists: bool =
-            sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE version = $1)")
-                .bind(version)
-                .fetch_one(&self.pool)
-                .await?;
+        let exists: bool = sqlx::query_scalar!(
+            "SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE version = $1)",
+            version
+        )
+        .fetch_one(&self.pool)
+        .await?
+        .unwrap_or(false);
 
         Ok(exists)
     }

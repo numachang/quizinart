@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT COUNT(*)::INT AS \"count!\" FROM session_questions WHERE session_id = $1 AND is_correct = TRUE",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count!",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "9085f1750a79f8fd8b5771b386c4b30ccf576fcad7e02d6c3abfa7f6662446d2"
+}

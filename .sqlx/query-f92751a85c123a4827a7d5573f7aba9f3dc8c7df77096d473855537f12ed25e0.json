@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                    SELECT id FROM questions\n                    WHERE quiz_id = $1 AND id NOT IN (\n                        SELECT DISTINCT question_id FROM session_questions\n                        JOIN quiz_sessions ON quiz_sessions.id = session_questions.session_id\n                        WHERE quiz_sessions.quiz_id = $1\n                    )\n                    ORDER BY id\n                    ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "f92751a85c123a4827a7d5573f7aba9f3dc8c7df77096d473855537f12ed25e0"
+}

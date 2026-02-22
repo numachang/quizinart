@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE session_questions SET is_correct = $1 WHERE session_id = $2 AND question_id = $3",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "9adc2298780dfa97bd15dd0aee53c4d3c6c176509bf400352a4eb3db8b0f1e65"
+}

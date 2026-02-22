@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO questions (question, category, is_multiple_choice, quiz_id)\n            SELECT * FROM UNNEST($1::TEXT[], $2::TEXT[], $3::BOOL[], $4::INT4[])\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "TextArray",
+        "TextArray",
+        "BoolArray",
+        "Int4Array"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "edd439f50405db1441b929d6674716bb5abbee01d44ec5f8e48d8a634d52aa7f"
+}

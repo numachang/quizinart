@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE session_questions SET is_bookmarked = NOT is_bookmarked WHERE session_id = $1 AND question_id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "98b5bfdeebe7946b98f2963154e1c4f3a73b58b1b15ee2183f73d12062c975c0"
+}

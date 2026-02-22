@@ -6,7 +6,7 @@ use super::Db;
 impl Db {
     pub async fn admin_password(&self) -> Result<Option<String>> {
         let password: Option<String> =
-            sqlx::query_scalar("SELECT password FROM admin WHERE id = 1")
+            sqlx::query_scalar!("SELECT password FROM admin WHERE id = 1")
                 .fetch_optional(&self.pool)
                 .await?;
 
@@ -14,10 +14,10 @@ impl Db {
     }
 
     pub async fn set_admin_password(&self, password: String) -> Result<()> {
-        sqlx::query(
-            "INSERT INTO admin (id, password) VALUES (1, $1) ON CONFLICT(id) DO UPDATE SET password = EXCLUDED.password"
+        sqlx::query!(
+            "INSERT INTO admin (id, password) VALUES (1, $1) ON CONFLICT(id) DO UPDATE SET password = EXCLUDED.password",
+            password
         )
-        .bind(&password)
         .execute(&self.pool)
         .await?;
 
@@ -28,8 +28,7 @@ impl Db {
     pub async fn create_admin_session(&self) -> Result<String> {
         let session = Ulid::new().to_string();
 
-        sqlx::query("INSERT INTO admin_sessions (id) VALUES ($1)")
-            .bind(&session)
+        sqlx::query!("INSERT INTO admin_sessions (id) VALUES ($1)", session)
             .execute(&self.pool)
             .await?;
 
@@ -38,11 +37,13 @@ impl Db {
     }
 
     pub async fn admin_session_exists(&self, session: String) -> Result<bool> {
-        let exists: bool =
-            sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM admin_sessions WHERE id = $1)")
-                .bind(&session)
-                .fetch_one(&self.pool)
-                .await?;
+        let exists: bool = sqlx::query_scalar!(
+            "SELECT EXISTS(SELECT 1 FROM admin_sessions WHERE id = $1)",
+            session
+        )
+        .fetch_one(&self.pool)
+        .await?
+        .unwrap_or(false);
 
         tracing::info!("admin session {session:?} exists: {exists}");
         Ok(exists)

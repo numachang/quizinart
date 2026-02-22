@@ -9,13 +9,14 @@ use super::Db;
 
 impl Db {
     pub async fn session_name_exists(&self, name: &str, quiz_id: i32) -> Result<bool> {
-        let exists: bool = sqlx::query_scalar(
+        let exists: bool = sqlx::query_scalar!(
             "SELECT EXISTS(SELECT 1 FROM quiz_sessions WHERE name = $1 AND quiz_id = $2)",
+            name,
+            quiz_id
         )
-        .bind(name)
-        .bind(quiz_id)
         .fetch_one(&self.pool)
-        .await?;
+        .await?
+        .unwrap_or(false);
 
         Ok(exists)
     }
@@ -47,16 +48,16 @@ impl Db {
         // Transaction: insert session + session_questions atomically
         let mut tx = self.pool.begin().await?;
 
-        let session_id: i32 = sqlx::query_scalar(
+        let session_id: i32 = sqlx::query_scalar!(
             "INSERT INTO quiz_sessions (name, session_token, quiz_id, shuffle_seed, question_count, selection_mode, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
+            name,
+            session_token,
+            quiz_id,
+            shuffle_seed,
+            question_count,
+            selection_mode,
+            user_id
         )
-        .bind(name)
-        .bind(&session_token)
-        .bind(quiz_id)
-        .bind(shuffle_seed)
-        .bind(question_count)
-        .bind(selection_mode)
-        .bind(user_id)
         .fetch_one(&mut *tx)
         .await?;
 
@@ -80,15 +81,15 @@ impl Db {
             return Ok(());
         }
 
-        sqlx::query(
+        sqlx::query!(
             r#"
             INSERT INTO session_questions (session_id, question_id, question_number)
             SELECT $1, q, (n - 1)::INT
             FROM UNNEST($2::INT4[]) WITH ORDINALITY AS t(q, n)
             "#,
+            session_id,
+            question_ids
         )
-        .bind(session_id)
-        .bind(question_ids)
         .execute(&mut **tx)
         .await?;
 
@@ -106,7 +107,7 @@ impl Db {
 
         match selection_mode {
             "unanswered" => {
-                let mut unanswered: Vec<i32> = sqlx::query_scalar(
+                let mut unanswered: Vec<i32> = sqlx::query_scalar!(
                     r#"
                     SELECT id FROM questions
                     WHERE quiz_id = $1 AND id NOT IN (
@@ -116,8 +117,8 @@ impl Db {
                     )
                     ORDER BY id
                     "#,
+                    quiz_id
                 )
-                .bind(quiz_id)
                 .fetch_all(&self.pool)
                 .await?;
 
@@ -142,14 +143,14 @@ impl Db {
                 }
             }
             "incorrect" => {
-                let mut incorrect: Vec<i32> = sqlx::query_scalar(
+                let mut incorrect: Vec<i32> = sqlx::query_scalar!(
                     r#"
-                    SELECT question_id FROM question_stats
+                    SELECT question_id AS "question_id!" FROM question_stats
                     WHERE quiz_id = $1 AND times_incorrect > 0
                     ORDER BY accuracy ASC, times_incorrect DESC
                     "#,
+                    quiz_id
                 )
-                .bind(quiz_id)
                 .fetch_all(&self.pool)
                 .await?;
 
@@ -183,29 +184,33 @@ impl Db {
     }
 
     async fn get_all_question_ids(&self, quiz_id: i32) -> Result<Vec<i32>> {
-        let ids = sqlx::query_scalar("SELECT id FROM questions WHERE quiz_id = $1 ORDER BY id")
-            .bind(quiz_id)
-            .fetch_all(&self.pool)
-            .await?;
+        let ids = sqlx::query_scalar!(
+            "SELECT id FROM questions WHERE quiz_id = $1 ORDER BY id",
+            quiz_id
+        )
+        .fetch_all(&self.pool)
+        .await?;
 
         Ok(ids)
     }
 
     pub async fn sessions_count(&self, quiz_id: i32) -> Result<i32> {
-        let count: i32 =
-            sqlx::query_scalar("SELECT COUNT(*)::INT FROM quiz_sessions WHERE quiz_id = $1")
-                .bind(quiz_id)
-                .fetch_one(&self.pool)
-                .await?;
+        let count: i32 = sqlx::query_scalar!(
+            r#"SELECT COUNT(*)::INT AS "count!" FROM quiz_sessions WHERE quiz_id = $1"#,
+            quiz_id
+        )
+        .fetch_one(&self.pool)
+        .await?;
 
         Ok(count)
     }
 
     pub async fn get_session(&self, token: &str) -> Result<QuizSessionModel> {
-        let session = sqlx::query_as::<_, QuizSessionModel>(
+        let session = sqlx::query_as!(
+            QuizSessionModel,
             "SELECT id, quiz_id, name, question_count, selection_mode FROM quiz_sessions WHERE session_token = $1",
+            token
         )
-        .bind(token)
         .fetch_one(&self.pool)
         .await?;
 
@@ -213,10 +218,11 @@ impl Db {
     }
 
     pub async fn get_session_by_id(&self, session_id: i32) -> Result<QuizSessionModel> {
-        let session = sqlx::query_as::<_, QuizSessionModel>(
+        let session = sqlx::query_as!(
+            QuizSessionModel,
             "SELECT id, quiz_id, name, question_count, selection_mode FROM quiz_sessions WHERE id = $1",
+            session_id
         )
-        .bind(session_id)
         .fetch_one(&self.pool)
         .await?;
 
@@ -225,10 +231,10 @@ impl Db {
 
     /// 回答済み問題数を返す（= 次の未回答問題の question_number）
     pub async fn current_question_index(&self, session_id: i32) -> Result<i32> {
-        let count: i32 = sqlx::query_scalar(
-            "SELECT COUNT(*)::INT FROM session_questions WHERE session_id = $1 AND is_correct IS NOT NULL",
+        let count: i32 = sqlx::query_scalar!(
+            r#"SELECT COUNT(*)::INT AS "count!" FROM session_questions WHERE session_id = $1 AND is_correct IS NOT NULL"#,
+            session_id
         )
-        .bind(session_id)
         .fetch_one(&self.pool)
         .await?;
 
@@ -256,15 +262,15 @@ impl Db {
         // Transaction: insert session + session_questions atomically
         let mut tx = self.pool.begin().await?;
 
-        let session_id: i32 = sqlx::query_scalar(
+        let session_id: i32 = sqlx::query_scalar!(
             "INSERT INTO quiz_sessions (name, session_token, quiz_id, shuffle_seed, question_count, selection_mode, user_id) VALUES ($1, $2, $3, 0, $4, $5, $6) RETURNING id",
+            name,
+            session_token,
+            quiz_id,
+            question_count,
+            selection_mode,
+            user_id
         )
-        .bind(name)
-        .bind(&session_token)
-        .bind(quiz_id)
-        .bind(question_count)
-        .bind(selection_mode)
-        .bind(user_id)
         .fetch_one(&mut *tx)
         .await?;
 
@@ -279,8 +285,7 @@ impl Db {
     }
 
     pub async fn delete_session(&self, session_id: i32) -> Result<()> {
-        sqlx::query("DELETE FROM quiz_sessions WHERE id = $1")
-            .bind(session_id)
+        sqlx::query!("DELETE FROM quiz_sessions WHERE id = $1", session_id)
             .execute(&self.pool)
             .await?;
 
@@ -301,22 +306,24 @@ impl Db {
             ));
         }
 
-        sqlx::query("UPDATE quiz_sessions SET name = $1 WHERE id = $2")
-            .bind(new_name)
-            .bind(session_id)
-            .execute(&self.pool)
-            .await?;
+        sqlx::query!(
+            "UPDATE quiz_sessions SET name = $1 WHERE id = $2",
+            new_name,
+            session_id
+        )
+        .execute(&self.pool)
+        .await?;
 
         tracing::info!("renamed session {session_id} to '{new_name}'");
         Ok(())
     }
 
     pub async fn is_question_bookmarked(&self, session_id: i32, question_id: i32) -> Result<bool> {
-        let bookmarked: bool = sqlx::query_scalar(
+        let bookmarked: bool = sqlx::query_scalar!(
             "SELECT is_bookmarked FROM session_questions WHERE session_id = $1 AND question_id = $2",
+            session_id,
+            question_id
         )
-        .bind(session_id)
-        .bind(question_id)
         .fetch_optional(&self.pool)
         .await?
         .ok_or_eyre("session_question not found")?;
@@ -326,11 +333,11 @@ impl Db {
 
     /// ブックマーク状態をトグルし、新しい状態を返す
     pub async fn toggle_bookmark(&self, session_id: i32, question_id: i32) -> Result<bool> {
-        sqlx::query(
+        sqlx::query!(
             "UPDATE session_questions SET is_bookmarked = NOT is_bookmarked WHERE session_id = $1 AND question_id = $2",
+            session_id,
+            question_id
         )
-        .bind(session_id)
-        .bind(question_id)
         .execute(&self.pool)
         .await?;
 
@@ -338,10 +345,10 @@ impl Db {
     }
 
     pub async fn get_bookmarked_questions(&self, session_id: i32) -> Result<Vec<i32>> {
-        let ids: Vec<i32> = sqlx::query_scalar(
+        let ids: Vec<i32> = sqlx::query_scalar!(
             "SELECT question_id FROM session_questions WHERE session_id = $1 AND is_bookmarked = TRUE",
+            session_id
         )
-        .bind(session_id)
         .fetch_all(&self.pool)
         .await?;
 
@@ -353,22 +360,22 @@ impl Db {
         name: &str,
         quiz_id: i32,
     ) -> Result<Option<(i32, String)>> {
-        let row = sqlx::query_as::<_, (i32, String)>(
-            "SELECT session_id, session_token FROM session_stats WHERE name = $1 AND quiz_id = $2 AND is_complete = FALSE ORDER BY session_id DESC",
+        let row = sqlx::query!(
+            r#"SELECT session_id AS "session_id!", session_token AS "session_token!" FROM session_stats WHERE name = $1 AND quiz_id = $2 AND is_complete = FALSE ORDER BY session_id DESC"#,
+            name,
+            quiz_id
         )
-        .bind(name)
-        .bind(quiz_id)
         .fetch_optional(&self.pool)
         .await?;
 
         match row {
-            Some((session_id, session_token)) => {
+            Some(r) => {
                 tracing::info!(
                     "Found incomplete session {} for user '{}'",
-                    session_id,
+                    r.session_id,
                     name
                 );
-                Ok(Some((session_id, session_token)))
+                Ok(Some((r.session_id, r.session_token)))
             }
             None => {
                 tracing::info!("No incomplete session found for user '{}'", name);
@@ -379,13 +386,14 @@ impl Db {
 
     /// Verify that a session belongs to the given user
     pub async fn verify_session_owner(&self, session_id: i32, user_id: i32) -> Result<bool> {
-        let exists: bool = sqlx::query_scalar(
+        let exists: bool = sqlx::query_scalar!(
             "SELECT EXISTS(SELECT 1 FROM quiz_sessions WHERE id = $1 AND user_id = $2)",
+            session_id,
+            user_id
         )
-        .bind(session_id)
-        .bind(user_id)
         .fetch_one(&self.pool)
-        .await?;
+        .await?
+        .unwrap_or(false);
 
         Ok(exists)
     }

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO session_questions (session_id, question_id, question_number)\n            SELECT $1, q, (n - 1)::INT\n            FROM UNNEST($2::INT4[]) WITH ORDINALITY AS t(q, n)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int4Array"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a811d148ab8d8e8e2c34206e2ee06aad47146cb20e1f2c7f4ba1cb89be3510c3"
+}

@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                    SELECT question_id AS \"question_id!\" FROM question_stats\n                    WHERE quiz_id = $1 AND times_incorrect > 0\n                    ORDER BY accuracy ASC, times_incorrect DESC\n                    ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "question_id!",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "1dbd85427b20d0d4827b44b2d16f466aaec2f45c4ce9708e5cb814e96e068d2e"
+}
