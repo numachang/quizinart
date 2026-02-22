@@ -2,7 +2,7 @@
 
 [日本語](README_ja.md)
 
-A self-hosted, learning-focused quiz application. Built with Rust, HTMX, and PostgreSQL.
+A learning-focused quiz application. Built with Rust, HTMX, and PostgreSQL.
 
 Forked from [frectonz/quizzy](https://github.com/frectonz/quizzy) and extended with features for effective study.
 

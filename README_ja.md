@@ -2,7 +2,7 @@
 
 [English](README.md)
 
-セルフホスト型の学習特化クイズアプリケーション。Rust、HTMX、PostgreSQL で構築。
+学習特化クイズアプリケーション。Rust、HTMX、PostgreSQL で構築。
 
 [frectonz/quizzy](https://github.com/frectonz/quizzy) をフォークし、効果的な学習のための機能を追加しています。
 
