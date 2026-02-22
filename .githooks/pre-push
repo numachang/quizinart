@@ -7,6 +7,9 @@ cargo fmt --all -- --check
 echo "=== pre-push: cargo clippy ==="
 cargo clippy --all-targets --all-features -- -D warnings
 
+echo "=== pre-push: sqlx prepare --check ==="
+cargo sqlx prepare --check
+
 echo "=== pre-push: biome check ==="
 npx biome ci static/
 

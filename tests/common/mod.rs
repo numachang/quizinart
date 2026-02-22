@@ -5,8 +5,9 @@ pub async fn create_test_db() -> Db {
     static COUNTER: AtomicU32 = AtomicU32::new(0);
     let id = COUNTER.fetch_add(1, Ordering::SeqCst);
 
+    dotenvy::dotenv().ok();
     let base_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| {
-        "postgres://quizinart:quizinart@localhost:5432/quizinart_test".to_string()
+        "postgres://quizinart:password@localhost:5432/quizinart".to_string()
     });
 
     // Use a unique schema per test to isolate state
