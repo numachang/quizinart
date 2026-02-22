@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "quiz.schema.json",
+  "title": "Quizinart Quiz Format",
+  "description": "JSON array of quiz questions to be uploaded to the quizinart app.\n\nRust models: quizinart/src/models.rs (Question / QuestionOption).\nUpload endpoint: POST /create-quiz (multipart field: quiz_file).",
+  "type": "array",
+  "minItems": 1,
+  "items": {
+    "$ref": "#/$defs/Question"
+  },
+  "$defs": {
+    "Question": {
+      "type": "object",
+      "required": ["question", "options"],
+      "properties": {
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The question text."
+        },
+        "category": {
+          "type": "string",
+          "description": "Question category (optional). Stored as NULL in the database when omitted."
+        },
+        "isMultipleChoice": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether multiple options can be correct (default: false). When true, more than one option should have isAnswer: true."
+        },
+        "options": {
+          "type": "array",
+          "minItems": 2,
+          "description": "Answer choices. At least 2 required, and at least one must have isAnswer: true.",
+          "items": {
+            "$ref": "#/$defs/Option"
+          },
+          "contains": {
+            "properties": {
+              "isAnswer": { "const": true }
+            },
+            "required": ["isAnswer"]
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "Option": {
+      "type": "object",
+      "required": ["text", "isAnswer"],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The answer choice text."
+        },
+        "isAnswer": {
+          "type": "boolean",
+          "description": "Whether this option is correct. For single-choice questions, exactly one option should be true."
+        },
+        "explanation": {
+          "type": "string",
+          "description": "Explanation for this answer choice (optional)."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
