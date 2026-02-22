@@ -74,6 +74,6 @@ test.describe("account management", () => {
     await expect(page.locator("h1")).toContainText("Welcome back");
 
     await loginUser(page, userEmail, "newpass456");
-    await expect(page.locator("h1")).toContainText("Dashboard");
+    await expect(page.locator("h1")).toContainText("My Quizzes");
   });
 });

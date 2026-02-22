@@ -2,7 +2,7 @@ import { Page, expect } from "@playwright/test";
 import path from "path";
 
 /**
- * Register a new user and navigate to the dashboard.
+ * Register a new user and navigate to the quiz list page.
  * Returns the generated email address.
  */
 export async function registerUser(page: Page): Promise<string> {
@@ -13,7 +13,7 @@ export async function registerUser(page: Page): Promise<string> {
   await page.fill('input[name="password"]', "testpass123");
   await page.click('button[type="submit"]');
   await page.waitForURL((url) => url.pathname === "/", { timeout: 15000 });
-  await expect(page.locator("h1")).toContainText("Dashboard");
+  await expect(page.locator("h1")).toContainText("My Quizzes");
   return email;
 }
 
@@ -30,12 +30,12 @@ export async function loginUser(
   await page.fill('input[name="password"]', password);
   await page.click('button[type="submit"]');
   await page.waitForURL((url) => url.pathname === "/", { timeout: 15000 });
-  await expect(page.locator("h1")).toContainText("Dashboard");
+  await expect(page.locator("h1")).toContainText("My Quizzes");
 }
 
 /**
  * Create a quiz by uploading the test-quiz.json file.
- * Assumes the dashboard is already visible.
+ * Assumes the quiz list page is already visible.
  */
 export async function createQuiz(
   page: Page,

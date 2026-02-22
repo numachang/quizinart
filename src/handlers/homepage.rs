@@ -72,8 +72,8 @@ async fn homepage(
                 .reject("could not get quizzes")?;
             return Ok(views::render(
                 is_htmx,
-                "Dashboard",
-                homepage_views::dashboard(quizzes, &locale),
+                "My Quizzes",
+                homepage_views::quiz_list(quizzes, &locale),
                 &locale,
                 Some(&user.display_name),
             )
@@ -100,8 +100,8 @@ async fn homepage(
                     .reject("could not get quizzes")?;
                 return Ok(views::render(
                     is_htmx,
-                    "Dashboard",
-                    homepage_views::dashboard(quizzes, &locale),
+                    "My Quizzes",
+                    homepage_views::quiz_list(quizzes, &locale),
                     &locale,
                     Some(&user.display_name),
                 )
@@ -184,7 +184,10 @@ async fn register_post(
 
         return Ok((
             StatusCode::SEE_OTHER,
-            [(SET_COOKIE, cookie.parse::<HeaderValue>().unwrap()), (LOCATION, HeaderValue::from_static("/"))],
+            [
+                (SET_COOKIE, cookie.parse::<HeaderValue>().unwrap()),
+                (LOCATION, HeaderValue::from_static("/")),
+            ],
             "",
         )
             .into_response());
@@ -270,7 +273,10 @@ async fn login_post(
 
         Ok((
             StatusCode::SEE_OTHER,
-            [(SET_COOKIE, cookie.parse::<HeaderValue>().unwrap()), (LOCATION, HeaderValue::from_static("/"))],
+            [
+                (SET_COOKIE, cookie.parse::<HeaderValue>().unwrap()),
+                (LOCATION, HeaderValue::from_static("/")),
+            ],
             "",
         )
             .into_response())

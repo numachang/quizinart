@@ -321,9 +321,9 @@ pub fn reset_password(state: ResetPasswordState, token: &str, locale: &str) -> M
     }
 }
 
-pub fn dashboard(quizzes: Vec<Quiz>, locale: &str) -> Markup {
+pub fn quiz_list(quizzes: Vec<Quiz>, locale: &str) -> Markup {
     html! {
-        h1 { (t!("homepage.dashboard", locale = locale)) }
+        h1 { (t!("homepage.my_quizzes", locale = locale)) }
 
         article style="width: fit-content;" {
             form hx-post=(names::CREATE_QUIZ_URL)

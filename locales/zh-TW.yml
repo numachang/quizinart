@@ -73,8 +73,8 @@ account.incorrect_password: "目前密碼不正確。"
 account.empty_fields: "請填寫所有密碼欄位。"
 account.password_changed: "密碼變更成功。"
 
-# Homepage - Dashboard
-homepage.dashboard: "儀表板"
+# Homepage - Quiz List
+homepage.my_quizzes: "我的測驗"
 homepage.quiz_name: "測驗名稱"
 homepage.quiz_name_hint: "請輸入測驗的名稱。"
 homepage.quiz_file: "測驗檔案"

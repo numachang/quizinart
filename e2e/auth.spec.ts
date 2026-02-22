@@ -14,7 +14,7 @@ test.describe("authentication", () => {
 
     // Login with the same credentials
     await loginUser(page, email);
-    await expect(page.locator("h1")).toContainText("Dashboard");
+    await expect(page.locator("h1")).toContainText("My Quizzes");
   });
 
   test("login with wrong password shows error", async ({

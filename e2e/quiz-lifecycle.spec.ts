@@ -18,29 +18,29 @@ test.describe("quiz lifecycle", () => {
     await expect(page.locator("table").first()).toBeVisible();
   });
 
-  test("quiz appears on home dashboard after creation", async ({
+  test("quiz appears on quiz list after creation", async ({
     page,
     jsErrors,
   }) => {
     const quizName = `TestQuiz_${Date.now()}`;
     await createQuiz(page, quizName);
 
-    // Navigate back to home dashboard
+    // Navigate back to quiz list
     await page.goto("/");
-    await expect(page.locator("h1")).toContainText("Dashboard");
+    await expect(page.locator("h1")).toContainText("My Quizzes");
 
     // Quiz card should be visible with the quiz name
     await expect(page.locator("article h3", { hasText: quizName })).toBeVisible();
   });
 
-  test("delete quiz removes it from dashboard", async ({
+  test("delete quiz removes it from quiz list", async ({
     page,
     jsErrors,
   }) => {
     const quizName = `TestQuiz_${Date.now()}`;
     await createQuiz(page, quizName);
 
-    // Go back to home dashboard
+    // Go back to quiz list
     await page.goto("/");
     await expect(page.locator("article h3", { hasText: quizName })).toBeVisible();
 
