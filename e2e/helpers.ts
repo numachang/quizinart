@@ -8,20 +8,11 @@ import path from "path";
 export async function registerUser(page: Page): Promise<string> {
   const email = `test_${Date.now()}_${Math.random().toString(36).slice(2, 6)}@example.com`;
   await page.goto("/register");
-  // Wait for HTMX to initialize (hx-post attribute gets processed)
-  await page.waitForLoadState("networkidle");
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="display_name"]', "Test User");
   await page.fill('input[name="password"]', "testpass123");
-  await Promise.all([
-    page.waitForResponse(
-      (resp) => resp.url().includes("/register") && resp.request().method() === "POST"
-    ),
-    page.click('button[type="submit"]'),
-  ]);
-  await expect(page.locator("h1")).toContainText("Dashboard");
-  // Full page reload to get header with account/logout links
-  await page.goto("/");
+  await page.click('button[type="submit"]');
+  await page.waitForURL((url) => url.pathname === "/", { timeout: 15000 });
   await expect(page.locator("h1")).toContainText("Dashboard");
   return email;
 }
@@ -34,14 +25,11 @@ export async function loginUser(
   email: string,
   password = "testpass123"
 ): Promise<void> {
-  await page.goto("/");
-  await page.waitForLoadState("networkidle");
+  await page.goto("/login");
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', password);
-  await Promise.all([
-    page.waitForResponse((resp) => resp.url().includes("/login")),
-    page.click('button[type="submit"]'),
-  ]);
+  await page.click('button[type="submit"]');
+  await page.waitForURL((url) => url.pathname === "/", { timeout: 15000 });
   await expect(page.locator("h1")).toContainText("Dashboard");
 }
 

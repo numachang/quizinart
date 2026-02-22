@@ -1,9 +1,12 @@
 use std::collections::HashMap;
 
 use axum::{
-    extract::{Multipart, State},
-    http::{header::SET_COOKIE, HeaderMap},
-    response::IntoResponse,
+    extract::{Form, Multipart, State},
+    http::{
+        header::{LOCATION, SET_COOKIE},
+        HeaderMap, HeaderValue, StatusCode,
+    },
+    response::{IntoResponse, Redirect},
     routing::{delete, get, post},
     Json, Router,
 };
@@ -25,7 +28,7 @@ pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/", get(homepage))
         .route("/register", get(register_page).post(register_post))
-        .route("/login", post(login_post))
+        .route("/login", get(login_page).post(login_post))
         .route("/logout", post(logout_post))
         .route("/verify-email/{token}", get(verify_email))
         .route("/resend-verification", post(resend_verification))
@@ -55,7 +58,7 @@ async fn homepage(
     jar: CookieJar,
     IsHtmx(is_htmx): IsHtmx,
     Locale(locale): Locale,
-) -> Result<maud::Markup, AppError> {
+) -> Result<axum::response::Response, AppError> {
     // Check new user_session cookie first
     if let Some(session_id) = jar
         .get(names::USER_SESSION_COOKIE_NAME)
@@ -73,7 +76,8 @@ async fn homepage(
                 homepage_views::dashboard(quizzes, &locale),
                 &locale,
                 Some(&user.display_name),
-            ));
+            )
+            .into_response());
         }
     }
 
@@ -100,19 +104,24 @@ async fn homepage(
                     homepage_views::dashboard(quizzes, &locale),
                     &locale,
                     Some(&user.display_name),
-                ));
+                )
+                .into_response());
             }
         }
     }
 
-    // Not logged in: show login page
-    Ok(views::render(
+    // Not logged in: redirect to login page
+    Ok(Redirect::to(names::LOGIN_URL).into_response())
+}
+
+async fn login_page(IsHtmx(is_htmx): IsHtmx, Locale(locale): Locale) -> maud::Markup {
+    views::render(
         is_htmx,
         "Log In",
         homepage_views::login(homepage_views::LoginState::NoError, &locale),
         &locale,
         None,
-    ))
+    )
 }
 
 #[derive(Deserialize)]
@@ -125,13 +134,14 @@ struct RegisterPost {
 async fn register_post(
     State(state): State<AppState>,
     Locale(locale): Locale,
-    Json(body): Json<RegisterPost>,
+    Form(body): Form<RegisterPost>,
 ) -> Result<axum::response::Response, AppError> {
     // Validate inputs
     if body.email.is_empty() || body.password.is_empty() || body.display_name.is_empty() {
-        return Ok(views::titled(
+        return Ok(views::page(
             "Register",
             homepage_views::register(homepage_views::RegisterState::EmptyFields, &locale),
+            &locale,
         )
         .into_response());
     }
@@ -144,9 +154,10 @@ async fn register_post(
         .reject("could not check email")?;
 
     if exists {
-        return Ok(views::titled(
+        return Ok(views::page(
             "Register",
             homepage_views::register(homepage_views::RegisterState::EmailTaken, &locale),
+            &locale,
         )
         .into_response());
     }
@@ -170,18 +181,11 @@ async fn register_post(
             &session,
             state.secure_cookies,
         );
-        let quizzes = state
-            .db
-            .quizzes(user_id)
-            .await
-            .reject("could not get quizzes")?;
-
-        let mut headers = HeaderMap::new();
-        headers.insert(SET_COOKIE, cookie.parse().unwrap());
 
         return Ok((
-            headers,
-            views::titled("Dashboard", homepage_views::dashboard(quizzes, &locale)),
+            StatusCode::SEE_OTHER,
+            [(SET_COOKIE, cookie.parse::<HeaderValue>().unwrap()), (LOCATION, HeaderValue::from_static("/"))],
+            "",
         )
             .into_response());
     }
@@ -218,7 +222,7 @@ struct LoginPost {
 async fn login_post(
     State(state): State<AppState>,
     Locale(locale): Locale,
-    Json(body): Json<LoginPost>,
+    Form(body): Form<LoginPost>,
 ) -> Result<axum::response::Response, AppError> {
     let verified = state
         .db
@@ -236,9 +240,10 @@ async fn login_post(
                 .reject("could not check email verification")?;
 
             if !email_verified {
-                return Ok(views::titled(
+                return Ok(views::page(
                     "Log In",
                     homepage_views::login(homepage_views::LoginState::EmailNotVerified, &locale),
+                    &locale,
                 )
                 .into_response());
             }
@@ -262,24 +267,18 @@ async fn login_post(
             &session,
             state.secure_cookies,
         );
-        let quizzes = state
-            .db
-            .quizzes(user.id)
-            .await
-            .reject("could not get quizzes")?;
-
-        let mut headers = HeaderMap::new();
-        headers.insert(SET_COOKIE, cookie.parse().unwrap());
 
         Ok((
-            headers,
-            views::titled("Dashboard", homepage_views::dashboard(quizzes, &locale)),
+            StatusCode::SEE_OTHER,
+            [(SET_COOKIE, cookie.parse::<HeaderValue>().unwrap()), (LOCATION, HeaderValue::from_static("/"))],
+            "",
         )
             .into_response())
     } else {
-        Ok(views::titled(
+        Ok(views::page(
             "Log In",
             homepage_views::login(homepage_views::LoginState::IncorrectPassword, &locale),
+            &locale,
         )
         .into_response())
     }
@@ -300,7 +299,7 @@ async fn logout_post(jar: CookieJar, State(state): State<AppState>) -> impl Into
     let mut headers = HeaderMap::new();
     headers.insert(SET_COOKIE, clear_user.parse().unwrap());
     headers.append(SET_COOKIE, clear_admin.parse().unwrap());
-    headers.insert("HX-Redirect", "/".parse().unwrap());
+    headers.insert("HX-Redirect", names::LOGIN_URL.parse().unwrap());
 
     (headers, "")
 }

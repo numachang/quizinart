@@ -21,10 +21,7 @@ pub fn register(state: RegisterState, locale: &str) -> Markup {
         h1 { (t!("homepage.register_title", locale = locale)) }
         p { (t!("homepage.register_desc", locale = locale)) }
         article style="width: fit-content;" {
-            form hx-post=(names::REGISTER_URL)
-                 hx-ext="json-enc"
-                 hx-target="main"
-                 hx-swap="innerHTML" {
+            form action=(names::REGISTER_URL) method="post" {
                 label {
                     (t!("homepage.email", locale = locale))
                     input name="email"
@@ -87,10 +84,7 @@ pub fn login(state: LoginState, locale: &str) -> Markup {
             (t!("homepage.login_desc", locale = locale))
         }
         article style="width: fit-content;" {
-            form hx-post=(names::LOGIN_URL)
-                 hx-ext="json-enc"
-                 hx-target="main"
-                 hx-swap="innerHTML" {
+            form action=(names::LOGIN_URL) method="post" {
                 label {
                     (t!("homepage.email", locale = locale))
                     input name="email"

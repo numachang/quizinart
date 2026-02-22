@@ -83,7 +83,15 @@ async fn csrf_check(
             .and_then(|v| v.to_str().ok())
             .is_some_and(|v| v == "true");
 
-        if !has_hx_request {
+        // Also allow same-origin HTML form submissions (Origin matches Host)
+        let has_same_origin = req
+            .headers()
+            .get("Origin")
+            .and_then(|o| o.to_str().ok())
+            .zip(req.headers().get("Host").and_then(|h| h.to_str().ok()))
+            .is_some_and(|(origin, host)| origin.ends_with(host));
+
+        if !has_hx_request && !has_same_origin {
             return (StatusCode::FORBIDDEN, "CSRF check failed").into_response();
         }
     }
