@@ -130,14 +130,23 @@ cd quizinart-salesforce-platform-admin
 git clone https://github.com/numachang/quizinart.git
 ```
 
-### 2. 環境設定ファイルのコピー
+### 2. Node.js 依存パッケージのインストール
+
+```bash
+cd quizinart
+npm install
+```
+
+`prepare` スクリプトにより git hooks も自動設定されます。
+
+### 3. 環境設定ファイルのコピー
 
 ```bash
 cp .env.example .env
 # 必要に応じて .env を編集
 ```
 
-### 3. ローカル PostgreSQL の起動
+### 4. ローカル PostgreSQL の起動
 
 ```bash
 docker compose up -d
@@ -158,7 +167,7 @@ docker compose down
 docker compose down -v
 ```
 
-### 4. アプリの起動
+### 5. アプリの起動
 
 ```bash
 cargo run --manifest-path quizinart/Cargo.toml
@@ -166,7 +175,7 @@ cargo run --manifest-path quizinart/Cargo.toml
 
 ブラウザで http://127.0.0.1:1414 を開きます。
 
-### 5. 初回アクセス
+### 6. 初回アクセス
 
 1. 初回アクセス時に管理者パスワードを設定
 2. **Create Quiz** をクリックし、名前を付けて `data/salesforce_quiz.json` をアップロード
