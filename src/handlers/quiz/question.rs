@@ -29,7 +29,12 @@ pub(crate) async fn quiz_page(
         .await
         .reject("quiz not found")?;
 
-    if !state.db.user_has_quiz(user.id, quiz_id).await.reject("could not check access")? {
+    if !state
+        .db
+        .user_has_quiz(user.id, quiz_id)
+        .await
+        .reject("could not check access")?
+    {
         return Err(AppError::Forbidden);
     }
 
@@ -134,7 +139,12 @@ async fn submit_answer(
         .await
         .reject("could not get session")?;
 
-    if !state.db.verify_session_owner(session.id, user_id).await.reject("could not verify session owner")? {
+    if !state
+        .db
+        .verify_session_owner(session.id, user_id)
+        .await
+        .reject("could not verify session owner")?
+    {
         return Err(AppError::Forbidden);
     }
 
@@ -234,7 +244,12 @@ pub(crate) async fn navigate_question(
     Query(query): Query<NavigateQuestionQuery>,
     Locale(locale): Locale,
 ) -> Result<Markup, AppError> {
-    if !state.db.verify_session_owner(session_id, user.id).await.reject("could not verify session owner")? {
+    if !state
+        .db
+        .verify_session_owner(session_id, user.id)
+        .await
+        .reject("could not verify session owner")?
+    {
         return Err(AppError::Forbidden);
     }
 
@@ -301,7 +316,12 @@ pub(crate) async fn toggle_bookmark(
     Path((session_id, question_id)): Path<(i32, i32)>,
     Locale(locale): Locale,
 ) -> Result<Markup, AppError> {
-    if !state.db.verify_session_owner(session_id, user.id).await.reject("could not verify session owner")? {
+    if !state
+        .db
+        .verify_session_owner(session_id, user.id)
+        .await
+        .reject("could not verify session owner")?
+    {
         return Err(AppError::Forbidden);
     }
 
