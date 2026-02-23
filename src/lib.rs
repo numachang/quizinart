@@ -34,6 +34,7 @@ pub fn router(state: AppState) -> Router {
         .layer(middleware::from_fn(csrf_check))
         .route("/health", axum::routing::get(health))
         .nest("/static", statics::routes())
+        .layer(middleware::from_fn(security_headers))
         .layer(tower_http::compression::CompressionLayer::new())
         .with_state(state)
 }
@@ -75,6 +76,39 @@ async fn refresh_session_cookie(
             }
         }
     }
+
+    response
+}
+
+async fn security_headers(
+    req: axum::http::Request<axum::body::Body>,
+    next: middleware::Next,
+) -> axum::response::Response {
+    use axum::http::HeaderValue;
+
+    let mut response = next.run(req).await;
+    let headers = response.headers_mut();
+
+    headers.insert(
+        "X-Content-Type-Options",
+        HeaderValue::from_static("nosniff"),
+    );
+    headers.insert("X-Frame-Options", HeaderValue::from_static("DENY"));
+    headers.insert(
+        "Referrer-Policy",
+        HeaderValue::from_static("strict-origin-when-cross-origin"),
+    );
+    headers.insert(
+        "Content-Security-Policy",
+        HeaderValue::from_static(
+            "default-src 'self'; \
+             script-src 'self' 'unsafe-inline'; \
+             style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; \
+             font-src 'self' https://fonts.gstatic.com; \
+             img-src 'self' data:; \
+             connect-src 'self'",
+        ),
+    );
 
     response
 }
