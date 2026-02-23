@@ -34,6 +34,7 @@ pub fn router(state: AppState) -> Router {
         .layer(middleware::from_fn(csrf_check))
         .route("/health", axum::routing::get(health))
         .nest("/static", statics::routes())
+        .layer(tower_http::compression::CompressionLayer::new())
         .with_state(state)
 }
 
