@@ -4,7 +4,7 @@ use axum::{
         header::{LOCATION, SET_COOKIE},
         HeaderMap, HeaderValue, StatusCode,
     },
-    response::{IntoResponse, Redirect},
+    response::IntoResponse,
     routing::{get, post},
     Json, Router,
 };
@@ -104,8 +104,15 @@ async fn homepage(
         }
     }
 
-    // Not logged in: redirect to login page
-    Ok(Redirect::to(names::LOGIN_URL).into_response())
+    // Not logged in: show landing page
+    Ok(views::render(
+        is_htmx,
+        "Quizinart",
+        homepage_views::landing_page(&locale),
+        &locale,
+        None,
+    )
+    .into_response())
 }
 
 async fn login_page(IsHtmx(is_htmx): IsHtmx, Locale(locale): Locale) -> maud::Markup {

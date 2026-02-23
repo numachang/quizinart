@@ -2,6 +2,70 @@ use crate::{db::Quiz, names, views::components, views::quiz as quiz_views};
 use maud::{html, Markup};
 use rust_i18n::t;
 
+pub fn landing_page(locale: &str) -> Markup {
+    html! {
+        // Hero section
+        section.landing-hero {
+            h1 { (t!("landing.tagline", locale = locale)) }
+            p.landing-hero-desc { (t!("landing.description", locale = locale)) }
+            div.landing-cta {
+                a role="button" href=(names::REGISTER_URL) {
+                    (t!("landing.sign_up", locale = locale))
+                }
+                a role="button" href=(names::LOGIN_URL) class="outline" {
+                    (t!("landing.log_in", locale = locale))
+                }
+            }
+        }
+
+        // Features section
+        section.landing-features {
+            h2 { (t!("landing.features_title", locale = locale)) }
+            div.landing-features-grid {
+                article.landing-feature-card {
+                    span."material-symbols-rounded landing-feature-icon" { "tune" }
+                    h3 { (t!("landing.feature_modes_title", locale = locale)) }
+                    p { (t!("landing.feature_modes_desc", locale = locale)) }
+                }
+                article.landing-feature-card {
+                    span."material-symbols-rounded landing-feature-icon" { "bookmark" }
+                    h3 { (t!("landing.feature_bookmark_title", locale = locale)) }
+                    p { (t!("landing.feature_bookmark_desc", locale = locale)) }
+                }
+                article.landing-feature-card {
+                    span."material-symbols-rounded landing-feature-icon" { "history" }
+                    h3 { (t!("landing.feature_sessions_title", locale = locale)) }
+                    p { (t!("landing.feature_sessions_desc", locale = locale)) }
+                }
+                article.landing-feature-card {
+                    span."material-symbols-rounded landing-feature-icon" { "analytics" }
+                    h3 { (t!("landing.feature_dashboard_title", locale = locale)) }
+                    p { (t!("landing.feature_dashboard_desc", locale = locale)) }
+                }
+                article.landing-feature-card {
+                    span."material-symbols-rounded landing-feature-icon" { "store" }
+                    h3 { (t!("landing.feature_marketplace_title", locale = locale)) }
+                    p { (t!("landing.feature_marketplace_desc", locale = locale)) }
+                }
+                article.landing-feature-card {
+                    span."material-symbols-rounded landing-feature-icon" { "translate" }
+                    h3 { (t!("landing.feature_i18n_title", locale = locale)) }
+                    p { (t!("landing.feature_i18n_desc", locale = locale)) }
+                }
+            }
+        }
+
+        // Bottom CTA
+        section.landing-bottom-cta {
+            h2 { (t!("landing.bottom_cta_title", locale = locale)) }
+            p { (t!("landing.bottom_cta_desc", locale = locale)) }
+            a role="button" href=(names::REGISTER_URL) {
+                (t!("landing.sign_up", locale = locale))
+            }
+        }
+    }
+}
+
 pub enum RegisterState {
     NoError,
     EmailTaken,
@@ -69,7 +133,7 @@ pub fn register(state: RegisterState, locale: &str) -> Markup {
             p {
                 (t!("homepage.already_have_account", locale = locale))
                 " "
-                a href="/" { (t!("homepage.log_in", locale = locale)) }
+                a href=(names::LOGIN_URL) { (t!("homepage.log_in", locale = locale)) }
             }
         }
     }
@@ -174,7 +238,7 @@ pub fn check_email(email: &str, locale: &str) -> Markup {
                 }
             }
             p {
-                a href="/" { (t!("homepage.back_to_login", locale = locale)) }
+                a href=(names::LOGIN_URL) { (t!("homepage.back_to_login", locale = locale)) }
             }
         }
     }
@@ -185,7 +249,7 @@ pub fn email_verified(locale: &str) -> Markup {
         h1 { (t!("homepage.email_verified_title", locale = locale)) }
         p { (t!("homepage.email_verified_desc", locale = locale)) }
         p {
-            a href="/" { (t!("homepage.log_in", locale = locale)) }
+            a href=(names::LOGIN_URL) { (t!("homepage.log_in", locale = locale)) }
         }
     }
 }
@@ -229,7 +293,7 @@ pub fn forgot_password(state: ForgotPasswordState, locale: &str) -> Markup {
                     button type="submit" { (t!("homepage.forgot_password_btn", locale = locale)) }
                 }
                 p {
-                    a href="/" { (t!("homepage.back_to_login", locale = locale)) }
+                    a href=(names::LOGIN_URL) { (t!("homepage.back_to_login", locale = locale)) }
                 }
             }
         },
@@ -237,7 +301,7 @@ pub fn forgot_password(state: ForgotPasswordState, locale: &str) -> Markup {
             h1 { (t!("homepage.forgot_password_title", locale = locale)) }
             p { (t!("homepage.forgot_password_not_configured", locale = locale)) }
             p {
-                a href="/" { (t!("homepage.back_to_login", locale = locale)) }
+                a href=(names::LOGIN_URL) { (t!("homepage.back_to_login", locale = locale)) }
             }
         },
         ForgotPasswordState::EmailSent => html! {
@@ -245,7 +309,7 @@ pub fn forgot_password(state: ForgotPasswordState, locale: &str) -> Markup {
             p { (t!("homepage.forgot_password_email_sent", locale = locale)) }
             p { (t!("homepage.forgot_password_email_sent_hint", locale = locale)) }
             p {
-                a href="/" { (t!("homepage.back_to_login", locale = locale)) }
+                a href=(names::LOGIN_URL) { (t!("homepage.back_to_login", locale = locale)) }
             }
         },
     }
@@ -345,7 +409,7 @@ pub fn reset_password(state: ResetPasswordState, token: &str, locale: &str) -> M
             h1 { (t!("homepage.reset_password_success_title", locale = locale)) }
             p { (t!("homepage.reset_password_success_desc", locale = locale)) }
             p {
-                a href="/" { (t!("homepage.log_in", locale = locale)) }
+                a href=(names::LOGIN_URL) { (t!("homepage.log_in", locale = locale)) }
             }
         },
     }

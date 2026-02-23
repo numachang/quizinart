@@ -1,26 +1,69 @@
 import { test, expect } from "./fixtures";
 import { registerUser } from "./helpers";
 
-test.describe("unauthenticated navigation", () => {
-  test("login page loads without JS errors", async ({ page, jsErrors }) => {
+test.describe("landing page", () => {
+  test("landing page loads without JS errors", async ({ page, jsErrors }) => {
     await page.goto("/");
-    await expect(page.locator("h1")).toContainText("Welcome back");
+    await expect(page.locator("h1")).toContainText("Master Any Subject");
   });
 
-  test("forgot password link works without JS errors", async ({
+  test("landing page shows features and CTAs", async ({ page, jsErrors }) => {
+    await page.goto("/");
+    const hero = page.locator(".landing-hero");
+    // Sign up CTA in hero
+    await expect(
+      hero.locator('a[href="/register"][role="button"]'),
+    ).toBeVisible();
+    // Log in CTA in hero
+    await expect(
+      hero.locator('a[href="/login"][role="button"]'),
+    ).toBeVisible();
+    // Feature cards
+    await expect(page.locator(".landing-feature-card")).toHaveCount(6);
+  });
+
+  test("sign up CTA navigates to register page", async ({
     page,
     jsErrors,
   }) => {
     await page.goto("/");
+    await page.click('.landing-hero a[href="/register"]');
+    await expect(page.locator("h1")).toContainText("Create your account");
+  });
+
+  test("log in CTA navigates to login page", async ({ page, jsErrors }) => {
+    await page.goto("/");
+    await page.click('.landing-hero a[href="/login"]');
+    await expect(page.locator("h1")).toContainText("Welcome back");
+  });
+
+  test("authenticated user sees quiz list, not landing page", async ({
+    page,
+    jsErrors,
+  }) => {
+    await registerUser(page);
+    await page.goto("/");
+    await expect(page.locator("h1")).toContainText("My Quizzes");
+  });
+});
+
+test.describe("unauthenticated navigation", () => {
+  test("login page loads directly", async ({ page, jsErrors }) => {
+    await page.goto("/login");
+    await expect(page.locator("h1")).toContainText("Welcome back");
+  });
+
+  test("forgot password link works from login page", async ({
+    page,
+    jsErrors,
+  }) => {
+    await page.goto("/login");
     await page.click('a[href="/forgot-password"]');
     await expect(page.locator("h1")).toContainText("Forgot");
   });
 
-  test("register link works without JS errors", async ({
-    page,
-    jsErrors,
-  }) => {
-    await page.goto("/");
+  test("register link works from login page", async ({ page, jsErrors }) => {
+    await page.goto("/login");
     await page.click('a[href="/register"]');
     await expect(page.locator("h1")).toContainText("Create your account");
   });
@@ -114,7 +157,7 @@ test.describe("authenticated navigation", () => {
   });
 
   test("logout works without JS errors", async ({ page, jsErrors }) => {
-    // The logout button uses hx-post with HX-Redirect to /
+    // The logout button uses hx-post with HX-Redirect to /login
     await Promise.all([
       page.waitForResponse((resp) => resp.url().includes("/logout")),
       page.click("text=Log Out"),
