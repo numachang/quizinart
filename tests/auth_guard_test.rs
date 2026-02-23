@@ -8,7 +8,11 @@ use quizinart::{names, router, services::auth::AuthService, AppState};
 use tower::ServiceExt;
 
 fn make_state(db: quizinart::db::Db) -> AppState {
-    let auth = AuthService::new(db.clone(), String::new(), "http://localhost:1414".to_string());
+    let auth = AuthService::new(
+        db.clone(),
+        String::new(),
+        "http://localhost:1414".to_string(),
+    );
     AppState {
         db,
         auth,
