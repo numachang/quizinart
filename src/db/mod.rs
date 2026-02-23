@@ -51,4 +51,11 @@ impl Db {
 
         Ok(instance)
     }
+
+    pub async fn health_check(&self) -> Result<()> {
+        sqlx::query_scalar!(r#"SELECT 1::INT4 AS "one!""#)
+            .fetch_one(&self.pool)
+            .await?;
+        Ok(())
+    }
 }

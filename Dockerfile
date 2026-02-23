@@ -25,11 +25,13 @@ RUN cargo build --release
 
 # Stage 4: 軽量ランタイム
 FROM debian:bookworm-slim
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y ca-certificates curl && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app/target/release/quizinart /usr/local/bin/quizinart
 
 ENV ADDRESS=0.0.0.0:1414
 ENV RUST_LOG=info
 
 EXPOSE 1414
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:1414/health || exit 1
 CMD ["quizinart"]

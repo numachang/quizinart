@@ -32,8 +32,19 @@ pub fn router(state: AppState) -> Router {
             refresh_session_cookie,
         ))
         .layer(middleware::from_fn(csrf_check))
+        .route("/health", axum::routing::get(health))
         .nest("/static", statics::routes())
         .with_state(state)
+}
+
+async fn health(State(state): State<AppState>) -> axum::response::Response {
+    use axum::http::StatusCode;
+    use axum::response::IntoResponse;
+
+    match state.db.health_check().await {
+        Ok(()) => StatusCode::OK.into_response(),
+        Err(_) => StatusCode::SERVICE_UNAVAILABLE.into_response(),
+    }
 }
 
 /// Sliding expiration: refresh the user_session cookie Max-Age on every successful response.
