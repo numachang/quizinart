@@ -57,6 +57,12 @@ fn header(locale: &str, user_name: Option<&str>) -> Markup {
                                 html! { (t!("layout.my_quizzes", locale = locale)) },
                             ))
                         }
+                        li."secondary"."nav-feature-link" {
+                            (super::components::nav_link(
+                                names::MARKETPLACE_URL,
+                                html! { (t!("layout.marketplace", locale = locale)) },
+                            ))
+                        }
                     }
                     li."secondary"."nav-toggle-item" {
                         button

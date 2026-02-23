@@ -11,6 +11,7 @@ layout.theme_light: "Light"
 layout.theme_dark: "Dark"
 layout.theme_system: "System"
 layout.my_quizzes: "My Quizzes"
+layout.marketplace: "Marketplace"
 
 # Homepage - Register
 homepage.register_title: "Create your account"
@@ -223,6 +224,13 @@ share.add_to_library: "Add to My Library"
 share.not_available_title: "Quiz Not Available"
 share.not_available_desc: "This quiz is not currently shared or does not exist."
 share.back_to_home: "Back to Home"
+
+# Marketplace
+marketplace.title: "Marketplace"
+marketplace.empty: "No shared quizzes yet."
+marketplace.by: "by %{owner}"
+marketplace.add_to_library: "Add to My Library"
+marketplace.go_to_dashboard: "Go to Dashboard"
 
 # Selection Mode Labels
 mode.unanswered: "Unanswered"

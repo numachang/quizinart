@@ -1,5 +1,6 @@
 mod crud;
 mod dashboard;
+mod marketplace;
 mod question;
 mod session;
 mod sharing;
@@ -101,6 +102,7 @@ pub fn routes() -> Router<AppState> {
         .route("/toggle-share/{id}", post(sharing::toggle_share))
         .route("/shared/{id}", get(sharing::shared_quiz_page))
         .route("/add-to-library/{id}", post(sharing::add_to_library))
+        .route("/marketplace", get(marketplace::marketplace_page))
 }
 
 #[cfg(test)]

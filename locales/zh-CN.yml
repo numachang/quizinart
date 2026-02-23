@@ -11,6 +11,7 @@ layout.theme_light: "浅色"
 layout.theme_dark: "深色"
 layout.theme_system: "跟随系统"
 layout.my_quizzes: "我的测验"
+layout.marketplace: "市场"
 
 # Homepage - Register
 homepage.register_title: "创建账号"
@@ -223,6 +224,13 @@ share.add_to_library: "添加到资料库"
 share.not_available_title: "测验不可用"
 share.not_available_desc: "此测验当前未分享或不存在。"
 share.back_to_home: "返回首页"
+
+# Marketplace
+marketplace.title: "市场"
+marketplace.empty: "暂无公开测验。"
+marketplace.by: "%{owner} 创建"
+marketplace.add_to_library: "添加到资料库"
+marketplace.go_to_dashboard: "前往仪表盘"
 
 # Selection Mode Labels
 mode.unanswered: "未答"

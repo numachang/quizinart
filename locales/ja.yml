@@ -11,6 +11,7 @@ layout.theme_light: "ライト"
 layout.theme_dark: "ダーク"
 layout.theme_system: "システム"
 layout.my_quizzes: "クイズ一覧"
+layout.marketplace: "マーケットプレース"
 
 # Homepage - Register
 homepage.register_title: "アカウントを作成"
@@ -223,6 +224,13 @@ share.add_to_library: "ライブラリに追加"
 share.not_available_title: "クイズが見つかりません"
 share.not_available_desc: "このクイズは現在共有されていないか、存在しません。"
 share.back_to_home: "ホームに戻る"
+
+# Marketplace
+marketplace.title: "マーケットプレース"
+marketplace.empty: "公開クイズはまだありません。"
+marketplace.by: "%{owner} が作成"
+marketplace.add_to_library: "ライブラリに追加"
+marketplace.go_to_dashboard: "ダッシュボードへ"
 
 # Selection Mode Labels
 mode.unanswered: "未回答"

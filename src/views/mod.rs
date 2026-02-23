@@ -2,6 +2,7 @@ pub mod account;
 pub mod components;
 pub mod homepage;
 pub mod layout;
+pub mod marketplace;
 pub mod quiz;
 
 // Re-export commonly used functions from layout

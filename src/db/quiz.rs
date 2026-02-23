@@ -309,4 +309,42 @@ impl Db {
 
         Ok(())
     }
+
+    /// List all shared quizzes with owner info and question count.
+    pub async fn list_shared_quizzes(&self) -> Result<Vec<SharedQuizInfo>> {
+        let rows = sqlx::query_as!(
+            SharedQuizInfo,
+            r#"
+            SELECT
+                q.id,
+                q.public_id AS "public_id!",
+                q.name,
+                q.is_shared,
+                u.display_name AS owner_name,
+                COUNT(qu.id) AS "question_count!"
+            FROM quizzes q
+            JOIN users u ON u.id = q.owner_id
+            JOIN questions qu ON qu.quiz_id = q.id
+            WHERE q.is_shared = true
+            GROUP BY q.id, q.public_id, q.name, q.is_shared, u.display_name
+            ORDER BY q.id DESC
+            "#
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(rows)
+    }
+
+    /// Get all quiz IDs in a user's library.
+    pub async fn user_quiz_ids(&self, user_id: i32) -> Result<Vec<i32>> {
+        let ids = sqlx::query_scalar!(
+            "SELECT quiz_id FROM user_quizzes WHERE user_id = $1",
+            user_id
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(ids)
+    }
 }
