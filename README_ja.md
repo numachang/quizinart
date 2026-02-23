@@ -61,6 +61,8 @@ Rust、HTMX、PostgreSQL で構築。[frectonz/quizzy](https://github.com/frecto
 
 環境構築の詳細手順（Rust、Docker、Node.js、Playwright）は **[docs/setup_ja.md](docs/setup_ja.md)** を参照してください。（[English](docs/setup.md)）
 
+日常の開発ワークフローについては **[docs/developer-guide_ja.md](docs/developer-guide_ja.md)** を参照してください。（[English](docs/developer-guide.md)）
+
 ### ローカル実行
 
 ```bash

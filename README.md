@@ -61,6 +61,8 @@ Most quiz apps focus on gamification. Quizinart focuses on **learning efficiency
 
 See **[docs/setup.md](docs/setup.md)** for full environment setup instructions (Rust, Docker, Node.js, Playwright). ([日本語](docs/setup_ja.md))
 
+For day-to-day development workflow, see **[docs/developer-guide.md](docs/developer-guide.md)**. ([日本語](docs/developer-guide_ja.md))
+
 ### Run locally
 
 ```bash
