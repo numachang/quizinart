@@ -1,5 +1,5 @@
 use clap::Parser;
-use quizinart::{db::Db, AppState};
+use quizinart::{db::Db, services::auth::AuthService, AppState};
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -50,11 +50,11 @@ async fn run() -> color_eyre::Result<()> {
     let args = Args::parse();
 
     let db = Db::new(args.database_url).await?;
+    let auth = AuthService::new(db.clone(), args.resend_api_key, args.base_url);
     let state = AppState {
         db,
+        auth,
         secure_cookies: args.secure_cookies,
-        resend_api_key: args.resend_api_key,
-        base_url: args.base_url,
     };
     let app = quizinart::router(state);
 

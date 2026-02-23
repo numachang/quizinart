@@ -130,84 +130,49 @@ async fn register_post(
     Locale(locale): Locale,
     Form(body): Form<RegisterPost>,
 ) -> Result<axum::response::Response, AppError> {
-    // Validate inputs
-    if body.email.is_empty() || body.password.is_empty() || body.display_name.is_empty() {
-        return Ok(views::page(
+    use crate::services::auth::RegisterOutcome;
+
+    let outcome = state
+        .auth
+        .register(&body.email, &body.password, &body.display_name)
+        .await
+        .reject("registration failed")?;
+
+    match outcome {
+        RegisterOutcome::LoggedIn(session_token) => {
+            let cookie = utils::cookie(
+                names::USER_SESSION_COOKIE_NAME,
+                &session_token,
+                state.secure_cookies,
+            );
+            Ok((
+                StatusCode::SEE_OTHER,
+                [
+                    (SET_COOKIE, cookie.parse::<HeaderValue>().unwrap()),
+                    (LOCATION, HeaderValue::from_static("/")),
+                ],
+                "",
+            )
+                .into_response())
+        }
+        RegisterOutcome::VerificationSent(email) => Ok(views::titled(
+            "Check Your Email",
+            homepage_views::check_email(&email, &locale),
+        )
+        .into_response()),
+        RegisterOutcome::EmptyFields => Ok(views::page(
             "Register",
             homepage_views::register(homepage_views::RegisterState::EmptyFields, &locale),
             &locale,
         )
-        .into_response());
-    }
-
-    // Check if email already exists
-    let exists = state
-        .db
-        .email_exists(&body.email)
-        .await
-        .reject("could not check email")?;
-
-    if exists {
-        return Ok(views::page(
+        .into_response()),
+        RegisterOutcome::EmailTaken => Ok(views::page(
             "Register",
             homepage_views::register(homepage_views::RegisterState::EmailTaken, &locale),
             &locale,
         )
-        .into_response());
+        .into_response()),
     }
-
-    // If no Resend API key, skip verification (local dev mode)
-    if state.resend_api_key.is_empty() {
-        let user_id = state
-            .db
-            .create_user(&body.email, &body.password, &body.display_name)
-            .await
-            .reject("could not create user")?;
-
-        let session = state
-            .db
-            .create_user_session(user_id)
-            .await
-            .reject("could not create session")?;
-
-        let cookie = utils::cookie(
-            names::USER_SESSION_COOKIE_NAME,
-            &session,
-            state.secure_cookies,
-        );
-
-        return Ok((
-            StatusCode::SEE_OTHER,
-            [
-                (SET_COOKIE, cookie.parse::<HeaderValue>().unwrap()),
-                (LOCATION, HeaderValue::from_static("/")),
-            ],
-            "",
-        )
-            .into_response());
-    }
-
-    // Email verification flow
-    let (_user_id, token) = state
-        .db
-        .create_unverified_user(&body.email, &body.password, &body.display_name)
-        .await
-        .reject("could not create user")?;
-
-    let verification_url = format!("{}/verify-email/{}", state.base_url, token);
-
-    if let Err(e) =
-        crate::email::send_verification_email(&state.resend_api_key, &body.email, &verification_url)
-            .await
-    {
-        tracing::error!("failed to send verification email to {}: {e}", body.email);
-    }
-
-    Ok(views::titled(
-        "Check Your Email",
-        homepage_views::check_email(&body.email, &locale),
-    )
-    .into_response())
 }
 
 #[derive(Deserialize)]
@@ -221,76 +186,52 @@ async fn login_post(
     Locale(locale): Locale,
     Form(body): Form<LoginPost>,
 ) -> Result<axum::response::Response, AppError> {
-    let verified = state
-        .db
-        .verify_user_password(&body.email, &body.password)
+    use crate::services::auth::LoginOutcome;
+
+    let outcome = state
+        .auth
+        .login(&body.email, &body.password)
         .await
-        .reject("could not verify password")?;
+        .reject("login failed")?;
 
-    if verified {
-        // Check email verification (skip if no API key configured)
-        if !state.resend_api_key.is_empty() {
-            let email_verified = state
-                .db
-                .is_email_verified(&body.email)
-                .await
-                .reject("could not check email verification")?;
-
-            if !email_verified {
-                return Ok(views::page(
-                    "Log In",
-                    homepage_views::login(homepage_views::LoginState::EmailNotVerified, &locale),
-                    &locale,
-                )
-                .into_response());
-            }
+    match outcome {
+        LoginOutcome::Success(session_token) => {
+            let cookie = utils::cookie(
+                names::USER_SESSION_COOKIE_NAME,
+                &session_token,
+                state.secure_cookies,
+            );
+            Ok((
+                StatusCode::SEE_OTHER,
+                [
+                    (SET_COOKIE, cookie.parse::<HeaderValue>().unwrap()),
+                    (LOCATION, HeaderValue::from_static("/")),
+                ],
+                "",
+            )
+                .into_response())
         }
-
-        let user = state
-            .db
-            .find_user_by_email(&body.email)
-            .await
-            .reject("could not find user")?
-            .ok_or(AppError::Internal("user not found after verification"))?;
-
-        let session = state
-            .db
-            .create_user_session(user.id)
-            .await
-            .reject("could not create session")?;
-
-        let cookie = utils::cookie(
-            names::USER_SESSION_COOKIE_NAME,
-            &session,
-            state.secure_cookies,
-        );
-
-        Ok((
-            StatusCode::SEE_OTHER,
-            [
-                (SET_COOKIE, cookie.parse::<HeaderValue>().unwrap()),
-                (LOCATION, HeaderValue::from_static("/")),
-            ],
-            "",
-        )
-            .into_response())
-    } else {
-        Ok(views::page(
+        LoginOutcome::InvalidCredentials => Ok(views::page(
             "Log In",
             homepage_views::login(homepage_views::LoginState::IncorrectPassword, &locale),
             &locale,
         )
-        .into_response())
+        .into_response()),
+        LoginOutcome::EmailNotVerified => Ok(views::page(
+            "Log In",
+            homepage_views::login(homepage_views::LoginState::EmailNotVerified, &locale),
+            &locale,
+        )
+        .into_response()),
     }
 }
 
 async fn logout_post(jar: CookieJar, State(state): State<AppState>) -> impl IntoResponse {
-    // Delete user session from DB
     if let Some(session_id) = jar
         .get(names::USER_SESSION_COOKIE_NAME)
         .map(|c| c.value().to_string())
     {
-        let _ = state.db.delete_user_session(&session_id).await;
+        let _ = state.auth.logout(&session_id).await;
     }
 
     // Clear both new and legacy session cookies
@@ -311,8 +252,8 @@ async fn verify_email(
     axum::extract::Path(token): axum::extract::Path<String>,
 ) -> Result<maud::Markup, AppError> {
     let verified = state
-        .db
-        .verify_email_token(&token)
+        .auth
+        .verify_email(&token)
         .await
         .reject("could not verify email token")?;
 
@@ -345,28 +286,15 @@ async fn resend_verification(
     Locale(locale): Locale,
     Json(body): Json<ResendVerificationPost>,
 ) -> Result<axum::response::Response, AppError> {
-    if state.resend_api_key.is_empty() {
+    if !state.auth.email_enabled() {
         return Err(AppError::Input("email verification not configured"));
     }
 
-    let token = state
-        .db
-        .regenerate_verification_token(&body.email)
+    state
+        .auth
+        .resend_verification(&body.email)
         .await
-        .reject("could not regenerate token")?;
-
-    if let Some(token) = token {
-        let verification_url = format!("{}/verify-email/{}", state.base_url, token);
-        if let Err(e) = crate::email::send_verification_email(
-            &state.resend_api_key,
-            &body.email,
-            &verification_url,
-        )
-        .await
-        {
-            tracing::error!("failed to resend verification email: {e}");
-        }
-    }
+        .reject("could not resend verification")?;
 
     // Always show success (don't leak whether email exists)
     Ok(views::titled(
@@ -396,37 +324,21 @@ async fn forgot_password_post(
     Locale(locale): Locale,
     Json(body): Json<ForgotPasswordPost>,
 ) -> Result<axum::response::Response, AppError> {
-    if state.resend_api_key.is_empty() {
-        return Ok(views::titled(
-            "Forgot Password",
-            homepage_views::forgot_password(
-                homepage_views::ForgotPasswordState::EmailNotConfigured,
-                &locale,
-            ),
-        )
-        .into_response());
-    }
-
-    let token = state
-        .db
-        .create_password_reset_token(&body.email)
+    let sent = state
+        .auth
+        .forgot_password(&body.email)
         .await
-        .reject("could not create reset token")?;
+        .reject("could not process password reset")?;
 
-    if let Some(token) = token {
-        let reset_url = format!("{}/reset-password/{}", state.base_url, token);
-        if let Err(e) =
-            crate::email::send_password_reset_email(&state.resend_api_key, &body.email, &reset_url)
-                .await
-        {
-            tracing::error!("failed to send password reset email to {}: {e}", body.email);
-        }
-    }
+    let fp_state = if sent {
+        homepage_views::ForgotPasswordState::EmailSent
+    } else {
+        homepage_views::ForgotPasswordState::EmailNotConfigured
+    };
 
-    // Always show "check your email" regardless of whether email exists
     Ok(views::titled(
         "Forgot Password",
-        homepage_views::forgot_password(homepage_views::ForgotPasswordState::EmailSent, &locale),
+        homepage_views::forgot_password(fp_state, &locale),
     )
     .into_response())
 }
@@ -438,36 +350,26 @@ async fn reset_password_page(
     axum::extract::Path(token): axum::extract::Path<String>,
 ) -> Result<maud::Markup, AppError> {
     let valid = state
-        .db
-        .validate_password_reset_token(&token)
+        .auth
+        .validate_reset_token(&token)
         .await
         .reject("could not validate reset token")?;
 
-    if valid.is_some() {
-        Ok(views::render(
-            is_htmx,
-            "Reset Password",
-            homepage_views::reset_password(
-                homepage_views::ResetPasswordState::Form,
-                &token,
-                &locale,
-            ),
-            &locale,
-            None,
-        ))
+    let rp_state = if valid {
+        homepage_views::ResetPasswordState::Form
     } else {
-        Ok(views::render(
-            is_htmx,
-            "Reset Password",
-            homepage_views::reset_password(
-                homepage_views::ResetPasswordState::InvalidToken,
-                "",
-                &locale,
-            ),
-            &locale,
-            None,
-        ))
-    }
+        homepage_views::ResetPasswordState::InvalidToken
+    };
+
+    let token_str = if valid { &token } else { "" };
+
+    Ok(views::render(
+        is_htmx,
+        "Reset Password",
+        homepage_views::reset_password(rp_state, token_str, &locale),
+        &locale,
+        None,
+    ))
 }
 
 #[derive(Deserialize)]
@@ -481,45 +383,30 @@ async fn reset_password_post(
     Locale(locale): Locale,
     Json(body): Json<ResetPasswordPost>,
 ) -> Result<axum::response::Response, AppError> {
-    if body.password.is_empty() {
-        return Ok(views::titled(
-            "Reset Password",
-            homepage_views::reset_password(
-                homepage_views::ResetPasswordState::EmptyPassword,
-                &body.token,
-                &locale,
-            ),
-        )
-        .into_response());
-    }
+    use crate::services::auth::ResetPasswordOutcome;
 
-    let success = state
-        .db
-        .reset_password_with_token(&body.token, &body.password)
+    let outcome = state
+        .auth
+        .reset_password(&body.token, &body.password)
         .await
         .reject("could not reset password")?;
 
-    if success {
-        Ok(views::titled(
-            "Reset Password",
-            homepage_views::reset_password(
-                homepage_views::ResetPasswordState::Success,
-                "",
-                &locale,
-            ),
-        )
-        .into_response())
-    } else {
-        Ok(views::titled(
-            "Reset Password",
-            homepage_views::reset_password(
-                homepage_views::ResetPasswordState::InvalidToken,
-                "",
-                &locale,
-            ),
-        )
-        .into_response())
-    }
+    let (rp_state, token_str) = match outcome {
+        ResetPasswordOutcome::Success => (homepage_views::ResetPasswordState::Success, ""),
+        ResetPasswordOutcome::EmptyPassword => (
+            homepage_views::ResetPasswordState::EmptyPassword,
+            body.token.as_str(),
+        ),
+        ResetPasswordOutcome::InvalidToken => {
+            (homepage_views::ResetPasswordState::InvalidToken, "")
+        }
+    };
+
+    Ok(views::titled(
+        "Reset Password",
+        homepage_views::reset_password(rp_state, token_str, &locale),
+    )
+    .into_response())
 }
 
 #[derive(Deserialize)]

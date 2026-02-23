@@ -46,43 +46,25 @@ async fn change_password_post(
     Locale(locale): Locale,
     Json(body): Json<ChangePasswordPost>,
 ) -> Result<axum::response::Response, AppError> {
-    if body.current_password.is_empty() || body.new_password.is_empty() {
-        return Ok(views::titled(
-            "Account",
-            account_views::account_page(
-                &user,
-                account_views::ChangePasswordState::EmptyFields,
-                &locale,
-            ),
-        )
-        .into_response());
-    }
+    use crate::services::auth::ChangePasswordOutcome;
 
-    let changed = state
-        .db
+    let outcome = state
+        .auth
         .change_password(user.id, &body.current_password, &body.new_password)
         .await
         .reject("could not change password")?;
 
-    if changed {
-        Ok(views::titled(
-            "Account",
-            account_views::account_page(
-                &user,
-                account_views::ChangePasswordState::Success,
-                &locale,
-            ),
-        )
-        .into_response())
-    } else {
-        Ok(views::titled(
-            "Account",
-            account_views::account_page(
-                &user,
-                account_views::ChangePasswordState::IncorrectPassword,
-                &locale,
-            ),
-        )
-        .into_response())
-    }
+    let pw_state = match outcome {
+        ChangePasswordOutcome::Success => account_views::ChangePasswordState::Success,
+        ChangePasswordOutcome::EmptyFields => account_views::ChangePasswordState::EmptyFields,
+        ChangePasswordOutcome::IncorrectPassword => {
+            account_views::ChangePasswordState::IncorrectPassword
+        }
+    };
+
+    Ok(views::titled(
+        "Account",
+        account_views::account_page(&user, pw_state, &locale),
+    )
+    .into_response())
 }

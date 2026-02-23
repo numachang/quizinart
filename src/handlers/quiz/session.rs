@@ -385,7 +385,7 @@ pub(crate) async fn abandon_session(
         "Quiz Dashboard",
         super::dashboard::dashboard(&state.db, quiz_id, &public_id, &locale).await?,
     );
-    let cookie = utils::cookie(names::QUIZ_SESSION_COOKIE_NAME, "", state.secure_cookies);
+    let cookie = utils::clear_cookie(names::QUIZ_SESSION_COOKIE_NAME, state.secure_cookies);
     let mut headers = HeaderMap::new();
     headers.insert(SET_COOKIE, cookie.parse().unwrap());
     headers.insert(

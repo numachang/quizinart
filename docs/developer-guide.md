@@ -325,7 +325,9 @@ Triggered on all pull requests and pushes to `main`. Runs on `ubuntu-latest` wit
 
 ```
 src/
-├── handlers/        — HTTP layer: route handlers
+├── services/        — Business logic layer
+│   └── auth.rs      — AuthService (login, register, password reset, etc.)
+├── handlers/        — HTTP layer: route handlers (thin, delegates to services)
 │   ├── homepage.rs  — Auth routes + quiz CRUD
 │   ├── account.rs   — Account management
 │   └── quiz/        — Quiz session, questions, dashboard
@@ -353,19 +355,18 @@ src/
 
 ### AppState
 
-All database access goes through `db::Db` (wraps `sqlx::PgPool`), stored in `AppState`:
+All database access goes through `db::Db` (wraps `sqlx::PgPool`), stored in `AppState`. Auth business logic is handled by `AuthService`:
 
 ```rust
 #[derive(Clone)]
 pub struct AppState {
     pub db: db::Db,
+    pub auth: services::auth::AuthService,
     pub secure_cookies: bool,
-    pub resend_api_key: String,
-    pub base_url: String,
 }
 ```
 
-Handlers call `state.db.*` methods directly (no service layer yet).
+Auth handlers delegate to `state.auth.*` methods (e.g. `state.auth.login()`, `state.auth.register()`). `AuthService` owns the `AuthRepository` trait dependency, Resend API key, and base URL. Quiz handlers still call `state.db.*` directly.
 
 ### Auth system
 

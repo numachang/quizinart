@@ -7,6 +7,77 @@ use ulid::Ulid;
 
 use super::models::AuthUser;
 use super::Db;
+use crate::services::auth::AuthRepository;
+
+impl AuthRepository for Db {
+    async fn email_exists(&self, email: &str) -> Result<bool> {
+        self.email_exists(email).await
+    }
+
+    async fn create_user(&self, email: &str, password: &str, display_name: &str) -> Result<i32> {
+        self.create_user(email, password, display_name).await
+    }
+
+    async fn create_user_session(&self, user_id: i32) -> Result<String> {
+        self.create_user_session(user_id).await
+    }
+
+    async fn create_unverified_user(
+        &self,
+        email: &str,
+        password: &str,
+        display_name: &str,
+    ) -> Result<(i32, String)> {
+        self.create_unverified_user(email, password, display_name)
+            .await
+    }
+
+    async fn verify_user_password(&self, email: &str, password: &str) -> Result<bool> {
+        self.verify_user_password(email, password).await
+    }
+
+    async fn is_email_verified(&self, email: &str) -> Result<bool> {
+        self.is_email_verified(email).await
+    }
+
+    async fn find_user_by_email(&self, email: &str) -> Result<Option<AuthUser>> {
+        self.find_user_by_email(email).await
+    }
+
+    async fn delete_user_session(&self, session_id: &str) -> Result<()> {
+        self.delete_user_session(session_id).await
+    }
+
+    async fn verify_email_token(&self, token: &str) -> Result<bool> {
+        self.verify_email_token(token).await
+    }
+
+    async fn regenerate_verification_token(&self, email: &str) -> Result<Option<String>> {
+        self.regenerate_verification_token(email).await
+    }
+
+    async fn create_password_reset_token(&self, email: &str) -> Result<Option<String>> {
+        self.create_password_reset_token(email).await
+    }
+
+    async fn validate_password_reset_token(&self, token: &str) -> Result<Option<String>> {
+        self.validate_password_reset_token(token).await
+    }
+
+    async fn reset_password_with_token(&self, token: &str, new_password: &str) -> Result<bool> {
+        self.reset_password_with_token(token, new_password).await
+    }
+
+    async fn change_password(
+        &self,
+        user_id: i32,
+        current_password: &str,
+        new_password: &str,
+    ) -> Result<bool> {
+        self.change_password(user_id, current_password, new_password)
+            .await
+    }
+}
 
 impl Db {
     pub async fn create_user(

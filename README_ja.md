@@ -134,6 +134,8 @@ quizinart/
 │   │   ├── report.rs          # レポート
 │   │   ├── helpers.rs         # DBヘルパー
 │   │   └── migrations.rs      # マイグレーション実行
+│   ├── services/              # ビジネスロジック
+│   │   └── auth.rs            # 認証サービス（ログイン、登録、パスワードリセット）
 │   ├── handlers/              # HTTPハンドラー
 │   │   ├── quiz/              # クイズフロー（ダッシュボード、セッション、問題）
 │   │   ├── homepage.rs        # ランディング・認証ページ

@@ -208,7 +208,7 @@ async fn submit_answer(
 
     use axum::response::IntoResponse;
     if is_final {
-        let cookie = utils::cookie(names::QUIZ_SESSION_COOKIE_NAME, "", state.secure_cookies);
+        let cookie = utils::clear_cookie(names::QUIZ_SESSION_COOKIE_NAME, state.secure_cookies);
         let mut headers = HeaderMap::new();
         headers.insert(SET_COOKIE, cookie.parse().unwrap());
         Ok((headers, page).into_response())

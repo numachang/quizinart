@@ -31,6 +31,10 @@ ulid = "1.1.3"
 urlencoding = "2.1"
 argon2 = "0.5"
 
+[dev-dependencies]
+mockall = "0.13"
+tokio = { version = "1.44.2", features = ["full", "macros", "rt-multi-thread"] }
+
 [profile.release]
 strip = true
 opt-level = "z"

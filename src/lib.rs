@@ -7,6 +7,7 @@ pub mod handlers;
 pub mod models;
 pub mod names;
 pub mod rejections;
+pub mod services;
 pub mod statics;
 pub mod utils;
 pub mod views;
@@ -17,9 +18,8 @@ use axum_extra::extract::CookieJar;
 #[derive(Clone)]
 pub struct AppState {
     pub db: db::Db,
+    pub auth: services::auth::AuthService,
     pub secure_cookies: bool,
-    pub resend_api_key: String,
-    pub base_url: String,
 }
 
 pub fn router(state: AppState) -> Router {

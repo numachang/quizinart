@@ -325,7 +325,9 @@ E2E データベース（`quizinart_e2e`）は開発用データベース（`qui
 
 ```
 src/
-├── handlers/        — HTTP 層：ルートハンドラ
+├── services/        — ビジネスロジック層
+│   └── auth.rs      — AuthService（ログイン、登録、パスワードリセット等）
+├── handlers/        — HTTP 層：ルートハンドラ（薄く、サービスに委譲）
 │   ├── homepage.rs  — 認証ルート + クイズ CRUD
 │   ├── account.rs   — アカウント管理
 │   └── quiz/        — クイズセッション、問題、ダッシュボード
@@ -353,19 +355,18 @@ src/
 
 ### AppState
 
-全データベースアクセスは `db::Db`（`sqlx::PgPool` のラッパー）を通じて行い、`AppState` に格納：
+全データベースアクセスは `db::Db`（`sqlx::PgPool` のラッパー）を通じて行い、`AppState` に格納。認証ビジネスロジックは `AuthService` が担当：
 
 ```rust
 #[derive(Clone)]
 pub struct AppState {
     pub db: db::Db,
+    pub auth: services::auth::AuthService,
     pub secure_cookies: bool,
-    pub resend_api_key: String,
-    pub base_url: String,
 }
 ```
 
-ハンドラは `state.db.*` メソッドを直接呼び出す（サービス層はまだ未導入）。
+認証ハンドラは `state.auth.*` メソッドに委譲する（例：`state.auth.login()`、`state.auth.register()`）。`AuthService` は `AuthRepository` trait 依存、Resend API キー、ベース URL を所有する。クイズハンドラは引き続き `state.db.*` を直接呼び出す。
 
 ### 認証システム
 
