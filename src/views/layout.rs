@@ -176,6 +176,7 @@ pub fn page_with_user(title: &str, body: Markup, locale: &str, user_name: Option
         }
 
         body."container" {
+            div id="htmx-progress" {}
             (header(locale, user_name))
             (main(body))
             (confirm_dialog(locale))

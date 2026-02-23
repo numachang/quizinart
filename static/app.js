@@ -129,6 +129,73 @@
     }
   }
 
+  // --- Toast notifications ---
+  const showToast = (message, type = 'error') => {
+    let container = document.getElementById('toast-container')
+    if (!container) {
+      container = document.createElement('div')
+      container.id = 'toast-container'
+      container.setAttribute('aria-live', 'polite')
+      document.body.appendChild(container)
+    }
+
+    const toast = document.createElement('div')
+    toast.className = `toast toast-${type}`
+    toast.setAttribute('role', 'alert')
+    toast.textContent = message
+    container.appendChild(toast)
+
+    // Trigger enter animation
+    requestAnimationFrame(() => toast.classList.add('toast-visible'))
+
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+      toast.classList.remove('toast-visible')
+      toast.addEventListener('transitionend', () => toast.remove())
+    }, 5000)
+  }
+
+  // --- HTMX error handling ---
+  let redirecting = false
+
+  document.addEventListener('htmx:responseError', (evt) => {
+    const status = evt.detail.xhr.status
+    if (status === 401) {
+      if (!redirecting) {
+        redirecting = true
+        window.location.href = '/login'
+      }
+      return
+    }
+    if (status === 403) {
+      showToast('You do not have permission to perform this action.', 'error')
+      return
+    }
+    if (status >= 500) {
+      showToast('Something went wrong. Please try again.', 'error')
+      return
+    }
+    showToast('Request failed. Please check your input.', 'error')
+  })
+
+  document.addEventListener('htmx:sendError', () => {
+    showToast('Network error. Please check your connection.', 'error')
+  })
+
+  // --- Global loading bar ---
+  document.addEventListener('htmx:beforeRequest', () => {
+    const bar = document.getElementById('htmx-progress')
+    if (bar) bar.classList.add('htmx-progress-active')
+  })
+
+  const hideProgress = () => {
+    const bar = document.getElementById('htmx-progress')
+    if (bar) bar.classList.remove('htmx-progress-active')
+  }
+
+  document.addEventListener('htmx:afterRequest', hideProgress)
+  document.addEventListener('htmx:sendError', hideProgress)
+
   // --- Dashboard charts ---
   let chartJsLoaded = typeof Chart !== 'undefined'
 
