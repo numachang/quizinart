@@ -1,3 +1,4 @@
+mod crud;
 mod dashboard;
 mod question;
 mod session;
@@ -78,6 +79,7 @@ struct NavigateQuestionQuery {
 
 pub fn routes() -> Router<AppState> {
     Router::new()
+        .merge(crud::routes())
         .route("/quiz/{id}/dashboard", get(dashboard::quiz_dashboard))
         .route("/quiz/{id}", get(question::quiz_page))
         .route("/start-session/{id}", post(session::start_session))
