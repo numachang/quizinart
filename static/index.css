@@ -344,7 +344,7 @@ button.htmx-request {
 
 @media (max-width: 767px) {
   .nav-menu-mobile-only {
-    display: list-item;
+    display: block;
   }
 }
 
@@ -352,7 +352,7 @@ button.htmx-request {
 @media (max-width: 767px) {
   /* Show the hamburger button */
   .nav-toggle-item {
-    display: list-item;
+    display: block;
   }
 
   /* Position the nav for absolute dropdown, above main content */
