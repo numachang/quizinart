@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                    SELECT\n                        q.id,\n                        q.public_id AS \"public_id!\",\n                        q.name,\n                        q.is_shared,\n                        u.display_name AS owner_name,\n                        COUNT(qu.id) AS \"question_count!\"\n                    FROM quizzes q\n                    JOIN users u ON u.id = q.owner_id\n                    JOIN questions qu ON qu.quiz_id = q.id\n                    WHERE q.is_shared = true\n                      AND q.name ILIKE $1\n                    GROUP BY q.id, q.public_id, q.name, q.is_shared, u.display_name\n                    ORDER BY q.id DESC\n                    ",
+  "query": "\n            SELECT\n                q.id,\n                q.public_id AS \"public_id!\",\n                q.name,\n                q.is_shared,\n                u.display_name AS owner_name,\n                COUNT(qu.id) AS \"question_count!\"\n            FROM quizzes q\n            JOIN users u ON u.id = q.owner_id\n            JOIN questions qu ON qu.quiz_id = q.id\n            WHERE q.is_shared = true\n              AND q.name ILIKE $1\n            GROUP BY q.id, q.public_id, q.name, q.is_shared, u.display_name\n            ORDER BY q.id DESC\n            ",
   "describe": {
     "columns": [
       {
@@ -48,5 +48,5 @@
       null
     ]
   },
-  "hash": "cf2fa4c058d3a8411805f769378d2d394f6cced2fc758efbba4b678450d63b10"
+  "hash": "334f3c2d7a8727999b27fa92b5e10a55d70a8b8bc155265cd04bf1b1a9f2bdb8"
 }

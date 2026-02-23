@@ -10,7 +10,6 @@ layout.menu_toggle: "Toggle menu"
 layout.theme_light: "Light"
 layout.theme_dark: "Dark"
 layout.theme_system: "System"
-layout.my_quizzes: "My Quizzes"
 layout.marketplace: "Marketplace"
 
 # Homepage - Register
@@ -230,7 +229,6 @@ marketplace.by: "by %{owner}"
 marketplace.add_to_library: "Add to My Library"
 marketplace.go_to_dashboard: "Go to Dashboard"
 marketplace.search_placeholder: "Search quizzes..."
-marketplace.all_categories: "All Categories"
 marketplace.no_results: "No quizzes found."
 
 # Selection Mode Labels

@@ -144,12 +144,14 @@ test.describe("marketplace", () => {
     jsErrors,
   }) => {
     await registerUser(page);
-    const marketplaceLink = page.locator('nav a[href="/marketplace"]');
+    const marketplaceLink = page.locator(
+      '.nav-feature-link a[href="/marketplace"]'
+    );
     await expect(marketplaceLink).toBeVisible();
   });
 });
 
-test.describe("marketplace search and filter", () => {
+test.describe("marketplace search", () => {
   test("search filters quizzes by name", async ({ page, jsErrors }) => {
     // User A: create and share two quizzes
     await registerUser(page);
@@ -180,6 +182,9 @@ test.describe("marketplace search and filter", () => {
       page2.locator("article", { hasText: quizName2 })
     ).toBeVisible();
 
+    // No category dropdown should be present
+    await expect(page2.locator('select[name="category"]')).toHaveCount(0);
+
     // Search for "Alpha" — only first quiz should remain
     const searchInput = page2.locator('input[name="q"]');
     await searchInput.fill("Alpha");
@@ -193,32 +198,6 @@ test.describe("marketplace search and filter", () => {
     await expect(
       page2.locator("#quiz-results article", { hasText: quizName2 })
     ).toHaveCount(0);
-
-    await context2.close();
-  });
-
-  test("category filter works", async ({ page, jsErrors }) => {
-    // User A: create and share a quiz (test-quiz.json has Science and History)
-    await registerUser(page);
-    const quizName = `CatFilter_${Date.now()}`;
-    await createQuiz(page, quizName);
-    await toggleShare(page, quizName);
-
-    // User B: filter by category on marketplace
-    const browser = page.context().browser()!;
-    const context2 = await browser.newContext();
-    const page2 = await context2.newPage();
-    await registerUser(page2);
-
-    await page2.goto("/marketplace");
-
-    // Category dropdown should be available
-    const categorySelect = page2.locator('select[name="category"]');
-    await expect(categorySelect).toBeVisible();
-
-    // Should have at least "All Categories" and some real categories
-    const options = categorySelect.locator("option");
-    await expect(options).not.toHaveCount(0);
 
     await context2.close();
   });

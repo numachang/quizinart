@@ -10,7 +10,6 @@ layout.menu_toggle: "メニュー切替"
 layout.theme_light: "ライト"
 layout.theme_dark: "ダーク"
 layout.theme_system: "システム"
-layout.my_quizzes: "クイズ一覧"
 layout.marketplace: "マーケットプレース"
 
 # Homepage - Register
@@ -230,7 +229,6 @@ marketplace.by: "%{owner} が作成"
 marketplace.add_to_library: "ライブラリに追加"
 marketplace.go_to_dashboard: "ダッシュボードへ"
 marketplace.search_placeholder: "クイズを検索..."
-marketplace.all_categories: "全カテゴリ"
 marketplace.no_results: "クイズが見つかりません。"
 
 # Selection Mode Labels

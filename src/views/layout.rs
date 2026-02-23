@@ -53,12 +53,6 @@ fn header(locale: &str, user_name: Option<&str>) -> Markup {
                     @if user_name.is_some() {
                         li."secondary"."nav-feature-link" {
                             (super::components::nav_link(
-                                "/",
-                                html! { (t!("layout.my_quizzes", locale = locale)) },
-                            ))
-                        }
-                        li."secondary"."nav-feature-link" {
-                            (super::components::nav_link(
                                 names::MARKETPLACE_URL,
                                 html! { (t!("layout.marketplace", locale = locale)) },
                             ))
@@ -71,11 +65,19 @@ fn header(locale: &str, user_name: Option<&str>) -> Markup {
                             aria-label=(t!("layout.menu_toggle", locale = locale))
                             aria-expanded="false"
                             aria-controls="nav-menu" {
-                            "\u{2630}"
+                            span."material-symbols-rounded" { "menu" }
                         }
                     }
                 }
                 ul id="nav-menu" {
+                    @if user_name.is_some() {
+                        li."secondary"."nav-menu-mobile-only" {
+                            (super::components::nav_link(
+                                names::MARKETPLACE_URL,
+                                html! { (t!("layout.marketplace", locale = locale)) },
+                            ))
+                        }
+                    }
                     li."secondary" {
                         select."theme-select"
                                name="theme"

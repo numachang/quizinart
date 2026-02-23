@@ -337,6 +337,17 @@ button.htmx-request {
   }
 }
 
+/* Mobile-only items in hamburger menu — hide on desktop */
+.nav-menu-mobile-only {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .nav-menu-mobile-only {
+    display: list-item;
+  }
+}
+
 /* Mobile breakpoint */
 @media (max-width: 767px) {
   /* Show the hamburger button */

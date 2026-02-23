@@ -10,7 +10,6 @@ layout.menu_toggle: "切换菜单"
 layout.theme_light: "浅色"
 layout.theme_dark: "深色"
 layout.theme_system: "跟随系统"
-layout.my_quizzes: "我的测验"
 layout.marketplace: "市场"
 
 # Homepage - Register
@@ -230,7 +229,6 @@ marketplace.by: "%{owner} 创建"
 marketplace.add_to_library: "添加到资料库"
 marketplace.go_to_dashboard: "前往仪表盘"
 marketplace.search_placeholder: "搜索测验..."
-marketplace.all_categories: "全部分类"
 marketplace.no_results: "未找到测验。"
 
 # Selection Mode Labels

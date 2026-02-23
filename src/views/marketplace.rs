@@ -2,17 +2,11 @@ use crate::{db::models::SharedQuizInfo, names};
 use maud::{html, Markup};
 use rust_i18n::t;
 
-pub fn marketplace_page(
-    quizzes: &[SharedQuizInfo],
-    user_quiz_ids: &[i32],
-    categories: &[String],
-    locale: &str,
-) -> Markup {
+pub fn marketplace_page(quizzes: &[SharedQuizInfo], user_quiz_ids: &[i32], locale: &str) -> Markup {
     html! {
         h1 { (t!("marketplace.title", locale = locale)) }
 
-        // Search and filter controls
-        div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: end;" {
+        div style="margin-bottom: 1.5rem;" {
             input
                 type="search"
                 name="q"
@@ -20,20 +14,7 @@ pub fn marketplace_page(
                 hx-get=(names::MARKETPLACE_SEARCH_URL)
                 hx-trigger="input changed delay:300ms, search"
                 hx-target="#quiz-results"
-                hx-include="[name='category']"
-                style="flex: 1; min-width: 200px; margin-bottom: 0;";
-            select
-                name="category"
-                hx-get=(names::MARKETPLACE_SEARCH_URL)
-                hx-trigger="change"
-                hx-target="#quiz-results"
-                hx-include="[name='q']"
-                style="width: auto; min-width: 160px; margin-bottom: 0;" {
-                option value="" { (t!("marketplace.all_categories", locale = locale)) }
-                @for cat in categories {
-                    option value=(cat) { (cat) }
-                }
-            }
+                style="margin-bottom: 0;";
         }
 
         div id="quiz-results" {
