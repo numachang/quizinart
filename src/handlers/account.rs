@@ -57,6 +57,7 @@ async fn change_password_post(
     let pw_state = match outcome {
         ChangePasswordOutcome::Success => account_views::ChangePasswordState::Success,
         ChangePasswordOutcome::EmptyFields => account_views::ChangePasswordState::EmptyFields,
+        ChangePasswordOutcome::WeakPassword => account_views::ChangePasswordState::WeakPassword,
         ChangePasswordOutcome::IncorrectPassword => {
             account_views::ChangePasswordState::IncorrectPassword
         }

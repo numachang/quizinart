@@ -119,10 +119,13 @@ impl Db {
                 .fetch_optional(&self.pool)
                 .await?;
 
-        match stored_hash {
-            Some(hash) => Ok(verify_password(password, &hash)),
-            None => Ok(false),
-        }
+        // Always run password verification to prevent timing-based user enumeration.
+        // When the user doesn't exist, verify against a dummy hash so the response
+        // time is indistinguishable from a real (but wrong) password check.
+        let hash = stored_hash.unwrap_or_else(|| {
+            "$argon2id$v=19$m=19456,t=2,p=1$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA".to_string()
+        });
+        Ok(verify_password(password, &hash))
     }
 
     pub async fn create_user_session(&self, user_id: i32) -> Result<String> {

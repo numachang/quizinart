@@ -21,6 +21,7 @@ homepage.register_btn: "建立帳號"
 homepage.already_have_account: "已有帳號？"
 homepage.email_taken: "此電子郵件已被註冊。"
 homepage.empty_fields: "請填寫所有欄位。"
+homepage.weak_password: "密碼至少需要8個字元。"
 
 # Homepage - Email Verification
 homepage.check_email_title: "請查收電子郵件"
@@ -71,6 +72,7 @@ account.new_password: "新密碼"
 account.change_password_btn: "變更密碼"
 account.incorrect_password: "目前密碼不正確。"
 account.empty_fields: "請填寫所有密碼欄位。"
+account.weak_password: "新密碼至少需要8個字元。"
 account.password_changed: "密碼變更成功。"
 
 # Homepage - Quiz List

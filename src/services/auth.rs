@@ -98,6 +98,8 @@ pub enum RegisterOutcome {
     EmptyFields,
     /// Email already in use.
     EmailTaken,
+    /// Password does not meet minimum requirements.
+    WeakPassword,
 }
 
 pub enum LoginOutcome {
@@ -112,14 +114,18 @@ pub enum LoginOutcome {
 pub enum ResetPasswordOutcome {
     Success,
     EmptyPassword,
+    WeakPassword,
     InvalidToken,
 }
 
 pub enum ChangePasswordOutcome {
     Success,
     EmptyFields,
+    WeakPassword,
     IncorrectPassword,
 }
+
+const MIN_PASSWORD_LENGTH: usize = 8;
 
 // ---------------------------------------------------------------------------
 // AuthService
@@ -187,6 +193,10 @@ impl<R: AuthRepository> AuthService<R> {
     ) -> Result<RegisterOutcome> {
         if email.is_empty() || password.is_empty() || display_name.is_empty() {
             return Ok(RegisterOutcome::EmptyFields);
+        }
+
+        if password.len() < MIN_PASSWORD_LENGTH {
+            return Ok(RegisterOutcome::WeakPassword);
         }
 
         let exists = self.repo.email_exists(email).await?;
@@ -280,6 +290,10 @@ impl<R: AuthRepository> AuthService<R> {
             return Ok(ResetPasswordOutcome::EmptyPassword);
         }
 
+        if new_password.len() < MIN_PASSWORD_LENGTH {
+            return Ok(ResetPasswordOutcome::WeakPassword);
+        }
+
         let success = self
             .repo
             .reset_password_with_token(token, new_password)
@@ -300,6 +314,10 @@ impl<R: AuthRepository> AuthService<R> {
     ) -> Result<ChangePasswordOutcome> {
         if current_password.is_empty() || new_password.is_empty() {
             return Ok(ChangePasswordOutcome::EmptyFields);
+        }
+
+        if new_password.len() < MIN_PASSWORD_LENGTH {
+            return Ok(ChangePasswordOutcome::WeakPassword);
         }
 
         let changed = self

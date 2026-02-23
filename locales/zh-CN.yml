@@ -21,6 +21,7 @@ homepage.register_btn: "创建账号"
 homepage.already_have_account: "已有账号？"
 homepage.email_taken: "该邮箱已被注册。"
 homepage.empty_fields: "请填写所有字段。"
+homepage.weak_password: "密码至少需要8个字符。"
 
 # Homepage - Email Verification
 homepage.check_email_title: "请查收邮件"
@@ -71,6 +72,7 @@ account.new_password: "新密码"
 account.change_password_btn: "修改密码"
 account.incorrect_password: "当前密码不正确。"
 account.empty_fields: "请填写所有密码字段。"
+account.weak_password: "新密码至少需要8个字符。"
 account.password_changed: "密码修改成功。"
 
 # Homepage - Quiz List

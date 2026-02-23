@@ -6,6 +6,7 @@ pub enum ChangePasswordState {
     NoError,
     IncorrectPassword,
     EmptyFields,
+    WeakPassword,
     Success,
 }
 
@@ -18,6 +19,10 @@ pub fn account_page(user: &AuthUser, state: ChangePasswordState, locale: &str) -
         ),
         ChangePasswordState::EmptyFields => (
             Some(t!("account.empty_fields", locale = locale).to_string()),
+            None,
+        ),
+        ChangePasswordState::WeakPassword => (
+            Some(t!("account.weak_password", locale = locale).to_string()),
             None,
         ),
         ChangePasswordState::Success => (

@@ -21,6 +21,7 @@ homepage.register_btn: "Create Account"
 homepage.already_have_account: "Already have an account?"
 homepage.email_taken: "This email is already registered."
 homepage.empty_fields: "Please fill in all fields."
+homepage.weak_password: "Password must be at least 8 characters."
 
 # Homepage - Email Verification
 homepage.check_email_title: "Check your email"
@@ -71,6 +72,7 @@ account.new_password: "New Password"
 account.change_password_btn: "Change Password"
 account.incorrect_password: "Current password is incorrect."
 account.empty_fields: "Please fill in all password fields."
+account.weak_password: "New password must be at least 8 characters."
 account.password_changed: "Your password has been changed successfully."
 
 # Homepage - Quiz List

@@ -50,11 +50,15 @@ async fn run() -> color_eyre::Result<()> {
     let args = Args::parse();
 
     let db = Db::new(args.database_url).await?;
+    let secure_cookies = args.secure_cookies || args.base_url.starts_with("https://");
+    if secure_cookies && !args.secure_cookies {
+        tracing::info!("secure_cookies auto-enabled because base_url uses HTTPS");
+    }
     let auth = AuthService::new(db.clone(), args.resend_api_key, args.base_url);
     let state = AppState {
         db,
         auth,
-        secure_cookies: args.secure_cookies,
+        secure_cookies,
     };
     let app = quizinart::router(state);
 

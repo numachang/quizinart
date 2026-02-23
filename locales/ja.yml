@@ -21,6 +21,7 @@ homepage.register_btn: "アカウント作成"
 homepage.already_have_account: "すでにアカウントをお持ちですか？"
 homepage.email_taken: "このメールアドレスは既に登録されています。"
 homepage.empty_fields: "すべての項目を入力してください。"
+homepage.weak_password: "パスワードは8文字以上で入力してください。"
 
 # Homepage - Email Verification
 homepage.check_email_title: "メールを確認してください"
@@ -71,6 +72,7 @@ account.new_password: "新しいパスワード"
 account.change_password_btn: "パスワードを変更"
 account.incorrect_password: "現在のパスワードが正しくありません。"
 account.empty_fields: "すべてのパスワード項目を入力してください。"
+account.weak_password: "新しいパスワードは8文字以上で入力してください。"
 account.password_changed: "パスワードが正常に変更されました。"
 
 # Homepage - Quiz List

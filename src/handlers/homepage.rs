@@ -172,6 +172,12 @@ async fn register_post(
             &locale,
         )
         .into_response()),
+        RegisterOutcome::WeakPassword => Ok(views::page(
+            "Register",
+            homepage_views::register(homepage_views::RegisterState::WeakPassword, &locale),
+            &locale,
+        )
+        .into_response()),
     }
 }
 
@@ -395,6 +401,10 @@ async fn reset_password_post(
         ResetPasswordOutcome::Success => (homepage_views::ResetPasswordState::Success, ""),
         ResetPasswordOutcome::EmptyPassword => (
             homepage_views::ResetPasswordState::EmptyPassword,
+            body.token.as_str(),
+        ),
+        ResetPasswordOutcome::WeakPassword => (
+            homepage_views::ResetPasswordState::WeakPassword,
             body.token.as_str(),
         ),
         ResetPasswordOutcome::InvalidToken => {

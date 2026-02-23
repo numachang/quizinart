@@ -6,6 +6,7 @@ pub enum RegisterState {
     NoError,
     EmailTaken,
     EmptyFields,
+    WeakPassword,
 }
 
 pub fn register(state: RegisterState, locale: &str) -> Markup {
@@ -14,6 +15,9 @@ pub fn register(state: RegisterState, locale: &str) -> Markup {
         RegisterState::EmailTaken => Some(t!("homepage.email_taken", locale = locale).to_string()),
         RegisterState::EmptyFields => {
             Some(t!("homepage.empty_fields", locale = locale).to_string())
+        }
+        RegisterState::WeakPassword => {
+            Some(t!("homepage.weak_password", locale = locale).to_string())
         }
     };
 
@@ -251,6 +255,7 @@ pub enum ResetPasswordState {
     Form,
     InvalidToken,
     EmptyPassword,
+    WeakPassword,
     Success,
 }
 
@@ -299,6 +304,31 @@ pub fn reset_password(state: ResetPasswordState, token: &str, locale: &str) -> M
                               aria-invalid="true"
                               aria-label=(t!("homepage.new_password", locale = locale));
                         small { (t!("homepage.empty_fields", locale = locale)) }
+                    }
+                    button type="submit" { (t!("homepage.reset_password_btn", locale = locale)) }
+                }
+            }
+        },
+        ResetPasswordState::WeakPassword => html! {
+            h1 { (t!("homepage.reset_password_title", locale = locale)) }
+            p { (t!("homepage.reset_password_desc", locale = locale)) }
+            article style="width: fit-content;" {
+                form hx-post=(names::RESET_PASSWORD_URL)
+                     hx-ext="json-enc"
+                     hx-target="main"
+
+                     hx-swap="innerHTML" {
+                    input type="hidden" name="token" value=(token);
+                    label {
+                        (t!("homepage.new_password", locale = locale))
+                        input name="password"
+                              type="password"
+                              autocomplete="new-password"
+                              required="true"
+                              placeholder=(t!("homepage.new_password", locale = locale))
+                              aria-invalid="true"
+                              aria-label=(t!("homepage.new_password", locale = locale));
+                        small { (t!("homepage.weak_password", locale = locale)) }
                     }
                     button type="submit" { (t!("homepage.reset_password_btn", locale = locale)) }
                 }
