@@ -1,7 +1,7 @@
 use color_eyre::{eyre::OptionExt, Result};
 use ulid::Ulid;
 
-use super::models::Quiz;
+use super::models::{Quiz, SharedQuizInfo};
 use super::Db;
 use crate::models::Questions;
 
@@ -228,5 +228,85 @@ impl Db {
         .unwrap_or(false);
 
         Ok(exists)
+    }
+
+    /// Toggle the is_shared flag for a quiz owned by the given user.
+    /// Returns the new value of is_shared.
+    pub async fn toggle_share(&self, public_id: &str, user_id: i32) -> Result<bool> {
+        let is_shared: bool = sqlx::query_scalar!(
+            r#"UPDATE quizzes SET is_shared = NOT is_shared
+               WHERE public_id = $1 AND owner_id = $2
+               RETURNING is_shared AS "is_shared!""#,
+            public_id,
+            user_id
+        )
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(is_shared)
+    }
+
+    /// Check if a quiz is shared by its internal id.
+    pub async fn is_quiz_shared_by_id(&self, quiz_id: i32) -> Result<bool> {
+        let shared: bool =
+            sqlx::query_scalar!("SELECT is_shared FROM quizzes WHERE id = $1", quiz_id)
+                .fetch_optional(&self.pool)
+                .await?
+                .unwrap_or(false);
+
+        Ok(shared)
+    }
+
+    /// Get shared quiz info by public_id (for the shared quiz page).
+    pub async fn get_shared_quiz(&self, public_id: &str) -> Result<Option<SharedQuizInfo>> {
+        let row = sqlx::query_as!(
+            SharedQuizInfo,
+            r#"
+            SELECT
+                q.id,
+                q.public_id AS "public_id!",
+                q.name,
+                q.is_shared,
+                u.display_name AS owner_name,
+                COUNT(qu.id) AS "question_count!"
+            FROM quizzes q
+            JOIN users u ON u.id = q.owner_id
+            JOIN questions qu ON qu.quiz_id = q.id
+            WHERE q.public_id = $1
+            GROUP BY q.id, q.public_id, q.name, q.is_shared, u.display_name
+            "#,
+            public_id
+        )
+        .fetch_optional(&self.pool)
+        .await?;
+
+        Ok(row)
+    }
+
+    /// Check if a quiz is already in the user's library.
+    pub async fn user_has_quiz(&self, user_id: i32, quiz_id: i32) -> Result<bool> {
+        let exists: bool = sqlx::query_scalar!(
+            "SELECT EXISTS(SELECT 1 FROM user_quizzes WHERE user_id = $1 AND quiz_id = $2)",
+            user_id,
+            quiz_id
+        )
+        .fetch_one(&self.pool)
+        .await?
+        .unwrap_or(false);
+
+        Ok(exists)
+    }
+
+    /// Add a quiz to the user's library (idempotent).
+    pub async fn add_quiz_to_library(&self, user_id: i32, quiz_id: i32) -> Result<()> {
+        sqlx::query!(
+            "INSERT INTO user_quizzes (user_id, quiz_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+            user_id,
+            quiz_id
+        )
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
     }
 }

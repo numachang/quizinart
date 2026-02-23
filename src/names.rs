@@ -58,6 +58,18 @@ pub fn rename_session_url(session_id: i32) -> String {
     format!("/session/{session_id}/rename")
 }
 
+pub fn toggle_share_url(public_id: &str) -> String {
+    format!("/toggle-share/{public_id}")
+}
+
+pub fn shared_quiz_url(public_id: &str) -> String {
+    format!("/shared/{public_id}")
+}
+
+pub fn add_to_library_url(public_id: &str) -> String {
+    format!("/add-to-library/{public_id}")
+}
+
 // Quiz session defaults
 pub const MIN_QUESTION_COUNT: i32 = 5;
 pub const MAX_QUESTION_COUNT: i32 = 30;

@@ -207,6 +207,20 @@ result.retry_bookmarked_btn_1: "ブックマーク "
 result.retry_bookmarked_btn_2: " 問をリトライ"
 result.no_bookmarked: "リトライするブックマークはありません。"
 
+# Quiz - Sharing
+share.share_btn: "共有"
+share.shared_label: "このクイズは共有されています"
+share.copy_link: "リンクをコピー"
+share.stop_sharing: "共有を停止"
+share.shared_by: "共有者: "
+share.questions_suffix: " 問"
+share.already_in_library: "このクイズはすでにライブラリに追加されています。"
+share.go_to_dashboard: "ダッシュボードへ"
+share.add_to_library: "ライブラリに追加"
+share.not_available_title: "クイズが見つかりません"
+share.not_available_desc: "このクイズは現在共有されていないか、存在しません。"
+share.back_to_home: "ホームに戻る"
+
 # Selection Mode Labels
 mode.unanswered: "未回答"
 mode.incorrect: "不正解"

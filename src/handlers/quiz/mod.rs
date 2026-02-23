@@ -2,6 +2,7 @@ mod crud;
 mod dashboard;
 mod question;
 mod session;
+mod sharing;
 
 pub use dashboard::dashboard;
 
@@ -97,6 +98,9 @@ pub fn routes() -> Router<AppState> {
         .route("/session/{id}/rename", patch(session::rename_session))
         .route("/quiz/{id}/sessions", get(dashboard::quiz_session_history))
         .route("/quiz/{id}/abandon", get(session::abandon_session))
+        .route("/toggle-share/{id}", post(sharing::toggle_share))
+        .route("/shared/{id}", get(sharing::shared_quiz_page))
+        .route("/add-to-library/{id}", post(sharing::add_to_library))
 }
 
 #[cfg(test)]

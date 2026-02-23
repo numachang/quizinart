@@ -207,6 +207,20 @@ result.retry_bookmarked_btn_1: "重试 "
 result.retry_bookmarked_btn_2: " 道收藏题"
 result.no_bookmarked: "没有需要重试的收藏题。"
 
+# Quiz - Sharing
+share.share_btn: "分享"
+share.shared_label: "此测验已分享"
+share.copy_link: "复制链接"
+share.stop_sharing: "停止分享"
+share.shared_by: "分享者："
+share.questions_suffix: " 题"
+share.already_in_library: "此测验已在您的资料库中。"
+share.go_to_dashboard: "前往仪表盘"
+share.add_to_library: "添加到资料库"
+share.not_available_title: "测验不可用"
+share.not_available_desc: "此测验当前未分享或不存在。"
+share.back_to_home: "返回首页"
+
 # Selection Mode Labels
 mode.unanswered: "未答"
 mode.incorrect: "错题"

@@ -87,6 +87,15 @@ pub struct QuizCategoryOverallStats {
     pub total_answered: i64,
 }
 
+pub struct SharedQuizInfo {
+    pub id: i32,
+    pub public_id: String,
+    pub name: String,
+    pub is_shared: bool,
+    pub owner_name: String,
+    pub question_count: i64,
+}
+
 /// Combined question context from session_questions + questions + quizzes (single JOIN query)
 pub struct QuestionContext {
     pub quiz_name: String,

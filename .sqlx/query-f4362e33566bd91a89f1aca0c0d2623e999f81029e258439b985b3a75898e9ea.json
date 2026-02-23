@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                q.id,\n                q.public_id AS \"public_id!\",\n                q.name,\n                q.is_shared,\n                u.display_name AS owner_name,\n                COUNT(qu.id) AS \"question_count!\"\n            FROM quizzes q\n            JOIN users u ON u.id = q.owner_id\n            JOIN questions qu ON qu.quiz_id = q.id\n            WHERE q.public_id = $1\n            GROUP BY q.id, q.public_id, q.name, q.is_shared, u.display_name\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "public_id!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "is_shared",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 4,
+        "name": "owner_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "question_count!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "f4362e33566bd91a89f1aca0c0d2623e999f81029e258439b985b3a75898e9ea"
+}

@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE quizzes SET is_shared = NOT is_shared\n               WHERE public_id = $1 AND owner_id = $2\n               RETURNING is_shared AS \"is_shared!\"",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "is_shared!",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "6931b6ade8b3f06a15dedbd8af7ff36a8107d55d31dce45e66c19a5e43341d4a"
+}

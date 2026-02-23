@@ -207,6 +207,20 @@ result.retry_bookmarked_btn_1: "Retry "
 result.retry_bookmarked_btn_2: " Bookmarked Questions"
 result.no_bookmarked: "No bookmarked questions to retry."
 
+# Quiz - Sharing
+share.share_btn: "Share"
+share.shared_label: "This quiz is shared"
+share.copy_link: "Copy Link"
+share.stop_sharing: "Stop Sharing"
+share.shared_by: "Shared by "
+share.questions_suffix: " questions"
+share.already_in_library: "This quiz is already in your library."
+share.go_to_dashboard: "Go to Dashboard"
+share.add_to_library: "Add to My Library"
+share.not_available_title: "Quiz Not Available"
+share.not_available_desc: "This quiz is not currently shared or does not exist."
+share.back_to_home: "Back to Home"
+
 # Selection Mode Labels
 mode.unanswered: "Unanswered"
 mode.incorrect: "Incorrect"

@@ -81,7 +81,7 @@ async fn create_quiz(
         headers,
         views::titled(
             "Quiz Dashboard",
-            dashboard::dashboard(&state.db, quiz_id, &public_id, &locale).await?,
+            dashboard::dashboard(&state.db, quiz_id, &public_id, user.id, &locale).await?,
         ),
     ))
 }
