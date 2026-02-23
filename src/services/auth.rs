@@ -434,7 +434,7 @@ mod tests {
 
         let svc = service(mock);
         let outcome = svc
-            .register("taken@example.com", "pass", "name")
+            .register("taken@example.com", "password123", "name")
             .await
             .unwrap();
 
@@ -454,7 +454,7 @@ mod tests {
         // service() has empty API key → dev mode
         let svc = service(mock);
         let outcome = svc
-            .register("new@example.com", "pass", "Name")
+            .register("new@example.com", "password123", "Name")
             .await
             .unwrap();
 
@@ -472,7 +472,7 @@ mod tests {
         // service_with_email() has non-empty API key → prod mode
         let svc = service_with_email(mock);
         let outcome = svc
-            .register("new@example.com", "pass", "Name")
+            .register("new@example.com", "password123", "Name")
             .await
             .unwrap();
 
@@ -516,7 +516,10 @@ mod tests {
             .returning(|_, _, _| Box::pin(async { Ok(true) }));
 
         let svc = service(mock);
-        let outcome = svc.change_password(1, "old", "new").await.unwrap();
+        let outcome = svc
+            .change_password(1, "oldpassword", "newpassword")
+            .await
+            .unwrap();
         assert!(matches!(outcome, ChangePasswordOutcome::Success));
     }
 
@@ -527,7 +530,10 @@ mod tests {
             .returning(|_, _, _| Box::pin(async { Ok(false) }));
 
         let svc = service(mock);
-        let outcome = svc.change_password(1, "wrong", "new").await.unwrap();
+        let outcome = svc
+            .change_password(1, "wrongpassword", "newpassword")
+            .await
+            .unwrap();
         assert!(matches!(outcome, ChangePasswordOutcome::IncorrectPassword));
     }
 
@@ -624,7 +630,10 @@ mod tests {
             .returning(|_, _| Box::pin(async { Ok(true) }));
 
         let svc = service(mock);
-        let outcome = svc.reset_password("token", "newpass").await.unwrap();
+        let outcome = svc
+            .reset_password("token", "newpassword")
+            .await
+            .unwrap();
         assert!(matches!(outcome, ResetPasswordOutcome::Success));
     }
 
@@ -635,7 +644,10 @@ mod tests {
             .returning(|_, _| Box::pin(async { Ok(false) }));
 
         let svc = service(mock);
-        let outcome = svc.reset_password("bad-token", "newpass").await.unwrap();
+        let outcome = svc
+            .reset_password("bad-token", "newpassword")
+            .await
+            .unwrap();
         assert!(matches!(outcome, ResetPasswordOutcome::InvalidToken));
     }
 }
