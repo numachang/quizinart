@@ -1,4 +1,4 @@
-use maud::{html, Markup, PreEscaped, DOCTYPE};
+use maud::{html, Markup, DOCTYPE};
 use rust_i18n::t;
 
 use crate::names;
@@ -11,91 +11,10 @@ fn css() -> Markup {
     }
 }
 
-const THEME_SCRIPT: &str = r#"
-(() => {
-    const key = "quizinart-theme";
-
-    const getPreferredTheme = () => {
-        const saved = localStorage.getItem(key);
-        if (saved === "light" || saved === "dark" || saved === "system") {
-            return saved;
-        }
-        return "system";
-    };
-
-    const resolveTheme = (mode) => {
-        if (mode === "system") {
-            return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-        }
-        return mode;
-    };
-
-    const applyTheme = (mode) => {
-        const theme = resolveTheme(mode);
-        document.documentElement.setAttribute("data-theme", theme);
-        document.documentElement.setAttribute("data-theme-mode", mode);
-    };
-
-    const mode = getPreferredTheme();
-    applyTheme(mode);
-
-    document.addEventListener("DOMContentLoaded", () => {
-        const select = document.querySelector(".theme-select");
-        if (!select) { return; }
-
-        select.value = mode;
-        select.addEventListener("change", (event) => {
-            const selectedMode = event.target.value;
-            localStorage.setItem(key, selectedMode);
-            applyTheme(selectedMode);
-        });
-    });
-
-    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
-        const currentMode = getPreferredTheme();
-        if (currentMode === "system") {
-            applyTheme(currentMode);
-        }
-    });
-})();
-"#;
-
-const MENU_SCRIPT: &str = r#"
-(() => {
-    document.addEventListener("DOMContentLoaded", () => {
-        const btn = document.getElementById("nav-toggle");
-        const menu = document.getElementById("nav-menu");
-        if (!btn || !menu) return;
-
-        btn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            const open = menu.classList.toggle("open");
-            btn.setAttribute("aria-expanded", open);
-        });
-
-        document.addEventListener("click", (e) => {
-            if (!menu.classList.contains("open")) return;
-            if (!menu.contains(e.target) && e.target !== btn) {
-                menu.classList.remove("open");
-                btn.setAttribute("aria-expanded", "false");
-            }
-        });
-
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape" && menu.classList.contains("open")) {
-                menu.classList.remove("open");
-                btn.setAttribute("aria-expanded", "false");
-                btn.focus();
-            }
-        });
-    });
-})();
-"#;
-
 fn js() -> Markup {
     html! {
-        script { (PreEscaped(THEME_SCRIPT)) }
-        script { (PreEscaped(MENU_SCRIPT)) }
+        script src="/static/theme.js" {}
+        script src="/static/menu.js" {}
         script src="/static/htmx/htmx.min.js" {}
         script src="/static/htmx/ext/json-enc.js" {}
     }
