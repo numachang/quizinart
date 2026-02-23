@@ -66,9 +66,11 @@ async fn refresh_session_cookie(
 
     if response.status().is_success() {
         if let Some(value) = session_value {
-            if let Ok(header_value) =
-                utils::cookie(names::USER_SESSION_COOKIE_NAME, &value, state.secure_cookies)
-            {
+            if let Ok(header_value) = utils::cookie(
+                names::USER_SESSION_COOKIE_NAME,
+                &value,
+                state.secure_cookies,
+            ) {
                 response
                     .headers_mut()
                     .append(axum::http::header::SET_COOKIE, header_value);
