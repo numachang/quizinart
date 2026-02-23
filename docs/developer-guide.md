@@ -130,44 +130,30 @@ When using `query_as!`, the model struct field types must match what sqlx infers
 
 ## 3. Adding DB Migrations
 
-### File naming convention
-
-```
-migrations/V{N}__{description}.sql
-```
-
-Examples: `V1__init.sql`, `V2__add_bookmarks.sql`, `V7__global_quizzes.sql`
-
-Always use **additive** migrations (`ADD COLUMN`, `CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`). For destructive changes, write a data migration first.
+This project uses [sqlx's built-in migration system](https://docs.rs/sqlx/latest/sqlx/macro.migrate.html). Migrations are embedded at compile time via the `sqlx::migrate!()` macro and tracked in the `_sqlx_migrations` table.
 
 ### Step-by-step
 
-**1. Create the SQL file**
+**1. Generate a new migration file**
+
+```bash
+sqlx migrate add <description>
+```
+
+This creates a timestamped file like `migrations/20260223120000_add_feature_flags.sql`.
+
+Always use **additive** migrations (`ADD COLUMN`, `CREATE TABLE IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`). For destructive changes, write a data migration first.
+
+**2. Write the SQL**
 
 ```sql
--- migrations/V8__add_feature_flags.sql
+-- migrations/20260223120000_add_feature_flags.sql
 CREATE TABLE IF NOT EXISTS feature_flags (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
     enabled BOOLEAN NOT NULL DEFAULT FALSE
 );
 ```
-
-**2. Register in `src/db/migrations.rs`**
-
-Add a new entry to the `MIGRATIONS` array:
-
-```rust
-const MIGRATIONS: &[Migration] = &[
-    // ... existing entries ...
-    Migration {
-        version: "V8",
-        sql: include_str!("../../migrations/V8__add_feature_flags.sql"),
-    },
-];
-```
-
-The custom migration runner checks the `schema_migrations` table before executing each migration, so it is idempotent.
 
 **3. Apply and update the sqlx cache**
 
@@ -179,20 +165,12 @@ cargo run
 cargo sqlx prepare
 
 # Commit everything together
-git add migrations/V8__add_feature_flags.sql src/db/migrations.rs .sqlx/
+git add migrations/ .sqlx/
 ```
 
 ### How CI applies migrations
 
-CI uses `psql` directly (not the Rust migration runner):
-
-```bash
-for f in migrations/V*__*.sql; do
-  psql -h localhost -U quizinart -d quizinart -f "$f"
-done
-```
-
-Migration SQL files must be standalone and idempotent (`IF NOT EXISTS`, etc.).
+CI uses `sqlx migrate run` (via sqlx-cli) before checking the offline cache. Both CI and the Rust app use the same sqlx migration system.
 
 ---
 

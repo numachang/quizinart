@@ -130,44 +130,30 @@ let categories: Vec<String> = sqlx::query_scalar!(
 
 ## 3. DB マイグレーション追加手順
 
-### ファイル命名規則
-
-```
-migrations/V{N}__{説明}.sql
-```
-
-例：`V1__init.sql`、`V2__add_bookmarks.sql`、`V7__global_quizzes.sql`
-
-常に**追加的**マイグレーション（`ADD COLUMN`、`CREATE TABLE IF NOT EXISTS`、`CREATE INDEX IF NOT EXISTS`）を使う。破壊的変更が必要な場合は、先にデータ移行を行う。
+このプロジェクトは [sqlx の標準マイグレーションシステム](https://docs.rs/sqlx/latest/sqlx/macro.migrate.html)を使用する。マイグレーションは `sqlx::migrate!()` マクロでコンパイル時に埋め込まれ、`_sqlx_migrations` テーブルで管理される。
 
 ### 手順
 
-**1. SQL ファイルを作成**
+**1. マイグレーションファイルを生成**
+
+```bash
+sqlx migrate add <説明>
+```
+
+`migrations/20260223120000_add_feature_flags.sql` のようなタイムスタンプ付きファイルが生成される。
+
+常に**追加的**マイグレーション（`ADD COLUMN`、`CREATE TABLE IF NOT EXISTS`、`CREATE INDEX IF NOT EXISTS`）を使う。破壊的変更が必要な場合は、先にデータ移行を行う。
+
+**2. SQL を記述**
 
 ```sql
--- migrations/V8__add_feature_flags.sql
+-- migrations/20260223120000_add_feature_flags.sql
 CREATE TABLE IF NOT EXISTS feature_flags (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
     enabled BOOLEAN NOT NULL DEFAULT FALSE
 );
 ```
-
-**2. `src/db/migrations.rs` に登録**
-
-`MIGRATIONS` 配列に新しいエントリを追加：
-
-```rust
-const MIGRATIONS: &[Migration] = &[
-    // ... 既存のエントリ ...
-    Migration {
-        version: "V8",
-        sql: include_str!("../../migrations/V8__add_feature_flags.sql"),
-    },
-];
-```
-
-カスタムマイグレーションランナーは `schema_migrations` テーブルを確認してから実行するため、冪等性がある。
 
 **3. 適用と sqlx キャッシュ更新**
 
@@ -179,20 +165,12 @@ cargo run
 cargo sqlx prepare
 
 # まとめてコミット
-git add migrations/V8__add_feature_flags.sql src/db/migrations.rs .sqlx/
+git add migrations/ .sqlx/
 ```
 
 ### CI でのマイグレーション
 
-CI は Rust のマイグレーションランナーではなく `psql` を直接使用する：
-
-```bash
-for f in migrations/V*__*.sql; do
-  psql -h localhost -U quizinart -d quizinart -f "$f"
-done
-```
-
-マイグレーション SQL はスタンドアロンで冪等（`IF NOT EXISTS` 等）である必要がある。
+CI はオフラインキャッシュのチェック前に `sqlx migrate run`（sqlx-cli 経由）でマイグレーションを適用する。CI と Rust アプリは同じ sqlx マイグレーションシステムを使用する。
 
 ---
 

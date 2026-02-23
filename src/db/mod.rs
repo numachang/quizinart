@@ -51,16 +51,4 @@ impl Db {
 
         Ok(instance)
     }
-
-    pub async fn migration_applied(&self, version: &str) -> Result<bool> {
-        let exists: bool = sqlx::query_scalar!(
-            "SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE version = $1)",
-            version
-        )
-        .fetch_one(&self.pool)
-        .await?
-        .unwrap_or(false);
-
-        Ok(exists)
-    }
 }
