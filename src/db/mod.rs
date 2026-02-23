@@ -25,16 +25,20 @@ pub struct Db {
 
 impl Db {
     pub async fn new(database_url: String) -> Result<Self> {
+        use std::time::Duration;
+
         let pool = sqlx::postgres::PgPoolOptions::new()
             .max_connections(10)
+            .acquire_timeout(Duration::from_secs(5))
+            .idle_timeout(Duration::from_secs(600))
+            .max_lifetime(Duration::from_secs(1800))
             .connect(&database_url)
             .await?;
 
         // Verify connection
-        let one: i32 = sqlx::query_scalar!(r#"SELECT 1::INT4 AS "one!""#)
+        sqlx::query_scalar!(r#"SELECT 1::INT4 AS "one!""#)
             .fetch_one(&pool)
             .await?;
-        assert_eq!(one, 1);
 
         // Run schema migrations
         migrations::run(&pool).await?;
