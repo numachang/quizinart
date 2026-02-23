@@ -630,10 +630,7 @@ mod tests {
             .returning(|_, _| Box::pin(async { Ok(true) }));
 
         let svc = service(mock);
-        let outcome = svc
-            .reset_password("token", "newpassword")
-            .await
-            .unwrap();
+        let outcome = svc.reset_password("token", "newpassword").await.unwrap();
         assert!(matches!(outcome, ResetPasswordOutcome::Success));
     }
 
