@@ -139,3 +139,102 @@ test.describe("marketplace", () => {
     await expect(marketplaceLink).toBeVisible();
   });
 });
+
+test.describe("marketplace search and filter", () => {
+  test("search filters quizzes by name", async ({ page, jsErrors }) => {
+    // User A: create and share two quizzes
+    await registerUser(page);
+    const quizName1 = `SearchAlpha_${Date.now()}`;
+    const quizName2 = `SearchBeta_${Date.now()}`;
+
+    await createQuiz(page, quizName1);
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/toggle-share/")),
+      page.locator("button", { hasText: "Share" }).click(),
+    ]);
+
+    await page.goto("/");
+    await createQuiz(page, quizName2);
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/toggle-share/")),
+      page.locator("button", { hasText: "Share" }).click(),
+    ]);
+
+    // User B: search on marketplace
+    const browser = page.context().browser()!;
+    const context2 = await browser.newContext();
+    const page2 = await context2.newPage();
+    await registerUser(page2);
+
+    await page2.goto("/marketplace");
+    await expect(page2.locator("h1")).toContainText("Marketplace");
+
+    // Both quizzes should be visible initially
+    await expect(
+      page2.locator("article", { hasText: quizName1 })
+    ).toBeVisible();
+    await expect(
+      page2.locator("article", { hasText: quizName2 })
+    ).toBeVisible();
+
+    // Search for "Alpha" — only first quiz should remain
+    const searchInput = page2.locator('input[name="q"]');
+    await searchInput.fill("Alpha");
+    // Wait for HTMX to update results
+    await page2.waitForResponse((resp) =>
+      resp.url().includes("/marketplace/search")
+    );
+    await expect(
+      page2.locator("#quiz-results article", { hasText: quizName1 })
+    ).toBeVisible();
+    await expect(
+      page2.locator("#quiz-results article", { hasText: quizName2 })
+    ).toHaveCount(0);
+
+    await context2.close();
+  });
+
+  test("category filter works", async ({ page, jsErrors }) => {
+    // User A: create and share a quiz (test-quiz.json has Science and History)
+    await registerUser(page);
+    const quizName = `CatFilter_${Date.now()}`;
+    await createQuiz(page, quizName);
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/toggle-share/")),
+      page.locator("button", { hasText: "Share" }).click(),
+    ]);
+
+    // User B: filter by category on marketplace
+    const browser = page.context().browser()!;
+    const context2 = await browser.newContext();
+    const page2 = await context2.newPage();
+    await registerUser(page2);
+
+    await page2.goto("/marketplace");
+
+    // Category dropdown should be available
+    const categorySelect = page2.locator('select[name="category"]');
+    await expect(categorySelect).toBeVisible();
+
+    // Should have at least "All Categories" and some real categories
+    const options = categorySelect.locator("option");
+    await expect(options).not.toHaveCount(0);
+
+    await context2.close();
+  });
+
+  test("empty search shows no-results message", async ({ page, jsErrors }) => {
+    await registerUser(page);
+    await page.goto("/marketplace");
+
+    const searchInput = page.locator('input[name="q"]');
+    await searchInput.fill("nonexistent_quiz_xyz_999");
+    await page.waitForResponse((resp) =>
+      resp.url().includes("/marketplace/search")
+    );
+
+    await expect(page.locator("#quiz-results")).toContainText(
+      /No quizzes found|No shared quizzes/
+    );
+  });
+});

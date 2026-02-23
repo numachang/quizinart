@@ -79,6 +79,7 @@ pub const SELECTION_MODES: &[&str] = &["unanswered", "incorrect", "random"];
 
 // Marketplace
 pub const MARKETPLACE_URL: &str = "/marketplace";
+pub const MARKETPLACE_SEARCH_URL: &str = "/marketplace/search";
 
 // i18n
 pub const LOCALE_COOKIE_NAME: &str = "lang";

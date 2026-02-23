@@ -231,6 +231,9 @@ marketplace.empty: "No shared quizzes yet."
 marketplace.by: "by %{owner}"
 marketplace.add_to_library: "Add to My Library"
 marketplace.go_to_dashboard: "Go to Dashboard"
+marketplace.search_placeholder: "Search quizzes..."
+marketplace.all_categories: "All Categories"
+marketplace.no_results: "No quizzes found."
 
 # Selection Mode Labels
 mode.unanswered: "Unanswered"

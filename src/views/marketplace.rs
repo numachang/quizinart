@@ -2,20 +2,63 @@ use crate::{db::models::SharedQuizInfo, names};
 use maud::{html, Markup};
 use rust_i18n::t;
 
-pub fn marketplace_page(quizzes: &[SharedQuizInfo], user_quiz_ids: &[i32], locale: &str) -> Markup {
+pub fn marketplace_page(
+    quizzes: &[SharedQuizInfo],
+    user_quiz_ids: &[i32],
+    categories: &[String],
+    locale: &str,
+) -> Markup {
     html! {
         h1 { (t!("marketplace.title", locale = locale)) }
+
+        // Search and filter controls
+        div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: end;" {
+            input
+                type="search"
+                name="q"
+                placeholder=(t!("marketplace.search_placeholder", locale = locale))
+                hx-get=(names::MARKETPLACE_SEARCH_URL)
+                hx-trigger="input changed delay:300ms, search"
+                hx-target="#quiz-results"
+                hx-include="[name='category']"
+                style="flex: 1; min-width: 200px; margin-bottom: 0;";
+            select
+                name="category"
+                hx-get=(names::MARKETPLACE_SEARCH_URL)
+                hx-trigger="change"
+                hx-target="#quiz-results"
+                hx-include="[name='q']"
+                style="width: auto; min-width: 160px; margin-bottom: 0;" {
+                option value="" { (t!("marketplace.all_categories", locale = locale)) }
+                @for cat in categories {
+                    option value=(cat) { (cat) }
+                }
+            }
+        }
+
+        div id="quiz-results" {
+            (marketplace_results(quizzes, user_quiz_ids, locale))
+        }
+    }
+}
+
+pub fn marketplace_results(
+    quizzes: &[SharedQuizInfo],
+    user_quiz_ids: &[i32],
+    locale: &str,
+) -> Markup {
+    html! {
         @if quizzes.is_empty() {
-            p { (t!("marketplace.empty", locale = locale)) }
+            p { (t!("marketplace.no_results", locale = locale)) }
         } @else {
-            div class="quiz-grid" id="quiz-results" {
+            div class="quiz-grid" {
                 (quiz_cards(quizzes, user_quiz_ids, locale))
             }
         }
     }
 }
 
-pub fn quiz_cards(quizzes: &[SharedQuizInfo], user_quiz_ids: &[i32], locale: &str) -> Markup {
+fn quiz_cards(quizzes: &[SharedQuizInfo], user_quiz_ids: &[i32], locale: &str) -> Markup {
     html! {
         @for quiz in quizzes {
             @let imported = user_quiz_ids.contains(&quiz.id);

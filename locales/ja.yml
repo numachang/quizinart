@@ -231,6 +231,9 @@ marketplace.empty: "公開クイズはまだありません。"
 marketplace.by: "%{owner} が作成"
 marketplace.add_to_library: "ライブラリに追加"
 marketplace.go_to_dashboard: "ダッシュボードへ"
+marketplace.search_placeholder: "クイズを検索..."
+marketplace.all_categories: "全カテゴリ"
+marketplace.no_results: "クイズが見つかりません。"
 
 # Selection Mode Labels
 mode.unanswered: "未回答"

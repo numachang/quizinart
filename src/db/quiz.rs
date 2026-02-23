@@ -347,4 +347,87 @@ impl Db {
 
         Ok(ids)
     }
+
+    /// Search shared quizzes by name (ILIKE) and optionally filter by category.
+    pub async fn search_shared_quizzes(
+        &self,
+        query: &str,
+        category: Option<&str>,
+    ) -> Result<Vec<SharedQuizInfo>> {
+        let pattern = format!("%{query}%");
+        let rows = match category {
+            Some(cat) if !cat.is_empty() => {
+                sqlx::query_as!(
+                    SharedQuizInfo,
+                    r#"
+                    SELECT
+                        q.id,
+                        q.public_id AS "public_id!",
+                        q.name,
+                        q.is_shared,
+                        u.display_name AS owner_name,
+                        COUNT(qu.id) AS "question_count!"
+                    FROM quizzes q
+                    JOIN users u ON u.id = q.owner_id
+                    JOIN questions qu ON qu.quiz_id = q.id
+                    WHERE q.is_shared = true
+                      AND q.name ILIKE $1
+                      AND EXISTS (
+                          SELECT 1 FROM questions qf
+                          WHERE qf.quiz_id = q.id AND qf.category = $2
+                      )
+                    GROUP BY q.id, q.public_id, q.name, q.is_shared, u.display_name
+                    ORDER BY q.id DESC
+                    "#,
+                    pattern,
+                    cat
+                )
+                .fetch_all(&self.pool)
+                .await?
+            }
+            _ => {
+                sqlx::query_as!(
+                    SharedQuizInfo,
+                    r#"
+                    SELECT
+                        q.id,
+                        q.public_id AS "public_id!",
+                        q.name,
+                        q.is_shared,
+                        u.display_name AS owner_name,
+                        COUNT(qu.id) AS "question_count!"
+                    FROM quizzes q
+                    JOIN users u ON u.id = q.owner_id
+                    JOIN questions qu ON qu.quiz_id = q.id
+                    WHERE q.is_shared = true
+                      AND q.name ILIKE $1
+                    GROUP BY q.id, q.public_id, q.name, q.is_shared, u.display_name
+                    ORDER BY q.id DESC
+                    "#,
+                    pattern
+                )
+                .fetch_all(&self.pool)
+                .await?
+            }
+        };
+
+        Ok(rows)
+    }
+
+    /// Get distinct categories from questions in shared quizzes.
+    pub async fn shared_quiz_categories(&self) -> Result<Vec<String>> {
+        let cats: Vec<String> = sqlx::query_scalar!(
+            r#"
+            SELECT DISTINCT qu.category AS "category!"
+            FROM questions qu
+            JOIN quizzes q ON q.id = qu.quiz_id
+            WHERE q.is_shared = true AND qu.category IS NOT NULL
+            ORDER BY qu.category
+            "#
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(cats)
+    }
 }

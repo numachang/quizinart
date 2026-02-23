@@ -103,6 +103,7 @@ pub fn routes() -> Router<AppState> {
         .route("/shared/{id}", get(sharing::shared_quiz_page))
         .route("/add-to-library/{id}", post(sharing::add_to_library))
         .route("/marketplace", get(marketplace::marketplace_page))
+        .route("/marketplace/search", get(marketplace::marketplace_search))
 }
 
 #[cfg(test)]
