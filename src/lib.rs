@@ -16,6 +16,9 @@ pub mod views;
 
 use axum::{extract::State, middleware, Router};
 use axum_extra::extract::CookieJar;
+use tower_governor::{
+    governor::GovernorConfigBuilder, key_extractor::SmartIpKeyExtractor, GovernorLayer,
+};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -24,9 +27,25 @@ pub struct AppState {
     pub secure_cookies: bool,
 }
 
-pub fn router(state: AppState) -> Router {
+pub fn router(state: AppState, disable_rate_limit: bool) -> Router {
+    let auth_routes = if disable_rate_limit {
+        handlers::homepage::auth_post_routes()
+    } else {
+        let governor_conf = GovernorConfigBuilder::default()
+            .per_second(30)
+            .burst_size(5)
+            .key_extractor(SmartIpKeyExtractor)
+            .use_headers()
+            .finish()
+            .expect("valid governor config");
+
+        handlers::homepage::auth_post_routes()
+            .layer(GovernorLayer::new(governor_conf))
+    };
+
     Router::new()
         .merge(handlers::homepage::routes())
+        .merge(auth_routes)
         .merge(handlers::quiz::routes())
         .merge(handlers::account::routes())
         .layer(middleware::from_fn_with_state(

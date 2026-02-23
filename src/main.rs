@@ -23,6 +23,10 @@ struct Args {
     /// Base URL for verification links (e.g., https://quizinart.onrender.com).
     #[arg(long, env, default_value = "http://127.0.0.1:1414")]
     base_url: String,
+
+    /// Disable rate limiting on auth endpoints (for E2E testing).
+    #[arg(long, env, default_value = "false")]
+    disable_rate_limit: bool,
 }
 
 fn main() -> color_eyre::Result<()> {
@@ -60,7 +64,7 @@ async fn run() -> color_eyre::Result<()> {
         auth,
         secure_cookies,
     };
-    let app = quizinart::router(state);
+    let app = quizinart::router(state, args.disable_rate_limit);
 
     let address = args.address.parse::<std::net::SocketAddr>()?;
     let listener = tokio::net::TcpListener::bind(address).await?;

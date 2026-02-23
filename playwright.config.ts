@@ -49,6 +49,7 @@ export default defineConfig({
       RESEND_API_KEY: "",
       BASE_URL: baseURL,
       RUST_LOG: "warn",
+      DISABLE_RATE_LIMIT: "true",
     },
   },
   projects: [{ name: "chromium", use: { browserName: "chromium" } }],

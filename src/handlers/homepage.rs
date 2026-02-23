@@ -23,18 +23,23 @@ use crate::views::homepage as homepage_views;
 pub fn routes() -> Router<AppState> {
     Router::new()
         .route("/", get(homepage))
-        .route("/register", get(register_page).post(register_post))
-        .route("/login", get(login_page).post(login_post))
+        .route("/register", get(register_page))
+        .route("/login", get(login_page))
         .route("/logout", post(logout_post))
         .route("/verify-email/{token}", get(verify_email))
-        .route("/resend-verification", post(resend_verification))
-        .route(
-            "/forgot-password",
-            get(forgot_password_page).post(forgot_password_post),
-        )
+        .route("/forgot-password", get(forgot_password_page))
         .route("/reset-password/{token}", get(reset_password_page))
-        .route("/reset-password", post(reset_password_post))
         .route("/set-locale", post(set_locale))
+}
+
+/// Auth POST routes — rate-limited separately in lib.rs.
+pub fn auth_post_routes() -> Router<AppState> {
+    Router::new()
+        .route("/register", post(register_post))
+        .route("/login", post(login_post))
+        .route("/resend-verification", post(resend_verification))
+        .route("/forgot-password", post(forgot_password_post))
+        .route("/reset-password", post(reset_password_post))
 }
 
 async fn register_page(IsHtmx(is_htmx): IsHtmx, Locale(locale): Locale) -> maud::Markup {
