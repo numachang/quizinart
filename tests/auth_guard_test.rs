@@ -4,17 +4,21 @@ use axum::{
     body::Body,
     http::{Method, Request, StatusCode},
 };
-use quizinart::{names, router, AppState};
+use quizinart::{names, router, services::auth::AuthService, AppState};
 use tower::ServiceExt;
+
+fn make_state(db: quizinart::db::Db) -> AppState {
+    let auth = AuthService::new(db.clone(), String::new(), "http://localhost:1414".to_string());
+    AppState {
+        db,
+        auth,
+        secure_cookies: false,
+    }
+}
 
 async fn app() -> axum::Router {
     let db = common::create_test_db().await;
-    router(AppState {
-        db,
-        secure_cookies: false,
-        resend_api_key: String::new(),
-        base_url: "http://localhost:1414".to_string(),
-    })
+    router(make_state(db))
 }
 
 #[tokio::test]
@@ -65,12 +69,7 @@ async fn protected_quiz_routes_accept_requests_with_valid_user_session() {
         .await
         .expect("create user session");
 
-    let app = router(AppState {
-        db,
-        secure_cookies: false,
-        resend_api_key: String::new(),
-        base_url: "http://localhost:1414".to_string(),
-    });
+    let app = router(make_state(db));
 
     let req = Request::builder()
         .method(Method::GET)
@@ -105,12 +104,7 @@ async fn protected_routes_accept_legacy_admin_session_with_migration_user() {
         .await
         .expect("create migration user");
 
-    let app = router(AppState {
-        db,
-        secure_cookies: false,
-        resend_api_key: String::new(),
-        base_url: "http://localhost:1414".to_string(),
-    });
+    let app = router(make_state(db));
 
     let req = Request::builder()
         .method(Method::GET)
