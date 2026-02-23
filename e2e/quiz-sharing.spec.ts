@@ -298,13 +298,15 @@ test.describe("quiz sharing", () => {
       page2.locator("button", { hasText: "Add to My Library" }).click(),
     ]);
 
-    // User B goes to quiz list — imported quiz should show "by" author
+    // User B goes to quiz list — imported quiz should show author name
     await page2.goto("/");
     const quizCard = page2.locator("article", {
       has: page2.locator("h3", { hasText: quizName }),
     });
     await expect(quizCard).toBeVisible();
-    await expect(quizCard.locator("text=by ")).toBeVisible();
+    await expect(
+      quizCard.locator(".quiz-meta-item .material-symbols-rounded", { hasText: "person" })
+    ).toBeVisible();
 
     await context2.close();
   });

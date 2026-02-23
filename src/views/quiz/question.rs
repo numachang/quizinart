@@ -58,10 +58,17 @@ pub fn bookmark_button(
 
 pub fn question(data: QuestionData, locale: &str) -> Markup {
     html! {
+        div data-quiz-active-msg=(t!("quiz.abandon_confirm", locale = locale)) hidden {}
         p { (t!("quiz.doing_quiz", locale = locale)) mark { (data.quiz_name) } "." }
         article style="width: fit-content;" {
+            @let progress_pct = if data.questions_count > 0 {
+                (data.question_idx as f64 / data.questions_count as f64 * 100.0) as u32
+            } else { 0 };
+            div."question-progress" {
+                div."question-progress-fill" style=(format!("width: {}%;", progress_pct)) {}
+            }
             div style="display: flex; align-items: center; margin-bottom: 0.5rem;" {
-                p style="color: #666; font-size: 0.9rem; margin-bottom: 0;" {
+                p style="color: var(--color-muted); font-size: 0.9rem; margin-bottom: 0;" {
                     (t!("quiz.question_prefix", locale = locale))
                     strong { (data.question_idx + 1) }
                     (t!("quiz.question_of", locale = locale))
@@ -73,7 +80,7 @@ pub fn question(data: QuestionData, locale: &str) -> Markup {
             }
 
             @if data.is_resuming {
-                p style="color: #28a745; font-weight: 500; background-color: #d4edda; padding: 0.5rem; border-radius: 4px;" {
+                p style="color: var(--color-success); font-weight: 500; background-color: var(--color-success-bg); padding: 0.5rem; border-radius: 4px;" {
                     (t!("quiz.resuming", locale = locale))
                 }
             }
@@ -81,7 +88,7 @@ pub fn question(data: QuestionData, locale: &str) -> Markup {
             h3 { (data.question.question) }
 
             @if data.question.is_multiple_choice {
-                p style="color: #0066cc; font-weight: 500;" { (t!("quiz.multiple_choice", locale = locale)) }
+                p style="color: var(--color-info); font-weight: 500;" { (t!("quiz.multiple_choice", locale = locale)) }
             }
 
             form hx-post=(names::SUBMIT_ANSWER_URL)
@@ -90,21 +97,17 @@ pub fn question(data: QuestionData, locale: &str) -> Markup {
                  id="question-form" {
                 fieldset {
                     @for opt in data.question.options {
-                        label {
-                            @if data.question.is_multiple_choice {
-                                @if data.selected_answers.contains(&opt.id) {
-                                    input type="checkbox" name="options" value=(opt.id) checked;
+                        div."option-card" {
+                            label {
+                                @if data.question.is_multiple_choice {
+                                    input type="checkbox" name="options" value=(opt.id)
+                                          checked[data.selected_answers.contains(&opt.id)];
                                 } @else {
-                                    input type="checkbox" name="options" value=(opt.id);
+                                    input type="radio" name="option" value=(opt.id)
+                                          checked[data.selected_answers.contains(&opt.id)];
                                 }
-                            } @else {
-                                @if data.selected_answers.contains(&opt.id) {
-                                    input type="radio" name="option" value=(opt.id) checked;
-                                } @else {
-                                    input type="radio" name="option" value=(opt.id);
-                                }
+                                (opt.option)
                             }
-                            (opt.option)
                         }
                     }
                 }
@@ -118,14 +121,14 @@ pub fn question(data: QuestionData, locale: &str) -> Markup {
                         }
                     }
                     span style="margin-left: auto;" {
-                        input type="submit" id="submit-btn" class="nav-btn" value=(t!("quiz.submit_answer", locale = locale)) disabled[!data.is_answered];
+                        input type="submit" id="submit-btn" class="nav-btn nav-btn-next" value=(t!("quiz.submit_answer", locale = locale)) disabled[!data.is_answered];
                     }
                 }
             }
         }
         p style="margin-top: 0.5rem; font-size: 0.8rem;" {
             a data-dialog-open="abandon-dialog"
-              style="color: #888; text-decoration: underline; cursor: pointer;" {
+              style="color: var(--color-muted-light); text-decoration: underline; cursor: pointer;" {
                 (t!("quiz.abandon", locale = locale))
             }
         }
@@ -151,10 +154,19 @@ pub fn answer(data: AnswerData, locale: &str) -> Markup {
     let is_final = data.question_idx + 1 == data.questions_count;
 
     html! {
+        @if !is_final {
+            div data-quiz-active-msg=(t!("quiz.abandon_confirm", locale = locale)) hidden {}
+        }
         p { (t!("quiz.doing_quiz", locale = locale)) mark { (data.quiz_name) } "." }
         article style="width: fit-content;" {
+            @let progress_pct = if data.questions_count > 0 {
+                ((data.question_idx + 1) as f64 / data.questions_count as f64 * 100.0) as u32
+            } else { 0 };
+            div."question-progress" {
+                div."question-progress-fill" style=(format!("width: {}%;", progress_pct)) {}
+            }
             div style="display: flex; align-items: center; margin-bottom: 0.5rem;" {
-                p style="color: #666; font-size: 0.9rem; margin-bottom: 0;" {
+                p style="color: var(--color-muted); font-size: 0.9rem; margin-bottom: 0;" {
                     (t!("quiz.question_prefix", locale = locale))
                     strong { (data.question_idx + 1) }
                     (t!("quiz.question_of", locale = locale))
@@ -195,9 +207,15 @@ pub fn answer(data: AnswerData, locale: &str) -> Markup {
                                 }
                                 (opt.option)
                                 @if opt.is_answer {
-                                    span class="badge-correct" { (t!("quiz.correct", locale = locale)) }
+                                    span class="badge-correct" {
+                                        span."material-symbols-rounded" style="font-size: 0.9rem;" { "check" }
+                                        (t!("quiz.correct", locale = locale))
+                                    }
                                 } @else if is_selected {
-                                    span class="badge-incorrect" { (t!("quiz.incorrect", locale = locale)) }
+                                    span class="badge-incorrect" {
+                                        span."material-symbols-rounded" style="font-size: 0.9rem;" { "close" }
+                                        (t!("quiz.incorrect", locale = locale))
+                                    }
                                 }
                             }
                             @if let Some(explanation) = &opt.explanation {
@@ -259,7 +277,7 @@ pub fn answer(data: AnswerData, locale: &str) -> Markup {
         }
         p style="margin-top: 0.5rem; font-size: 0.8rem;" {
             a data-dialog-open="abandon-dialog"
-              style="color: #888; text-decoration: underline; cursor: pointer;" {
+              style="color: var(--color-muted-light); text-decoration: underline; cursor: pointer;" {
                 (t!("quiz.abandon", locale = locale))
             }
         }

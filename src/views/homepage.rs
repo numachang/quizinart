@@ -88,7 +88,7 @@ pub fn register(state: RegisterState, locale: &str) -> Markup {
     html! {
         h1 { (t!("homepage.register_title", locale = locale)) }
         p { (t!("homepage.register_desc", locale = locale)) }
-        article style="width: fit-content;" {
+        article."article-narrow" {
             form action=(names::REGISTER_URL) method="post" {
                 label {
                     (t!("homepage.email", locale = locale))
@@ -151,7 +151,7 @@ pub fn login(state: LoginState, locale: &str) -> Markup {
         p {
             (t!("homepage.login_desc", locale = locale))
         }
-        article style="width: fit-content;" {
+        article."article-narrow" {
             form action=(names::LOGIN_URL) method="post" {
                 label {
                     (t!("homepage.email", locale = locale))
@@ -227,7 +227,7 @@ pub fn check_email(email: &str, locale: &str) -> Markup {
         p { (t!("homepage.check_email_desc", locale = locale)) }
         p { strong { (email) } }
         p { (t!("homepage.check_email_hint", locale = locale)) }
-        article style="width: fit-content;" {
+        article."article-narrow" {
             form hx-post=(names::RESEND_VERIFICATION_URL)
                  hx-ext="json-enc"
                  hx-target="main"
@@ -250,7 +250,7 @@ pub fn email_send_failed(email: &str, locale: &str) -> Markup {
         p { (t!("homepage.email_failed_desc", locale = locale)) }
         p { strong { (email) } }
         p { (t!("homepage.email_failed_hint", locale = locale)) }
-        article style="width: fit-content;" {
+        article."article-narrow" {
             form hx-post=(names::RESEND_VERIFICATION_URL)
                  hx-ext="json-enc"
                  hx-target="main"
@@ -298,7 +298,7 @@ pub fn forgot_password(state: ForgotPasswordState, locale: &str) -> Markup {
         ForgotPasswordState::NoError => html! {
             h1 { (t!("homepage.forgot_password_title", locale = locale)) }
             p { (t!("homepage.forgot_password_desc", locale = locale)) }
-            article style="width: fit-content;" {
+            article."article-narrow" {
                 form hx-post=(names::FORGOT_PASSWORD_URL)
                      hx-ext="json-enc"
                      hx-target="main"
@@ -351,7 +351,7 @@ pub fn reset_password(state: ResetPasswordState, token: &str, locale: &str) -> M
         ResetPasswordState::Form => html! {
             h1 { (t!("homepage.reset_password_title", locale = locale)) }
             p { (t!("homepage.reset_password_desc", locale = locale)) }
-            article style="width: fit-content;" {
+            article."article-narrow" {
                 form hx-post=(names::RESET_PASSWORD_URL)
                      hx-ext="json-enc"
                      hx-target="main"
@@ -374,7 +374,7 @@ pub fn reset_password(state: ResetPasswordState, token: &str, locale: &str) -> M
         ResetPasswordState::EmptyPassword => html! {
             h1 { (t!("homepage.reset_password_title", locale = locale)) }
             p { (t!("homepage.reset_password_desc", locale = locale)) }
-            article style="width: fit-content;" {
+            article."article-narrow" {
                 form hx-post=(names::RESET_PASSWORD_URL)
                      hx-ext="json-enc"
                      hx-target="main"
@@ -399,7 +399,7 @@ pub fn reset_password(state: ResetPasswordState, token: &str, locale: &str) -> M
         ResetPasswordState::WeakPassword => html! {
             h1 { (t!("homepage.reset_password_title", locale = locale)) }
             p { (t!("homepage.reset_password_desc", locale = locale)) }
-            article style="width: fit-content;" {
+            article."article-narrow" {
                 form hx-post=(names::RESET_PASSWORD_URL)
                      hx-ext="json-enc"
                      hx-target="main"
@@ -447,15 +447,15 @@ pub fn quiz_list_with_error(quizzes: Vec<Quiz>, locale: &str, error: Option<&str
         h1 { (t!("homepage.my_quizzes", locale = locale)) }
 
         @if let Some(msg) = error {
-            article style="border-left: 4px solid #dc3545; padding: 0.75rem 1rem; margin-bottom: 1rem;" {
-                p style="margin: 0; color: #dc3545;" { (msg) }
+            article style="border-left: 4px solid var(--color-danger); padding: 0.75rem 1rem; margin-bottom: 1rem;" {
+                p style="margin: 0; color: var(--color-danger);" { (msg) }
             }
         }
 
         div."quiz-grid" {
             @for quiz in quizzes {
                 article."quiz-card" {
-                    h3 style="display: flex; align-items: center; gap: 0.4rem;" {
+                    h3 {
                         a hx-get=(names::quiz_dashboard_url(&quiz.public_id))
                           hx-push-url="true"
                           hx-target="main"
@@ -463,22 +463,39 @@ pub fn quiz_list_with_error(quizzes: Vec<Quiz>, locale: &str, error: Option<&str
                           style="text-decoration: none; color: inherit;" {
                             (quiz.name)
                         }
+                    }
+                    div."quiz-meta" {
+                        span."quiz-meta-item" {
+                            span."material-symbols-rounded" { "quiz" }
+                            (quiz.count) (t!("homepage.questions_suffix", locale = locale))
+                        }
+                        @if !quiz.is_owner {
+                            span."quiz-meta-item" {
+                                span."material-symbols-rounded" { "person" }
+                                (quiz.owner_name)
+                            }
+                        }
+                    }
+                    @if quiz.unique_asked > 0 {
+                        @let pct = (quiz.unique_asked as f64 / quiz.count as f64 * 100.0) as u32;
+                        div."quiz-progress" {
+                            div."quiz-progress-bar" {
+                                div."quiz-progress-fill" style=(format!("width: {}%;", pct)) {}
+                            }
+                            span."quiz-progress-label" {
+                                (format!("{}%", pct))
+                            }
+                        }
+                    }
+                    div."card-actions" style="display: flex; align-items: center; gap: 0.75rem;" {
                         span."card-actions material-symbols-rounded"
                              data-rename-name=(quiz.name)
                              data-rename-url=(names::rename_quiz_url(&quiz.public_id))
                              title=(t!("homepage.rename", locale = locale))
-                             style="cursor: pointer; font-size: 0.7em; opacity: 0.4; transition: opacity 0.15s;" {
+                             style="cursor: pointer; font-size: 1.2rem; opacity: 0.4; transition: opacity 0.15s;" {
                             "edit"
                         }
-                    }
-                    p {
-                        (quiz.count) (t!("homepage.questions_suffix", locale = locale))
-                        @if !quiz.is_owner {
-                            " · "
-                            small { (t!("marketplace.by", locale = locale, owner = &quiz.owner_name)) }
-                        }
-                    }
-                    div."card-actions" style="display: flex; justify-content: flex-end; gap: 0.75rem;" {
+                        span style="flex: 1;" {}
                         @if quiz.is_owner {
                             (quiz_views::share_toggle_icon(&quiz.public_id, quiz.is_shared, locale))
                         }

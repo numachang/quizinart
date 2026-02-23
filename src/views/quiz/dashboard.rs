@@ -46,14 +46,9 @@ pub fn dashboard(data: DashboardData, locale: &str) -> Markup {
     };
 
     html! {
-        nav style="font-size: 0.85rem; margin-bottom: 0.25rem;" {
-            a hx-get="/"
-              hx-push-url="true"
-              hx-target="main"
-              href="#"
-              style="color: #666; text-decoration: none;" {
-                "← " (t!("dashboard.back_to_quiz_list", locale = locale))
-            }
+        a."back-link" hx-get="/" hx-push-url="true" hx-target="main" href="#" {
+            span."material-symbols-rounded" { "arrow_back" }
+            (t!("dashboard.back_to_quiz_list", locale = locale))
         }
         h1 { (data.quiz_name) }
 
@@ -61,7 +56,7 @@ pub fn dashboard(data: DashboardData, locale: &str) -> Markup {
             button hx-get=(names::quiz_page_url(&data.quiz_id))
                    hx-push-url="true"
                    hx-target="main"
-                   style="width: fit-content; background-color: #007bff; color: white; font-weight: 500;" {
+                   style="width: fit-content; background: var(--btn-gradient); color: white; border: none; font-weight: 500;" {
                 (t!("dashboard.start_new", locale = locale))
             }
             button hx-get=(names::quiz_session_history_url(&data.quiz_id))
@@ -78,13 +73,13 @@ pub fn dashboard(data: DashboardData, locale: &str) -> Markup {
                 @if data.overall.total_answered > 0 {
                     div style="text-align:center;" {
                         canvas id="answered-chart" width="150" height="150" {}
-                        div style="font-size:0.85rem; margin-top:0.25rem; color:#666;" {
+                        div style="font-size:0.85rem; margin-top:0.25rem; color: var(--color-muted);" {
                             (t!("dashboard.questions_asked", locale = locale))
                         }
                     }
                     div style="text-align:center;" {
                         canvas id="accuracy-chart" width="150" height="150" {}
-                        div style="font-size:0.85rem; margin-top:0.25rem; color:#666;" {
+                        div style="font-size:0.85rem; margin-top:0.25rem; color: var(--color-muted);" {
                             (t!("dashboard.accuracy", locale = locale))
                         }
                     }
@@ -169,7 +164,7 @@ pub fn dashboard(data: DashboardData, locale: &str) -> Markup {
                                 td {
                                     (format!("{:.1}%", acc))
                                     @if c.total_answered > 0 {
-                                        small style="color: #666;" {
+                                        small style="color: var(--color-muted);" {
                                             " (" (c.total_correct) "/" (c.total_answered) ")"
                                         }
                                     }
@@ -260,9 +255,9 @@ fn session_history_table(sessions: &[SessionReportModel], locale: &str) -> Marku
                         }
                         td {
                             @if s.is_complete {
-                                span style="color: #28a745; font-weight: 500;" { (t!("dashboard.complete", locale = locale)) }
+                                span."badge-status badge-complete" { (t!("dashboard.complete", locale = locale)) }
                             } @else {
-                                span style="color: #6c757d; font-weight: 500;" { (t!("dashboard.in_progress", locale = locale)) }
+                                span."badge-status badge-progress" { (t!("dashboard.in_progress", locale = locale)) }
                             }
                         }
                         td style="white-space: nowrap;" {
@@ -371,13 +366,13 @@ pub fn session_result(data: SessionResultData, locale: &str) -> Markup {
 
     html! {
         h5 { mark { (data.quiz_name) } }
-        p style="color: #666; font-size: 0.9rem;" {
+        p style="color: var(--color-muted); font-size: 0.9rem;" {
             (t!("result.mode", locale = locale)) strong { (mode_label) }
             (t!("result.questions", locale = locale)) strong { (data.questions_count) }
         }
 
         @if !data.is_complete {
-            article style="background-color: #fff3cd; border: 2px solid #f0ad4e; padding: 1rem; border-radius: 8px;" {
+            article style="background-color: var(--color-warning-bg); border: 2px solid var(--color-warning); padding: 1rem; border-radius: 8px;" {
                 h4 { (t!("result.quiz_in_progress", locale = locale)) }
                 p {
                     (t!("result.answered_of_1", locale = locale))
@@ -410,7 +405,7 @@ pub fn session_result(data: SessionResultData, locale: &str) -> Markup {
         }
 
         @if incorrect_count > 0 && data.is_complete {
-            article style="width: fit-content;" {
+            article."article-narrow" {
                 h4 { (t!("result.retry_title", locale = locale)) }
                 p {
                     (t!("result.wrong_count_1", locale = locale))
@@ -420,7 +415,7 @@ pub fn session_result(data: SessionResultData, locale: &str) -> Markup {
                 button hx-post=(format!("/retry-incorrect/{}", data.session_id))
                        hx-target="main"
                        hx-swap="innerHTML"
-                       style="width: fit-content; background-color: #dc3545; color: white; font-weight: 500;" {
+                       style="width: fit-content; background-color: var(--color-danger); color: white; font-weight: 500;" {
                     (t!("result.retry_btn_1", locale = locale))
                     (incorrect_count)
                     (t!("result.retry_btn_2", locale = locale))
@@ -429,7 +424,7 @@ pub fn session_result(data: SessionResultData, locale: &str) -> Markup {
         }
 
         @if bookmarked_count > 0 && data.is_complete {
-            article style="width: fit-content;" {
+            article."article-narrow" {
                 h4 { (t!("result.retry_bookmarked_title", locale = locale)) }
                 p {
                     (t!("result.bookmarked_count_1", locale = locale))
@@ -439,7 +434,7 @@ pub fn session_result(data: SessionResultData, locale: &str) -> Markup {
                 button hx-post=(format!("/retry-bookmarked/{}", data.session_id))
                        hx-target="main"
                        hx-swap="innerHTML"
-                       style="width: fit-content; background-color: #f0ad4e; color: white; font-weight: 500;" {
+                       style="width: fit-content; background-color: var(--color-warning); color: white; font-weight: 500;" {
                     (t!("result.retry_bookmarked_btn_1", locale = locale))
                     (bookmarked_count)
                     (t!("result.retry_bookmarked_btn_2", locale = locale))
@@ -492,7 +487,7 @@ pub fn session_result(data: SessionResultData, locale: &str) -> Markup {
                             td { (a.question_idx + 1) }
                             td { (a.question) }
                             td {
-                                span."material-symbols-rounded" style=(if a.is_correct { "color: #28a745; font-size: 1.1rem;" } else { "color: #dc3545; font-size: 1.1rem;" }) {
+                                span."material-symbols-rounded" style=(if a.is_correct { "color: var(--color-success); font-size: 1.1rem;" } else { "color: var(--color-danger); font-size: 1.1rem;" }) {
                                     (if a.is_correct { "check_circle" } else { "cancel" })
                                 }
                             }

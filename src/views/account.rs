@@ -34,7 +34,7 @@ pub fn account_page(user: &AuthUser, state: ChangePasswordState, locale: &str) -
     html! {
         h1 { (t!("account.title", locale = locale)) }
 
-        article style="width: fit-content;" {
+        article."article-narrow" {
             label {
                 (t!("account.email_label", locale = locale))
                 input type="email" value=(user.email) disabled="true";
@@ -51,7 +51,7 @@ pub fn account_page(user: &AuthUser, state: ChangePasswordState, locale: &str) -
             p style="color: var(--pico-ins-color);" { (msg) }
         }
 
-        article style="width: fit-content;" {
+        article."article-narrow" {
             form hx-post=(names::CHANGE_PASSWORD_URL)
                  hx-ext="json-enc"
                  hx-target="main"

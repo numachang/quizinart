@@ -48,6 +48,32 @@ header nav ul {
   --option-neutral-border: #dee2e6;
   --option-neutral-text: #495057;
   --option-neutral-subtext: #6c757d;
+
+  /* Semantic color tokens */
+  --color-success: #28a745;
+  --color-success-bg: #d4edda;
+  --color-success-text: #155724;
+  --color-danger: #dc3545;
+  --color-danger-bg: #f8d7da;
+  --color-danger-text: #721c24;
+  --color-warning: #f0ad4e;
+  --color-warning-bg: #fff3cd;
+  --color-warning-text: #856404;
+  --color-muted: #666;
+  --color-muted-light: #888;
+  --color-info: #0066cc;
+
+  /* Gradient for primary action buttons (matches landing CTA) */
+  --btn-gradient: linear-gradient(
+    135deg,
+    var(--pico-primary) 0%,
+    color-mix(in srgb, var(--pico-primary) 70%, #a855f7) 100%
+  );
+
+  /* Chart colors (read by JS at runtime) */
+  --chart-primary: #4e79a7;
+  --chart-success: #59a14f;
+  --chart-muted: #e0e0e0;
 }
 
 [data-theme='dark'] {
@@ -63,6 +89,22 @@ header nav ul {
   --option-neutral-border: #3a4552;
   --option-neutral-text: #d7dce3;
   --option-neutral-subtext: #a8b0bb;
+
+  --color-success: #4ccb75;
+  --color-success-bg: #193529;
+  --color-success-text: #b7f5c7;
+  --color-danger: #ff6b81;
+  --color-danger-bg: #3b1e24;
+  --color-danger-text: #ffc0ca;
+  --color-warning: #ffc107;
+  --color-warning-bg: #332701;
+  --color-warning-text: #ffe69c;
+  --color-muted: #a8b0bb;
+  --color-muted-light: #8a9199;
+  --color-info: #6ea8fe;
+  --chart-primary: #6aade4;
+  --chart-success: #7ecf74;
+  --chart-muted: #4a5260;
 }
 
 .quiz-grid {
@@ -74,6 +116,8 @@ header nav ul {
 /* Stretched-link card: entire card is clickable via h3 > a */
 .quiz-card {
   position: relative;
+  display: flex;
+  flex-direction: column;
   transition: box-shadow 0.15s ease, transform 0.15s ease;
   cursor: pointer;
 }
@@ -92,6 +136,7 @@ header nav ul {
 .quiz-card .card-actions {
   position: relative;
   z-index: 1;
+  margin-top: 0.75rem;
 }
 
 .quiz-card .card-actions:hover {
@@ -124,12 +169,30 @@ header nav ul {
   font-weight: 500;
 }
 
-.option-correct .explanation {
-  color: var(--option-correct-text);
-  margin-left: 2rem;
-  margin-top: 0.5rem;
+/* Explanation card (shared base) */
+.explanation {
+  margin-top: 0.75rem;
+  margin-left: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--pico-muted-border-color);
+  background-color: color-mix(
+    in srgb,
+    var(--pico-background-color) 88%,
+    var(--pico-muted-color)
+  );
   font-size: 0.9rem;
   line-height: 1.6;
+}
+
+.option-correct .explanation {
+  color: var(--option-correct-text);
+  border-left-color: var(--color-success);
+  background-color: color-mix(
+    in srgb,
+    var(--option-correct-bg) 50%,
+    var(--pico-background-color)
+  );
 }
 
 /* 不正解の選択肢（選択したもの）（赤） */
@@ -148,10 +211,12 @@ header nav ul {
 
 .option-incorrect .explanation {
   color: var(--option-incorrect-text);
-  margin-left: 2rem;
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
-  line-height: 1.6;
+  border-left-color: var(--color-danger);
+  background-color: color-mix(
+    in srgb,
+    var(--option-incorrect-bg) 50%,
+    var(--pico-background-color)
+  );
 }
 
 /* その他の選択肢（選択されなかった不正解）（グレー） */
@@ -169,32 +234,28 @@ header nav ul {
 
 .option-neutral .explanation {
   color: var(--option-neutral-subtext);
-  margin-left: 2rem;
-  margin-top: 0.5rem;
-  font-size: 0.9rem;
-  line-height: 1.6;
 }
 
-/* 正解バッジ */
-.badge-correct {
-  background-color: #28a745;
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  margin-left: 0.5rem;
-}
-
-/* 不正解バッジ */
+/* 正解/不正解バッジ */
+.badge-correct,
 .badge-incorrect {
-  background-color: #dc3545;
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 700;
   margin-left: 0.5rem;
+  color: white;
+}
+
+.badge-correct {
+  background-color: var(--color-success);
+}
+
+.badge-incorrect {
+  background-color: var(--color-danger);
 }
 
 /* ナビゲーションボタン統一サイズ */
@@ -226,7 +287,7 @@ header nav ul {
 }
 
 .nav-btn-next {
-  background: linear-gradient(135deg, #0d6efd, #0b5ed7) !important;
+  background: var(--btn-gradient) !important;
   color: #fff !important;
 }
 
@@ -703,4 +764,220 @@ button.htmx-request {
   .landing-features-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ── Common app page elements ──────────────────────────── */
+
+/* Narrow article for forms (replaces inline width: fit-content) */
+.article-narrow {
+  max-width: 480px;
+}
+
+@media (max-width: 600px) {
+  .article-narrow {
+    max-width: 100%;
+  }
+}
+
+/* Back navigation link */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  text-decoration: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  margin-bottom: 0.5rem;
+}
+
+.back-link:hover {
+  background-color: color-mix(in srgb, var(--pico-color) 8%, transparent);
+  color: var(--pico-color);
+  text-decoration: none;
+}
+
+.back-link .material-symbols-rounded {
+  font-size: 1.1rem;
+}
+
+/* Stronger headings in app pages */
+main h1 {
+  font-weight: 700;
+}
+
+/* ── Question progress bar ─────────────────────────────── */
+
+.question-progress {
+  height: 4px;
+  background-color: color-mix(in srgb, var(--pico-color) 12%, transparent);
+  border-radius: 2px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.question-progress-fill {
+  height: 100%;
+  background: var(--btn-gradient);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+/* ── Answer option card (pre-answer state) ─────────────── */
+
+.option-card {
+  border: 1.5px solid var(--pico-muted-border-color);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.option-card:hover {
+  border-color: var(--pico-primary);
+  background-color: color-mix(in srgb, var(--pico-primary) 6%, transparent);
+}
+
+.option-card:has(input:checked),
+.option-card--selected {
+  border-color: var(--pico-primary);
+  background-color: color-mix(in srgb, var(--pico-primary) 8%, transparent);
+}
+
+.option-card label {
+  cursor: pointer;
+  display: block;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0;
+}
+
+/* ── Dashboard stat cards ──────────────────────────────── */
+
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  text-align: center;
+  padding: 1.25rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--pico-muted-border-color);
+}
+
+.stat-card-value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.stat-card-icon {
+  font-size: 1.5rem;
+  color: var(--pico-primary);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.stat-card-label {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  margin-top: 0.25rem;
+}
+
+/* Session status badges */
+.badge-status {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-complete {
+  background-color: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.badge-progress {
+  background-color: color-mix(in srgb, var(--pico-muted-color) 15%, transparent);
+  color: var(--color-muted);
+}
+
+/* ── Marketplace ───────────────────────────────────────── */
+
+/* Search with icon */
+.search-wrapper {
+  position: relative;
+}
+
+.search-wrapper .search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  font-size: 1.1rem;
+  color: var(--color-muted);
+  pointer-events: none;
+}
+
+.search-wrapper input {
+  padding-left: 2.5rem !important;
+}
+
+.search-wrapper input:focus {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pico-primary) 20%, transparent);
+}
+
+/* Quiz card metadata */
+.quiz-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  font-size: 0.82rem;
+  color: var(--color-muted);
+  margin-top: auto;
+}
+
+.quiz-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.quiz-meta-item .material-symbols-rounded {
+  font-size: 0.95rem;
+}
+
+/* Quiz card progress bar */
+.quiz-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--color-muted);
+}
+
+.quiz-progress-bar {
+  flex: 1;
+  height: 4px;
+  background-color: color-mix(in srgb, var(--pico-color) 12%, transparent);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.quiz-progress-fill {
+  height: 100%;
+  background: var(--btn-gradient);
+  border-radius: 2px;
+}
+
+.quiz-progress-label {
+  white-space: nowrap;
 }

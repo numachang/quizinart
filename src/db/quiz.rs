@@ -119,7 +119,25 @@ impl Db {
               MAX(qs.id) AS last_session_id,
               quizzes.is_shared AS "is_shared!",
               (quizzes.owner_id = $1) AS "is_owner!",
-              users.display_name AS "owner_name!"
+              users.display_name AS "owner_name!",
+              (SELECT COUNT(DISTINCT sq.question_id)
+               FROM session_questions sq
+               JOIN quiz_sessions s ON s.id = sq.session_id
+               WHERE s.quiz_id = quizzes.id AND s.user_id = $1
+                 AND sq.is_correct IS NOT NULL
+              ) AS "unique_asked!",
+              (SELECT COALESCE(SUM(CASE WHEN sq.is_correct THEN 1 ELSE 0 END), 0)
+               FROM session_questions sq
+               JOIN quiz_sessions s ON s.id = sq.session_id
+               WHERE s.quiz_id = quizzes.id AND s.user_id = $1
+                 AND sq.is_correct IS NOT NULL
+              ) AS "total_correct!",
+              (SELECT COUNT(*)
+               FROM session_questions sq
+               JOIN quiz_sessions s ON s.id = sq.session_id
+               WHERE s.quiz_id = quizzes.id AND s.user_id = $1
+                 AND sq.is_correct IS NOT NULL
+              ) AS "total_answered!"
             FROM
               user_quizzes
               JOIN quizzes ON quizzes.id = user_quizzes.quiz_id

@@ -15,20 +15,20 @@ pub fn shared_quiz_page(info: &SharedQuizInfo, already_in_library: bool, locale:
                 (t!("share.questions_suffix", locale = locale))
             }
             @if already_in_library {
-                p style="color: #28a745; font-weight: 500;" {
+                p style="color: var(--color-success); font-weight: 500;" {
                     (t!("share.already_in_library", locale = locale))
                 }
                 button hx-get=(names::quiz_dashboard_url(&info.public_id))
                        hx-push-url="true"
                        hx-target="main"
-                       style="width: fit-content; background-color: #007bff; color: white;" {
+                       style="width: fit-content; background: var(--btn-gradient); color: white; border: none;" {
                     (t!("share.go_to_dashboard", locale = locale))
                 }
             } @else {
                 button hx-post=(names::add_to_library_url(&info.public_id))
                        hx-target="main"
                        hx-swap="innerHTML"
-                       style="width: fit-content; background-color: #007bff; color: white; font-weight: 500;" {
+                       style="width: fit-content; background: var(--btn-gradient); color: white; border: none; font-weight: 500;" {
                     (t!("share.add_to_library", locale = locale))
                 }
             }
@@ -41,7 +41,7 @@ pub fn share_toggle_icon(public_id: &str, is_shared: bool, locale: &str) -> Mark
         (
             "public",
             t!("share.shared_label", locale = locale).to_string(),
-            "cursor: pointer; color: #28a745; font-size: 1.2rem; opacity: 0.8; transition: opacity 0.15s;",
+            "cursor: pointer; color: var(--color-success); font-size: 1.2rem; opacity: 0.8; transition: opacity 0.15s;",
         )
     } else {
         (

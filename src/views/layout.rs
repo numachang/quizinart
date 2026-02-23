@@ -46,7 +46,10 @@ fn header(locale: &str, user_name: Option<&str>) -> Markup {
             nav {
                 ul {
                     li."secondary" {
-                        a href="/" {
+                        a href="/"
+                          hx-get="/"
+                          hx-target="main"
+                          hx-push-url="true" {
                             strong { "Quizinart" }
                         }
                     }

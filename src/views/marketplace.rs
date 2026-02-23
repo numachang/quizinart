@@ -6,13 +6,14 @@ pub fn marketplace_page(quizzes: &[SharedQuizInfo], user_quiz_ids: &[i32], local
     html! {
         h1 { (t!("marketplace.title", locale = locale)) }
 
-        div style="margin-bottom: 1.5rem;" {
+        div."search-wrapper" style="margin-bottom: 1.5rem;" {
+            span."material-symbols-rounded search-icon" { "search" }
             input
-                type="search"
+                type="text"
                 name="q"
                 placeholder=(t!("marketplace.search_placeholder", locale = locale))
                 hx-get=(names::MARKETPLACE_SEARCH_URL)
-                hx-trigger="input changed delay:300ms, search"
+                hx-trigger="input changed delay:300ms"
                 hx-target="#quiz-results"
                 style="margin-bottom: 0;";
         }
@@ -45,15 +46,18 @@ fn quiz_cards(quizzes: &[SharedQuizInfo], user_quiz_ids: &[i32], locale: &str) -
             @let imported = user_quiz_ids.contains(&quiz.id);
             article class="quiz-card" {
                 h3 { (quiz.name) }
-                p {
-                    small {
-                        (t!("marketplace.by", locale = locale, owner = &quiz.owner_name))
-                        " · "
+                div."quiz-meta" {
+                    span."quiz-meta-item" {
+                        span."material-symbols-rounded" { "person" }
+                        (quiz.owner_name)
+                    }
+                    span."quiz-meta-item" {
+                        span."material-symbols-rounded" { "quiz" }
                         (quiz.question_count)
                         (t!("share.questions_suffix", locale = locale))
-                        " · "
-                        span."material-symbols-rounded" style="font-size: 0.9em; vertical-align: middle;" { "person" }
-                        " "
+                    }
+                    span."quiz-meta-item" {
+                        span."material-symbols-rounded" { "download" }
                         (quiz.import_count)
                     }
                 }

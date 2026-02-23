@@ -3,7 +3,28 @@
   let pendingConfirm = null
 
   document.addEventListener('htmx:confirm', (evt) => {
-    if (!evt.detail.question) return
+    // If there's an explicit hx-confirm question, use it
+    let question = evt.detail.question
+
+    // If no explicit question, check if we're navigating away from an active quiz
+    if (!question) {
+      const elt = evt.detail.elt
+      const marker = document.querySelector('[data-quiz-active-msg]')
+      if (marker) {
+        const isQuizInternal =
+          elt.closest('#question-form') ||
+          elt.closest('#abandon-dialog') ||
+          elt.closest('.nav-btn')
+        const isNavAway =
+          elt.closest('header') ||
+          (elt.getAttribute('hx-target') === 'main' && !isQuizInternal)
+        if (isNavAway) {
+          question = marker.dataset.quizActiveMsg
+        }
+      }
+    }
+
+    if (!question) return
     evt.preventDefault()
 
     const dialog = document.getElementById('confirm-dialog')
@@ -12,8 +33,7 @@
       return
     }
 
-    dialog.querySelector('[data-confirm-message]').textContent =
-      evt.detail.question
+    dialog.querySelector('[data-confirm-message]').textContent = question
     pendingConfirm = () => evt.detail.issueRequest(true)
     dialog.showModal()
   })
@@ -108,11 +128,25 @@
     }
   })
 
+  // --- Option card: click anywhere to toggle input ---
+  document.addEventListener('click', (e) => {
+    const card = e.target.closest('.option-card')
+    if (!card) return
+    const inp = card.querySelector('input')
+    if (!inp || e.target === inp) return
+    inp.click()
+  })
+
   // --- Enable submit button on form input change ---
   document.addEventListener('change', (e) => {
     if (e.target.closest('#question-form')) {
       const btn = document.getElementById('submit-btn')
       if (btn) btn.disabled = false
+      // Sync option-card selected state (fallback for browsers without :has())
+      for (const card of document.querySelectorAll('.option-card')) {
+        const inp = card.querySelector('input')
+        card.classList.toggle('option-card--selected', inp?.checked ?? false)
+      }
     }
   })
 
@@ -195,6 +229,9 @@
 
   document.addEventListener('htmx:afterRequest', hideProgress)
   document.addEventListener('htmx:sendError', hideProgress)
+  document.addEventListener('htmx:historyCacheMiss', hideProgress)
+  document.addEventListener('htmx:historyRestore', hideProgress)
+  window.addEventListener('popstate', hideProgress)
 
   // --- Dashboard charts ---
   let chartJsLoaded = typeof Chart !== 'undefined'
@@ -206,7 +243,20 @@
     el.removeAttribute('id') // prevent re-initialization
 
     const createCharts = () => {
-      const tc = getComputedStyle(document.documentElement).color
+      const style = getComputedStyle(document.documentElement)
+      const tc = style.color
+      const chartPrimary =
+        style.getPropertyValue('--chart-primary').trim() || '#4e79a7'
+      const chartSuccess =
+        style.getPropertyValue('--chart-success').trim() || '#59a14f'
+      const chartMuted =
+        style.getPropertyValue('--chart-muted').trim() || '#e0e0e0'
+      const hexToRgb = (h) => {
+        const r = Number.parseInt(h.slice(1, 3), 16)
+        const g = Number.parseInt(h.slice(3, 5), 16)
+        const b = Number.parseInt(h.slice(5, 7), 16)
+        return `${r},${g},${b}`
+      }
 
       const centerPlugin = (id, text, fontSize) => ({
         id,
@@ -238,7 +288,7 @@
             datasets: [
               {
                 data: [config.uniqueAsked, config.remainingQuestions],
-                backgroundColor: ['#4e79a7', '#e0e0e0'],
+                backgroundColor: [chartPrimary, chartMuted],
                 borderWidth: 0,
               },
             ],
@@ -256,7 +306,7 @@
             datasets: [
               {
                 data: [config.totalCorrect, config.totalIncorrect],
-                backgroundColor: ['#59a14f', '#e0e0e0'],
+                backgroundColor: [chartSuccess, chartMuted],
                 borderWidth: 0,
               },
             ],
@@ -275,9 +325,9 @@
             datasets: [
               {
                 data: config.radarData,
-                backgroundColor: 'rgba(78,121,167,0.2)',
-                borderColor: '#4e79a7',
-                pointBackgroundColor: '#4e79a7',
+                backgroundColor: `rgba(${hexToRgb(chartPrimary)},0.2)`,
+                borderColor: chartPrimary,
+                pointBackgroundColor: chartPrimary,
                 borderWidth: 2,
               },
             ],
@@ -299,8 +349,8 @@
             datasets: [
               {
                 data: config.dailyData,
-                borderColor: '#4e79a7',
-                backgroundColor: 'rgba(78,121,167,0.1)',
+                borderColor: chartPrimary,
+                backgroundColor: `rgba(${hexToRgb(chartPrimary)},0.1)`,
                 fill: true,
                 tension: 0.3,
                 pointRadius: 4,

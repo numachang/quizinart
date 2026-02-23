@@ -16,6 +16,9 @@ pub struct Quiz {
     pub is_shared: bool,
     pub is_owner: bool,
     pub owner_name: String,
+    pub unique_asked: i64,
+    pub total_correct: i64,
+    pub total_answered: i64,
 }
 
 pub struct QuestionModel {
