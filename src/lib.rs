@@ -39,8 +39,7 @@ pub fn router(state: AppState, disable_rate_limit: bool) -> Router {
             .finish()
             .expect("valid governor config");
 
-        handlers::homepage::auth_post_routes()
-            .layer(GovernorLayer::new(governor_conf))
+        handlers::homepage::auth_post_routes().layer(GovernorLayer::new(governor_conf))
     };
 
     Router::new()
