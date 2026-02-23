@@ -981,3 +981,71 @@ main h1 {
 .quiz-progress-label {
   white-space: nowrap;
 }
+
+/* ── JSON import help ──────────────────────────────────── */
+
+.json-help {
+  margin-bottom: 0.75rem;
+}
+
+.json-help summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+}
+
+.json-help summary:hover {
+  color: var(--pico-color);
+}
+
+.json-help > p {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--color-muted);
+  margin-bottom: 0.5rem;
+}
+
+.json-help-code {
+  position: relative;
+  margin: 0.75rem 0;
+}
+
+.json-help-code pre {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  border-radius: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.json-help-copy {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  margin-top: 0.25rem;
+}
+
+.json-help-copy:hover {
+  color: var(--pico-primary);
+  background: color-mix(in srgb, var(--pico-primary) 8%, transparent);
+}
+
+.json-help-tip {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  color: var(--color-info);
+  margin-top: 0.5rem;
+}

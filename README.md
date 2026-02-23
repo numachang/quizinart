@@ -6,6 +6,9 @@ A self-hosted quiz app built for serious learners. Import your own questions, tr
 
 Built with Rust, HTMX, and PostgreSQL. Forked from [frectonz/quizzy](https://github.com/frectonz/quizzy) and significantly extended.
 
+**Try it out:** [https://quizinart.onrender.com/](https://quizinart.onrender.com/)
+> Hosted on Render's free tier. The app may take up to 50 seconds to start if it hasn't been accessed recently.
+
 ## Screenshots
 
 | Dashboard | Quiz | Results |

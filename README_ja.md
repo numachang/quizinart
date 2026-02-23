@@ -6,6 +6,9 @@
 
 Rust、HTMX、PostgreSQL で構築。[frectonz/quizzy](https://github.com/frectonz/quizzy) をフォークし、大幅に拡張しています。
 
+**試してみる:** [https://quizinart.onrender.com/](https://quizinart.onrender.com/)
+> Render の無料プランでホストしています。しばらくアクセスがないとスリープ状態になるため、起動に最大50秒ほどかかることがあります。
+
 ## スクリーンショット
 
 | ダッシュボード | クイズ画面 | 結果画面 |

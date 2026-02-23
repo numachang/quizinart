@@ -122,6 +122,23 @@
       return
     }
 
+    // Copy JSON example: <element data-copy-json>
+    const copyJson = e.target.closest('[data-copy-json]')
+    if (copyJson) {
+      const pre = copyJson.closest('.json-help-code')?.querySelector('pre code')
+      if (pre) {
+        navigator.clipboard.writeText(pre.textContent)
+        const icon = copyJson.querySelector('.material-symbols-rounded')
+        if (icon) {
+          icon.textContent = 'check'
+          setTimeout(() => {
+            icon.textContent = 'content_copy'
+          }, 2000)
+        }
+      }
+      return
+    }
+
     // Select text on click: <input data-select-text>
     if (e.target.closest('[data-select-text]')?.select) {
       e.target.closest('[data-select-text]').select()

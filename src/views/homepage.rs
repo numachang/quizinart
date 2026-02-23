@@ -2,6 +2,23 @@ use crate::{db::Quiz, names, views::components, views::quiz as quiz_views};
 use maud::{html, Markup};
 use rust_i18n::t;
 
+const JSON_EXAMPLE: &str = r#"[
+  {
+    "question": "What is the capital of France?",
+    "category": "Geography",
+    "isMultipleChoice": false,
+    "options": [
+      { "text": "Berlin", "isAnswer": false },
+      {
+        "text": "Paris",
+        "isAnswer": true,
+        "explanation": "Paris is the capital."
+      },
+      { "text": "Madrid", "isAnswer": false }
+    ]
+  }
+]"#;
+
 pub fn landing_page(locale: &str) -> Markup {
     html! {
         // Hero section
@@ -565,6 +582,24 @@ pub fn quiz_list_with_error(quizzes: Vec<Quiz>, locale: &str, error: Option<&str
                     button aria-label="Close" rel="prev"
                            data-dialog-close="create-dialog" {}
                     h3 { (t!("homepage.import_quiz", locale = locale)) }
+                }
+                details."json-help" {
+                    summary {
+                        span."material-symbols-rounded" style="font-size: 1em;" { "help" }
+                        " " (t!("homepage.json_help_title", locale = locale))
+                    }
+                    p { (t!("homepage.json_help_desc", locale = locale)) }
+                    div."json-help-code" {
+                        pre { code { (JSON_EXAMPLE) } }
+                        button."json-help-copy" type="button" data-copy-json="" {
+                            span."material-symbols-rounded" { "content_copy" }
+                            " " (t!("homepage.json_help_copy", locale = locale))
+                        }
+                    }
+                    p."json-help-tip" {
+                        span."material-symbols-rounded" style="font-size: 1em;" { "lightbulb" }
+                        " " (t!("homepage.json_help_tip", locale = locale))
+                    }
                 }
                 form hx-post=(names::CREATE_QUIZ_URL)
                      hx-target="main"
