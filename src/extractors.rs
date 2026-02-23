@@ -1,6 +1,9 @@
 use std::convert::Infallible;
 
-use axum::{extract::FromRequestParts, http::request::Parts};
+use axum::{
+    extract::FromRequestParts,
+    http::{header, request::Parts},
+};
 use axum_extra::extract::CookieJar;
 
 use crate::{db::models::AuthUser, names, rejections::AppError, AppState};
@@ -21,7 +24,8 @@ impl<S: Send + Sync> FromRequestParts<S> for IsHtmx {
     }
 }
 
-/// Extracts the locale from the `lang` cookie, defaulting to `"en"`.
+/// Extracts the locale from the `lang` cookie, falling back to the browser's
+/// `Accept-Language` header, then to `"en"`.
 pub struct Locale(pub String);
 
 impl<S: Send + Sync> FromRequestParts<S> for Locale {
@@ -29,15 +33,64 @@ impl<S: Send + Sync> FromRequestParts<S> for Locale {
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         let jar = CookieJar::from_headers(&parts.headers);
-        let lang = jar.get(names::LOCALE_COOKIE_NAME).map(|c| c.value());
-        let locale = match lang {
-            Some("ja") => "ja",
-            Some("zh-CN") => "zh-CN",
-            Some("zh-TW") => "zh-TW",
-            _ => "en",
-        };
+        let locale = jar
+            .get(names::LOCALE_COOKIE_NAME)
+            .and_then(|c| match_supported_locale(c.value()))
+            .or_else(|| {
+                parts
+                    .headers
+                    .get(header::ACCEPT_LANGUAGE)
+                    .and_then(|v| v.to_str().ok())
+                    .and_then(locale_from_accept_language)
+            })
+            .unwrap_or(names::DEFAULT_LOCALE);
         Ok(Locale(locale.to_string()))
     }
+}
+
+/// Match a language tag against supported locales, returning the locale string.
+fn match_supported_locale(lang: &str) -> Option<&'static str> {
+    match lang {
+        "ja" => return Some("ja"),
+        "en" => return Some("en"),
+        "zh-CN" => return Some("zh-CN"),
+        "zh-TW" => return Some("zh-TW"),
+        _ => {}
+    }
+    if lang.starts_with("ja-") || lang.starts_with("en-") {
+        return Some(if lang.starts_with("ja") { "ja" } else { "en" });
+    }
+    if lang == "zh" || lang.starts_with("zh-Hans") {
+        return Some("zh-CN");
+    }
+    if lang.starts_with("zh-Hant") {
+        return Some("zh-TW");
+    }
+    None
+}
+
+/// Parse an `Accept-Language` header and return the best matching supported locale.
+fn locale_from_accept_language(header: &str) -> Option<&'static str> {
+    let mut entries: Vec<(&str, f32)> = header
+        .split(',')
+        .map(|entry| {
+            let entry = entry.trim();
+            if let Some((lang, params)) = entry.split_once(';') {
+                let q = params
+                    .split(';')
+                    .find_map(|p| p.trim().strip_prefix("q="))
+                    .and_then(|v| v.trim().parse::<f32>().ok())
+                    .unwrap_or(1.0);
+                (lang.trim(), q)
+            } else {
+                (entry, 1.0)
+            }
+        })
+        .collect();
+    entries.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Equal));
+    entries
+        .iter()
+        .find_map(|(lang, _)| match_supported_locale(lang))
 }
 
 /// Guard extractor that verifies the user session cookie against the database.
