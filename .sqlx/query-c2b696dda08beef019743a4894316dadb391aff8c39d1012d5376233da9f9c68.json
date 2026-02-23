@@ -1,0 +1,58 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                q.id,\n                q.public_id AS \"public_id!\",\n                q.name,\n                q.is_shared,\n                u.display_name AS owner_name,\n                COUNT(DISTINCT qu.id) AS \"question_count!\",\n                (SELECT COUNT(*) FROM user_quizzes uq WHERE uq.quiz_id = q.id) AS \"import_count!\"\n            FROM quizzes q\n            JOIN users u ON u.id = q.owner_id\n            JOIN questions qu ON qu.quiz_id = q.id\n            WHERE q.is_shared = true\n              AND q.name ILIKE $1\n            GROUP BY q.id, q.public_id, q.name, q.is_shared, u.display_name\n            ORDER BY q.id DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "public_id!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "is_shared",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 4,
+        "name": "owner_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "question_count!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 6,
+        "name": "import_count!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "c2b696dda08beef019743a4894316dadb391aff8c39d1012d5376233da9f9c68"
+}

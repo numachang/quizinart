@@ -468,12 +468,13 @@ test.describe("quiz session", () => {
     await page.click("text=Open Session History");
     await expect(page.locator("td", { hasText: sessionName })).toBeVisible();
 
-    // Accept the confirm dialog before clicking delete
-    page.on("dialog", (dialog) => dialog.accept());
-
     // Click delete icon
     const sessionRow = page.locator("tr", { hasText: sessionName });
     await sessionRow.getByTitle("Delete").click();
+
+    // Confirm in custom dialog
+    await expect(page.locator("#confirm-dialog")).toBeVisible();
+    await page.locator("#confirm-dialog [data-confirm-ok]").click();
 
     // Session should be removed
     await expect(page.locator("td", { hasText: sessionName })).not.toBeVisible();

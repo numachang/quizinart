@@ -225,13 +225,14 @@ test.describe("quiz sharing", () => {
       page.locator("article h3", { hasText: quizName })
     ).toBeVisible();
 
-    // Accept the confirm dialog
-    page.on("dialog", (dialog) => dialog.accept());
-
     const quizCard = page.locator("article", {
       has: page.locator("h3", { hasText: quizName }),
     });
     await quizCard.getByTitle("Delete").click();
+
+    // Confirm in custom dialog
+    await expect(page.locator("#confirm-dialog")).toBeVisible();
+    await page.locator("#confirm-dialog [data-confirm-ok]").click();
 
     // Delete should be blocked — error message visible
     await expect(page.locator("article").filter({ hasText: /cannot be deleted|other users/ })).toBeVisible();
@@ -271,6 +272,117 @@ test.describe("quiz sharing", () => {
     await expect(
       page2.locator("button", { hasText: "Add to My Library" })
     ).not.toBeVisible();
+
+    await context2.close();
+  });
+
+  test("imported quiz shows author name on quiz list", async ({
+    page,
+    jsErrors,
+  }) => {
+    const publicId = extractPublicId(page.url());
+
+    // Toggle sharing ON
+    await toggleShare(page, quizName);
+
+    // User B: import the quiz
+    const browser = page.context().browser()!;
+    const context2 = await browser.newContext();
+    const page2 = await context2.newPage();
+    await registerUser(page2);
+    await page2.goto(`/shared/${publicId}`);
+    await Promise.all([
+      page2.waitForResponse((resp) =>
+        resp.url().includes("/add-to-library/")
+      ),
+      page2.locator("button", { hasText: "Add to My Library" }).click(),
+    ]);
+
+    // User B goes to quiz list — imported quiz should show "by" author
+    await page2.goto("/");
+    const quizCard = page2.locator("article", {
+      has: page2.locator("h3", { hasText: quizName }),
+    });
+    await expect(quizCard).toBeVisible();
+    await expect(quizCard.locator("text=by ")).toBeVisible();
+
+    await context2.close();
+  });
+
+  test("imported quiz shows remove icon instead of delete", async ({
+    page,
+    jsErrors,
+  }) => {
+    const publicId = extractPublicId(page.url());
+
+    // Toggle sharing ON
+    await toggleShare(page, quizName);
+
+    // User B: import the quiz
+    const browser = page.context().browser()!;
+    const context2 = await browser.newContext();
+    const page2 = await context2.newPage();
+    await registerUser(page2);
+    await page2.goto(`/shared/${publicId}`);
+    await Promise.all([
+      page2.waitForResponse((resp) =>
+        resp.url().includes("/add-to-library/")
+      ),
+      page2.locator("button", { hasText: "Add to My Library" }).click(),
+    ]);
+
+    // User B goes to quiz list — should show playlist_remove, not delete
+    await page2.goto("/");
+    const quizCard = page2.locator("article", {
+      has: page2.locator("h3", { hasText: quizName }),
+    });
+    await expect(quizCard.locator("text=playlist_remove")).toBeVisible();
+    await expect(quizCard.locator("text=delete")).toHaveCount(0);
+
+    await context2.close();
+  });
+
+  test("removing imported quiz from library keeps original quiz", async ({
+    page,
+    jsErrors,
+  }) => {
+    const publicId = extractPublicId(page.url());
+
+    // Toggle sharing ON
+    await toggleShare(page, quizName);
+
+    // User B: import the quiz
+    const browser = page.context().browser()!;
+    const context2 = await browser.newContext();
+    const page2 = await context2.newPage();
+    await registerUser(page2);
+    await page2.goto(`/shared/${publicId}`);
+    await Promise.all([
+      page2.waitForResponse((resp) =>
+        resp.url().includes("/add-to-library/")
+      ),
+      page2.locator("button", { hasText: "Add to My Library" }).click(),
+    ]);
+
+    // User B removes from library
+    await page2.goto("/");
+    const quizCard = page2.locator("article", {
+      has: page2.locator("h3", { hasText: quizName }),
+    });
+    await quizCard.locator("text=playlist_remove").click();
+    await expect(page2.locator("#confirm-dialog")).toBeVisible();
+    await page2.locator("#confirm-dialog [data-confirm-ok]").click();
+
+    // Quiz should be gone from User B's list
+    await expect(
+      page2.locator("article h3", { hasText: quizName })
+    ).not.toBeVisible();
+
+    // But User A (owner) should still have it
+    await page.goto("/");
+    await expect(
+      page.locator("article h3", { hasText: quizName })
+    ).toBeVisible();
 
     await context2.close();
   });

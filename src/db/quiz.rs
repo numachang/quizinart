@@ -118,16 +118,18 @@ impl Db {
               COUNT(DISTINCT questions.id) AS "count!",
               MAX(qs.id) AS last_session_id,
               quizzes.is_shared AS "is_shared!",
-              (quizzes.owner_id = $1) AS "is_owner!"
+              (quizzes.owner_id = $1) AS "is_owner!",
+              users.display_name AS "owner_name!"
             FROM
               user_quizzes
               JOIN quizzes ON quizzes.id = user_quizzes.quiz_id
+              JOIN users ON users.id = quizzes.owner_id
               JOIN questions ON questions.quiz_id = quizzes.id
               LEFT JOIN quiz_sessions qs ON qs.quiz_id = quizzes.id AND qs.user_id = $1
             WHERE
               user_quizzes.user_id = $1
             GROUP BY
-              quizzes.id, quizzes.public_id, quizzes.name, quizzes.is_shared, quizzes.owner_id
+              quizzes.id, quizzes.public_id, quizzes.name, quizzes.is_shared, quizzes.owner_id, users.display_name
             ORDER BY
               last_session_id DESC NULLS LAST,
               quizzes.id DESC
@@ -169,6 +171,22 @@ impl Db {
         .await?;
 
         tracing::info!("quiz deleted with public_id: {public_id} by user_id: {user_id}");
+        Ok(())
+    }
+
+    /// Remove a quiz from a user's library (delete user_quizzes entry only).
+    pub async fn remove_from_library(&self, public_id: &str, user_id: i32) -> Result<()> {
+        let result = sqlx::query!(
+            "DELETE FROM user_quizzes WHERE user_id = $1 AND quiz_id = (SELECT id FROM quizzes WHERE public_id = $2)",
+            user_id,
+            public_id
+        )
+        .execute(&self.pool)
+        .await?;
+
+        if result.rows_affected() > 0 {
+            tracing::info!("quiz removed from library: public_id={public_id} user_id={user_id}");
+        }
         Ok(())
     }
 
@@ -270,7 +288,8 @@ impl Db {
                 q.name,
                 q.is_shared,
                 u.display_name AS owner_name,
-                COUNT(qu.id) AS "question_count!"
+                COUNT(DISTINCT qu.id) AS "question_count!",
+                (SELECT COUNT(*) FROM user_quizzes uq WHERE uq.quiz_id = q.id) AS "import_count!"
             FROM quizzes q
             JOIN users u ON u.id = q.owner_id
             JOIN questions qu ON qu.quiz_id = q.id
@@ -323,7 +342,8 @@ impl Db {
                 q.name,
                 q.is_shared,
                 u.display_name AS owner_name,
-                COUNT(qu.id) AS "question_count!"
+                COUNT(DISTINCT qu.id) AS "question_count!",
+                (SELECT COUNT(*) FROM user_quizzes uq WHERE uq.quiz_id = q.id) AS "import_count!"
             FROM quizzes q
             JOIN users u ON u.id = q.owner_id
             JOIN questions qu ON qu.quiz_id = q.id
@@ -362,7 +382,8 @@ impl Db {
                 q.name,
                 q.is_shared,
                 u.display_name AS owner_name,
-                COUNT(qu.id) AS "question_count!"
+                COUNT(DISTINCT qu.id) AS "question_count!",
+                (SELECT COUNT(*) FROM user_quizzes uq WHERE uq.quiz_id = q.id) AS "import_count!"
             FROM quizzes q
             JOIN users u ON u.id = q.owner_id
             JOIN questions qu ON qu.quiz_id = q.id

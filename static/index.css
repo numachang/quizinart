@@ -350,9 +350,15 @@ button.htmx-request {
 
 /* Mobile breakpoint */
 @media (max-width: 767px) {
-  /* Show the hamburger button */
+  /* First ul takes full width so margin-left:auto on hamburger works */
+  header nav > ul:first-child {
+    flex-grow: 1;
+  }
+
+  /* Show the hamburger button, pushed to far right */
   .nav-toggle-item {
     display: block;
+    margin-left: auto;
   }
 
   /* Position the nav for absolute dropdown, above main content */

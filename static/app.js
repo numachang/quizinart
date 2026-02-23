@@ -1,6 +1,44 @@
 ;(() => {
+  // --- Custom confirm dialog (replaces browser confirm()) ---
+  let pendingConfirm = null
+
+  document.addEventListener('htmx:confirm', (evt) => {
+    if (!evt.detail.question) return
+    evt.preventDefault()
+
+    const dialog = document.getElementById('confirm-dialog')
+    if (!dialog) {
+      evt.detail.issueRequest()
+      return
+    }
+
+    dialog.querySelector('[data-confirm-message]').textContent =
+      evt.detail.question
+    pendingConfirm = () => evt.detail.issueRequest(true)
+    dialog.showModal()
+  })
+
   // --- Event delegation for clicks ---
   document.addEventListener('click', (e) => {
+    // Confirm dialog OK
+    if (e.target.closest('[data-confirm-ok]')) {
+      const dialog = document.getElementById('confirm-dialog')
+      if (dialog) dialog.close()
+      if (pendingConfirm) {
+        pendingConfirm()
+        pendingConfirm = null
+      }
+      return
+    }
+
+    // Confirm dialog Cancel
+    if (e.target.closest('[data-confirm-cancel]')) {
+      const dialog = document.getElementById('confirm-dialog')
+      if (dialog) dialog.close()
+      pendingConfirm = null
+      return
+    }
+
     // Dialog open: <element data-dialog-open="dialog-id">
     const dialogOpen = e.target.closest('[data-dialog-open]')
     if (dialogOpen) {

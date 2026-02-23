@@ -132,6 +132,24 @@ fn header(locale: &str, user_name: Option<&str>) -> Markup {
     }
 }
 
+fn confirm_dialog(locale: &str) -> Markup {
+    html! {
+        dialog id="confirm-dialog" {
+            article {
+                p data-confirm-message {}
+                footer style="display: flex; justify-content: flex-end; gap: 0.5rem;" {
+                    button."secondary" data-confirm-cancel {
+                        (t!("layout.cancel", locale = locale))
+                    }
+                    button data-confirm-ok {
+                        (t!("layout.ok", locale = locale))
+                    }
+                }
+            }
+        }
+    }
+}
+
 fn main(body: Markup) -> Markup {
     html! {
         main { (body) }
@@ -160,6 +178,7 @@ pub fn page_with_user(title: &str, body: Markup, locale: &str, user_name: Option
         body."container" {
             (header(locale, user_name))
             (main(body))
+            (confirm_dialog(locale))
         }
     }
 }

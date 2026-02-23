@@ -92,30 +92,44 @@ async fn delete_quiz(
     Locale(locale): Locale,
     axum::extract::Path(public_id): axum::extract::Path<String>,
 ) -> Result<maud::Markup, AppError> {
-    let has_others = state
+    let is_owner = state
         .db
-        .quiz_has_other_users(&public_id, user.id)
+        .verify_quiz_owner(&public_id, user.id)
         .await
-        .reject("failed to check quiz users")?;
+        .reject("failed to check quiz ownership")?;
 
-    if has_others {
-        let quizzes = state
+    if is_owner {
+        let has_others = state
             .db
-            .quizzes(user.id)
+            .quiz_has_other_users(&public_id, user.id)
             .await
-            .reject("failed to get quizzes")?;
-        let msg = t!("homepage.delete_blocked", locale = locale);
-        return Ok(views::titled(
-            "My Quizzes",
-            homepage_views::quiz_list_with_error(quizzes, &locale, Some(&msg)),
-        ));
-    }
+            .reject("failed to check quiz users")?;
 
-    state
-        .db
-        .delete_quiz(&public_id, user.id)
-        .await
-        .reject("failed to delete quiz")?;
+        if has_others {
+            let quizzes = state
+                .db
+                .quizzes(user.id)
+                .await
+                .reject("failed to get quizzes")?;
+            let msg = t!("homepage.delete_blocked", locale = locale);
+            return Ok(views::titled(
+                "My Quizzes",
+                homepage_views::quiz_list_with_error(quizzes, &locale, Some(&msg)),
+            ));
+        }
+
+        state
+            .db
+            .delete_quiz(&public_id, user.id)
+            .await
+            .reject("failed to delete quiz")?;
+    } else {
+        state
+            .db
+            .remove_from_library(&public_id, user.id)
+            .await
+            .reject("failed to remove quiz from library")?;
+    }
 
     let quizzes = state
         .db

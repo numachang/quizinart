@@ -36,13 +36,13 @@ export async function loginUser(
 /**
  * Create a quiz by uploading the test-quiz.json file.
  * Assumes the quiz list page is already visible.
- * Clicks the "+" card to open the create dialog, fills in the form, and submits.
+ * Clicks the upload card to open the create dialog, fills in the form, and submits.
  */
 export async function createQuiz(
   page: Page,
   quizName: string
 ): Promise<void> {
-  await page.locator("#create-card").click();
+  await page.locator("#upload-card").click();
   const dialog = page.locator("#create-dialog");
   await expect(dialog).toBeVisible();
 

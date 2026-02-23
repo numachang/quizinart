@@ -15,6 +15,7 @@ pub struct Quiz {
     pub last_session_id: Option<i32>,
     pub is_shared: bool,
     pub is_owner: bool,
+    pub owner_name: String,
 }
 
 pub struct QuestionModel {
@@ -96,6 +97,7 @@ pub struct SharedQuizInfo {
     pub is_shared: bool,
     pub owner_name: String,
     pub question_count: i64,
+    pub import_count: i64,
 }
 
 /// Combined question context from session_questions + questions + quizzes (single JOIN query)

@@ -34,7 +34,7 @@ pub(crate) async fn quiz_page(
         .map(|c| c.value().to_string());
 
     let content = match token {
-        Some(token) => {
+        Some(token) if !token.is_empty() => {
             let res = state.db.get_session(&token).await;
 
             match res {
@@ -64,7 +64,7 @@ pub(crate) async fn quiz_page(
                 }
             }
         }
-        None => super::session::page(&state.db, quiz_id, &public_id, &locale).await?,
+        _ => super::session::page(&state.db, quiz_id, &public_id, &locale).await?,
     };
 
     Ok(views::render(

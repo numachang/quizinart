@@ -6,6 +6,49 @@ test.describe("quiz lifecycle", () => {
     await registerUser(page);
   });
 
+  test("quiz list shows marketplace and upload import cards", async ({
+    page,
+    jsErrors,
+  }) => {
+    await page.goto("/");
+
+    // Marketplace card should exist and appear first
+    const marketplaceCard = page.locator("#marketplace-card");
+    await expect(marketplaceCard).toBeVisible();
+
+    // Upload card should exist
+    const uploadCard = page.locator("#upload-card");
+    await expect(uploadCard).toBeVisible();
+
+    // Marketplace card should come before upload card
+    const cards = page.locator(".quiz-card, #marketplace-card, #upload-card");
+    const marketplaceIndex = await cards.evaluateAll((els) =>
+      els.findIndex((el) => el.id === "marketplace-card")
+    );
+    const uploadIndex = await cards.evaluateAll((els) =>
+      els.findIndex((el) => el.id === "upload-card")
+    );
+    expect(marketplaceIndex).toBeLessThan(uploadIndex);
+  });
+
+  test("marketplace import card navigates to marketplace", async ({
+    page,
+    jsErrors,
+  }) => {
+    await page.goto("/");
+    await page.locator("#marketplace-card").click();
+    await expect(page.locator("h1")).toContainText("Marketplace");
+  });
+
+  test("upload import card opens upload dialog", async ({
+    page,
+    jsErrors,
+  }) => {
+    await page.goto("/");
+    await page.locator("#upload-card").click();
+    await expect(page.locator("#create-dialog")).toBeVisible();
+  });
+
   test("create quiz navigates to quiz dashboard", async ({
     page,
     jsErrors,
@@ -73,12 +116,13 @@ test.describe("quiz lifecycle", () => {
     await page.goto("/");
     await expect(page.locator("article h3", { hasText: quizName })).toBeVisible();
 
-    // Accept the confirm dialog before clicking delete
-    page.on("dialog", (dialog) => dialog.accept());
-
     // Click delete icon on the quiz card
     const quizCard = page.locator("article", { has: page.locator("h3", { hasText: quizName }) });
     await quizCard.getByTitle("Delete").click();
+
+    // Confirm in custom dialog
+    await expect(page.locator("#confirm-dialog")).toBeVisible();
+    await page.locator("#confirm-dialog [data-confirm-ok]").click();
 
     // Quiz card should be removed
     await expect(page.locator("article h3", { hasText: quizName })).not.toBeVisible();

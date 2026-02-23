@@ -51,6 +51,10 @@ fn quiz_cards(quizzes: &[SharedQuizInfo], user_quiz_ids: &[i32], locale: &str) -
                         " · "
                         (quiz.question_count)
                         (t!("share.questions_suffix", locale = locale))
+                        " · "
+                        span."material-symbols-rounded" style="font-size: 0.9em; vertical-align: middle;" { "person" }
+                        " "
+                        (quiz.import_count)
                     }
                 }
                 @if imported {

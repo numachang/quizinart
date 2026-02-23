@@ -384,35 +384,74 @@ pub fn quiz_list_with_error(quizzes: Vec<Quiz>, locale: &str, error: Option<&str
                             "edit"
                         }
                     }
-                    p { (quiz.count) (t!("homepage.questions_suffix", locale = locale)) }
+                    p {
+                        (quiz.count) (t!("homepage.questions_suffix", locale = locale))
+                        @if !quiz.is_owner {
+                            " · "
+                            small { (t!("marketplace.by", locale = locale, owner = &quiz.owner_name)) }
+                        }
+                    }
                     div."card-actions" style="display: flex; justify-content: flex-end; gap: 0.75rem;" {
                         @if quiz.is_owner {
                             (quiz_views::share_toggle_icon(&quiz.public_id, quiz.is_shared, locale))
                         }
-                        a."material-symbols-rounded"
-                          hx-delete=(names::delete_quiz_url(&quiz.public_id))
-                          hx-target="main"
-                          hx-swap="innerHTML"
-                          hx-confirm=(t!("homepage.delete_confirm", locale = locale))
-                          title=(t!("homepage.delete", locale = locale))
-                          style="cursor: pointer; color: var(--pico-del-color, #dc3545); font-size: 1.2rem; opacity: 0.5; transition: opacity 0.15s;" {
-                            "delete"
+                        @if quiz.is_owner {
+                            a."material-symbols-rounded"
+                              hx-delete=(names::delete_quiz_url(&quiz.public_id))
+                              hx-target="main"
+                              hx-swap="innerHTML"
+                              hx-confirm=(t!("homepage.delete_confirm", locale = locale))
+                              title=(t!("homepage.delete", locale = locale))
+                              style="cursor: pointer; color: var(--pico-del-color, #dc3545); font-size: 1.2rem; opacity: 0.5; transition: opacity 0.15s;" {
+                                "delete"
+                            }
+                        } @else {
+                            a."material-symbols-rounded"
+                              hx-delete=(names::delete_quiz_url(&quiz.public_id))
+                              hx-target="main"
+                              hx-swap="innerHTML"
+                              hx-confirm=(t!("homepage.remove_confirm", locale = locale))
+                              title=(t!("homepage.remove_from_library", locale = locale))
+                              style="cursor: pointer; color: var(--pico-del-color, #dc3545); font-size: 1.2rem; opacity: 0.5; transition: opacity 0.15s;" {
+                                "playlist_remove"
+                            }
                         }
                     }
                 }
             }
 
-            // Create Quiz card (always last, uses stretched-link pattern via h3 > a)
-            article."quiz-card" id="create-card"
+            // Import from Marketplace card
+            article."quiz-card" id="marketplace-card"
+                   style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px; opacity: 0.6;" {
+                h3 style="margin: 0;" {
+                    a href=(names::MARKETPLACE_URL)
+                      hx-get=(names::MARKETPLACE_URL)
+                      hx-push-url="true"
+                      hx-target="main"
+                      style="text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center;" {
+                        span."material-symbols-rounded" style="font-size: 2.5rem;" { "store" }
+                    }
+                }
+                p style="margin: 0.5rem 0 0; display: flex; align-items: center; gap: 0.2rem;" {
+                    span."material-symbols-rounded" style="font-size: 1em;" { "add" }
+                    (t!("homepage.from_marketplace", locale = locale))
+                }
+            }
+
+            // Import from JSON file card
+            article."quiz-card" id="upload-card"
                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px; opacity: 0.6;" {
                 h3 style="margin: 0;" {
                     a href="#"
                       data-dialog-open="create-dialog"
                       style="text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center;" {
-                        span."material-symbols-rounded" style="font-size: 2.5rem;" { "add" }
+                        span."material-symbols-rounded" style="font-size: 2.5rem;" { "upload_file" }
                     }
                 }
-                p style="margin: 0.5rem 0 0;" { (t!("homepage.import_quiz", locale = locale)) }
+                p style="margin: 0.5rem 0 0; display: flex; align-items: center; gap: 0.2rem;" {
+                    span."material-symbols-rounded" style="font-size: 1em;" { "add" }
+                    (t!("homepage.from_file", locale = locale))
+                }
             }
         }
 
