@@ -93,15 +93,15 @@ pub fn question(data: QuestionData, locale: &str) -> Markup {
                         label {
                             @if data.question.is_multiple_choice {
                                 @if data.selected_answers.contains(&opt.id) {
-                                    input type="checkbox" name="options" value=(opt.id) onchange="enableNextButton()" checked;
+                                    input type="checkbox" name="options" value=(opt.id) checked;
                                 } @else {
-                                    input type="checkbox" name="options" value=(opt.id) onchange="enableNextButton()";
+                                    input type="checkbox" name="options" value=(opt.id);
                                 }
                             } @else {
                                 @if data.selected_answers.contains(&opt.id) {
-                                    input type="radio" name="option" value=(opt.id) onchange="enableNextButton()" checked;
+                                    input type="radio" name="option" value=(opt.id) checked;
                                 } @else {
-                                    input type="radio" name="option" value=(opt.id) onchange="enableNextButton()";
+                                    input type="radio" name="option" value=(opt.id);
                                 }
                             }
                             (opt.option)
@@ -122,12 +122,9 @@ pub fn question(data: QuestionData, locale: &str) -> Markup {
                     }
                 }
             }
-            script {
-                "function enableNextButton() { document.getElementById('submit-btn').disabled = false; }"
-            }
         }
         p style="margin-top: 0.5rem; font-size: 0.8rem;" {
-            a onclick="document.getElementById('abandon-dialog').showModal()"
+            a data-dialog-open="abandon-dialog"
               style="color: #888; text-decoration: underline; cursor: pointer;" {
                 (t!("quiz.abandon", locale = locale))
             }
@@ -136,7 +133,7 @@ pub fn question(data: QuestionData, locale: &str) -> Markup {
             article {
                 p { (t!("quiz.abandon_confirm", locale = locale)) }
                 footer style="display: flex; gap: 0.5rem; justify-content: flex-end;" {
-                    button onclick="document.getElementById('abandon-dialog').close()"
+                    button data-dialog-close="abandon-dialog"
                            class="secondary" {
                         (t!("quiz.abandon_cancel", locale = locale))
                     }
@@ -261,7 +258,7 @@ pub fn answer(data: AnswerData, locale: &str) -> Markup {
             }
         }
         p style="margin-top: 0.5rem; font-size: 0.8rem;" {
-            a onclick="document.getElementById('abandon-dialog').showModal()"
+            a data-dialog-open="abandon-dialog"
               style="color: #888; text-decoration: underline; cursor: pointer;" {
                 (t!("quiz.abandon", locale = locale))
             }
@@ -270,7 +267,7 @@ pub fn answer(data: AnswerData, locale: &str) -> Markup {
             article {
                 p { (t!("quiz.abandon_confirm", locale = locale)) }
                 footer style="display: flex; gap: 0.5rem; justify-content: flex-end;" {
-                    button onclick="document.getElementById('abandon-dialog').close()"
+                    button data-dialog-close="abandon-dialog"
                            class="secondary" {
                         (t!("quiz.abandon_cancel", locale = locale))
                     }

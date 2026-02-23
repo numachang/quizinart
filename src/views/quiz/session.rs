@@ -1,5 +1,5 @@
 use crate::names;
-use maud::{html, Markup, PreEscaped};
+use maud::{html, Markup};
 use rust_i18n::t;
 
 pub struct StartPageData {
@@ -69,9 +69,6 @@ pub fn start_page(data: StartPageData, locale: &str) -> Markup {
                     small id="name-helper" style="display: block; margin-top: 0.5rem; color: #666;" {
                         (t!("quiz.session_name_hint", locale = locale))
                     }
-                }
-                script {
-                    (PreEscaped("(function(){var d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0'),r=Math.random().toString(36).substring(2,8);document.getElementById('session-name').value=y+'-'+m+'-'+dd+'-'+r;})();"))
                 }
                 label {
                     (t!("quiz.question_count", locale = locale))

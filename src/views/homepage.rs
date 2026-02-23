@@ -376,13 +376,9 @@ pub fn quiz_list_with_error(quizzes: Vec<Quiz>, locale: &str, error: Option<&str
                           style="text-decoration: none; color: inherit;" {
                             (quiz.name)
                         }
-                        @let safe_name = serde_json::to_string(&quiz.name).unwrap_or_default();
-                        @let open_rename_js = format!(
-                            "document.getElementById('rename-input').value={};document.getElementById('rename-url').value='{}';document.getElementById('rename-dialog').showModal()",
-                            safe_name, names::rename_quiz_url(&quiz.public_id),
-                        );
                         span."card-actions material-symbols-rounded"
-                             onclick=(open_rename_js)
+                             data-rename-name=(quiz.name)
+                             data-rename-url=(names::rename_quiz_url(&quiz.public_id))
                              title=(t!("homepage.rename", locale = locale))
                              style="cursor: pointer; font-size: 0.7em; opacity: 0.4; transition: opacity 0.15s;" {
                             "edit"
@@ -408,7 +404,7 @@ pub fn quiz_list_with_error(quizzes: Vec<Quiz>, locale: &str, error: Option<&str
                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px; opacity: 0.6;" {
                 h3 style="margin: 0;" {
                     a href="#"
-                      onclick="event.preventDefault();document.getElementById('create-dialog').showModal()"
+                      data-dialog-open="create-dialog"
                       style="text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center;" {
                         span."material-symbols-rounded" style="font-size: 2.5rem;" { "add" }
                     }
@@ -421,7 +417,7 @@ pub fn quiz_list_with_error(quizzes: Vec<Quiz>, locale: &str, error: Option<&str
             article {
                 header {
                     button aria-label="Close" rel="prev"
-                           onclick="document.getElementById('create-dialog').close()" {}
+                           data-dialog-close="create-dialog" {}
                     h3 { (t!("homepage.import_quiz", locale = locale)) }
                 }
                 form hx-post=(names::CREATE_QUIZ_URL)
@@ -456,11 +452,11 @@ pub fn quiz_list_with_error(quizzes: Vec<Quiz>, locale: &str, error: Option<&str
                 input id="rename-input" type="text" required="true" autocomplete="off";
                 input id="rename-url" type="hidden";
                 footer style="display: flex; gap: 0.5rem; justify-content: flex-end;" {
-                    button onclick="document.getElementById('rename-dialog').close()"
+                    button data-dialog-close="rename-dialog"
                            class="secondary" {
                         (t!("quiz.abandon_cancel", locale = locale))
                     }
-                    button onclick="var u=document.getElementById('rename-url').value;var n=document.getElementById('rename-input').value;if(n){htmx.ajax('PATCH',u,{target:'main',swap:'innerHTML',values:{name:n}})};document.getElementById('rename-dialog').close()" {
+                    button data-rename-submit="" {
                         (t!("homepage.rename", locale = locale))
                     }
                 }

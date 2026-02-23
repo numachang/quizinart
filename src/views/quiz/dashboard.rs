@@ -6,7 +6,7 @@ use crate::{
     },
     names,
 };
-use maud::{html, Markup, PreEscaped};
+use maud::{html, Markup};
 use rust_i18n::t;
 
 pub struct DashboardData {
@@ -130,7 +130,7 @@ pub fn dashboard(data: DashboardData, locale: &str) -> Markup {
 
         @let has_answered_cats = data.cat_stats.iter().any(|c| c.total_answered > 0);
         @if data.overall.total_answered > 0 || has_answered_cats || !data.daily_accuracy.is_empty() {
-            (charts_script(&data.cat_stats, &data.daily_accuracy, &data.overall, locale))
+            (charts_data(&data.cat_stats, &data.daily_accuracy, &data.overall, locale))
         }
         @if !data.daily_accuracy.is_empty() || has_answered_cats {
             div style="display:flex; gap:1rem; flex-wrap:wrap;" {
@@ -206,8 +206,8 @@ pub fn share_section(public_id: &str, is_shared: bool, locale: &str) -> Markup {
                           value=(names::shared_quiz_url(public_id))
                           id="share-url"
                           style="flex: 1; min-width: 200px; margin-bottom: 0;"
-                          onclick="this.select()";
-                    button onclick="navigator.clipboard.writeText(window.location.origin+document.getElementById('share-url').value)"
+                          data-select-text="";
+                    button data-copy-url=""
                            style="width: fit-content; white-space: nowrap; margin-bottom: 0;" {
                         (t!("share.copy_link", locale = locale))
                     }
@@ -314,13 +314,9 @@ fn session_history_table(sessions: &[SessionReportModel], locale: &str) -> Marku
                             }
                         }
                         td style="white-space: nowrap;" {
-                            @let safe_name = serde_json::to_string(&s.name).unwrap_or_default();
-                            @let open_rename_js = format!(
-                                "document.getElementById('rename-input').value={};document.getElementById('rename-url').value='{}';document.getElementById('rename-dialog').showModal()",
-                                safe_name, names::rename_session_url(s.id),
-                            );
                             a."material-symbols-rounded"
-                              onclick=(open_rename_js)
+                              data-rename-name=(s.name)
+                              data-rename-url=(names::rename_session_url(s.id))
                               title=(t!("dashboard.rename_btn", locale = locale))
                               style="cursor: pointer; font-size: 1.2rem; opacity: 0.5; transition: opacity 0.15s; margin-right: 0.5rem;" {
                                 "edit"
@@ -346,11 +342,11 @@ fn session_history_table(sessions: &[SessionReportModel], locale: &str) -> Marku
                 input id="rename-input" type="text" required="true" autocomplete="off";
                 input id="rename-url" type="hidden";
                 footer style="display: flex; gap: 0.5rem; justify-content: flex-end;" {
-                    button onclick="document.getElementById('rename-dialog').close()"
+                    button data-dialog-close="rename-dialog"
                            class="secondary" {
                         (t!("quiz.abandon_cancel", locale = locale))
                     }
-                    button onclick="var u=document.getElementById('rename-url').value;var n=document.getElementById('rename-input').value;if(n){htmx.ajax('PATCH',u,{target:'main',swap:'innerHTML',values:{name:n}})};document.getElementById('rename-dialog').close()" {
+                    button data-rename-submit="" {
                         (t!("dashboard.rename_btn", locale = locale))
                     }
                 }
@@ -359,13 +355,12 @@ fn session_history_table(sessions: &[SessionReportModel], locale: &str) -> Marku
     }
 }
 
-fn charts_script(
+fn charts_data(
     cat_stats: &[QuizCategoryOverallStats],
     daily: &[DailyAccuracy],
     overall: &QuizOverallStats,
     locale: &str,
 ) -> Markup {
-    // Overall stats doughnut data
     let unique_asked = overall.unique_asked;
     let total_questions = overall.total_questions;
     let remaining_questions = total_questions - unique_asked;
@@ -377,10 +372,7 @@ fn charts_script(
     } else {
         0.0
     };
-    let answered_center_text = format!("{}/{}", unique_asked, total_questions);
-    let accuracy_center_text = format!("{:.1}%", overall_accuracy);
 
-    // Radar chart data from cat_stats
     let radar_labels: Vec<&str> = cat_stats
         .iter()
         .filter(|c| c.total_answered > 0)
@@ -391,43 +383,27 @@ fn charts_script(
         .filter(|c| c.total_answered > 0)
         .map(|c| (c.total_correct as f64 * 1000.0 / c.total_answered as f64).round() / 10.0)
         .collect();
-    let radar_labels_json = serde_json::to_string(&radar_labels).unwrap_or_default();
-    let radar_data_json = serde_json::to_string(&radar_data).unwrap_or_default();
 
-    // Daily line chart data
     let daily_labels: Vec<&str> = daily.iter().map(|d| d.date_label.as_str()).collect();
     let daily_data: Vec<f64> = daily.iter().map(|d| d.accuracy).collect();
-    let daily_labels_json = serde_json::to_string(&daily_labels).unwrap_or_default();
-    let daily_data_json = serde_json::to_string(&daily_data).unwrap_or_default();
 
-    let y_label =
-        serde_json::to_string(&t!("dashboard.progress_graph_yaxis", locale = locale).to_string())
-            .unwrap_or_default();
-    let x_label =
-        serde_json::to_string(&t!("dashboard.daily_trend_xaxis", locale = locale).to_string())
-            .unwrap_or_default();
-
-    let script = format!(
-        r#"(function(){{
-var s=document.createElement('script');
-s.src='/static/chart.min.js';
-s.onload=function(){{
-var tc=getComputedStyle(document.documentElement).color;
-var ac=document.getElementById('answered-chart');
-if(ac)new Chart(ac,{{type:'doughnut',data:{{datasets:[{{data:[{unique_asked},{remaining_questions}],backgroundColor:['#4e79a7','#e0e0e0'],borderWidth:0}}]}},plugins:[{{id:'ct1',afterDraw:function(c){{var x=c.ctx;x.save();x.fillStyle=tc;x.font='bold 1.1rem sans-serif';x.textAlign='center';x.textBaseline='middle';var cx=(c.chartArea.left+c.chartArea.right)/2;var cy=(c.chartArea.top+c.chartArea.bottom)/2;x.fillText('{answered_center_text}',cx,cy);x.restore();}}}}],options:{{responsive:false,cutout:'70%',plugins:{{legend:{{display:false}},tooltip:{{enabled:false}}}}}}}});
-var gc=document.getElementById('accuracy-chart');
-if(gc)new Chart(gc,{{type:'doughnut',data:{{datasets:[{{data:[{total_correct},{total_incorrect}],backgroundColor:['#59a14f','#e0e0e0'],borderWidth:0}}]}},plugins:[{{id:'ct2',afterDraw:function(c){{var x=c.ctx;x.save();x.fillStyle=tc;x.font='bold 1.3rem sans-serif';x.textAlign='center';x.textBaseline='middle';var cx=(c.chartArea.left+c.chartArea.right)/2;var cy=(c.chartArea.top+c.chartArea.bottom)/2;x.fillText('{accuracy_center_text}',cx,cy);x.restore();}}}}],options:{{responsive:false,cutout:'70%',plugins:{{legend:{{display:false}},tooltip:{{enabled:false}}}}}}}});
-var r=document.getElementById('radar-chart');
-if(r)new Chart(r,{{type:'radar',data:{{labels:{radar_labels_json},datasets:[{{data:{radar_data_json},backgroundColor:'rgba(78,121,167,0.2)',borderColor:'#4e79a7',pointBackgroundColor:'#4e79a7',borderWidth:2}}]}},options:{{responsive:true,plugins:{{legend:{{display:false}}}},scales:{{r:{{min:0,max:100,ticks:{{stepSize:20}}}}}}}}}});
-var d=document.getElementById('daily-chart');
-if(d)new Chart(d,{{type:'line',data:{{labels:{daily_labels_json},datasets:[{{data:{daily_data_json},borderColor:'#4e79a7',backgroundColor:'rgba(78,121,167,0.1)',fill:true,tension:0.3,pointRadius:4,pointHoverRadius:6}}]}},options:{{responsive:true,plugins:{{legend:{{display:false}}}},scales:{{y:{{min:0,max:100,title:{{display:true,text:{y_label}}}}},x:{{title:{{display:true,text:{x_label}}}}}}}}}}});
-}};
-document.head.appendChild(s);
-}})()"#
-    );
+    let config = serde_json::json!({
+        "uniqueAsked": unique_asked,
+        "remainingQuestions": remaining_questions,
+        "answeredCenter": format!("{}/{}", unique_asked, total_questions),
+        "totalCorrect": total_correct,
+        "totalIncorrect": total_incorrect,
+        "accuracyCenter": format!("{:.1}%", overall_accuracy),
+        "radarLabels": radar_labels,
+        "radarData": radar_data,
+        "dailyLabels": daily_labels,
+        "dailyData": daily_data,
+        "yLabel": t!("dashboard.progress_graph_yaxis", locale = locale).to_string(),
+        "xLabel": t!("dashboard.daily_trend_xaxis", locale = locale).to_string(),
+    });
 
     html! {
-        (PreEscaped(format!("<script>{script}</script>")))
+        div id="chart-data" data-config=(config.to_string()) style="display:none;" {}
     }
 }
 

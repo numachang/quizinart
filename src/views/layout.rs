@@ -17,6 +17,7 @@ fn js() -> Markup {
         script src="/static/menu.js" {}
         script src="/static/htmx/htmx.min.js" {}
         script src="/static/htmx/ext/json-enc.js" {}
+        script src="/static/app.js" {}
     }
 }
 
