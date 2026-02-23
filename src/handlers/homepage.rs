@@ -191,6 +191,11 @@ async fn register_post(
             &locale,
         )
         .into_response()),
+        RegisterOutcome::VerificationEmailFailed(email) => Ok(views::titled(
+            "Email Error",
+            homepage_views::email_send_failed(&email, &locale),
+        )
+        .into_response()),
     }
 }
 

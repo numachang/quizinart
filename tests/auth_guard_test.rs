@@ -4,13 +4,14 @@ use axum::{
     body::Body,
     http::{Method, Request, StatusCode},
 };
-use quizinart::{names, router, services::auth::AuthService, AppState};
+use quizinart::{email::ResendEmailSender, names, router, services::auth::AuthService, AppState};
 use tower::ServiceExt;
 
 fn make_state(db: quizinart::db::Db) -> AppState {
+    let email_sender = ResendEmailSender::new(String::new());
     let auth = AuthService::new(
         db.clone(),
-        String::new(),
+        email_sender,
         "http://localhost:1414".to_string(),
     );
     AppState {

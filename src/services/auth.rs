@@ -2,6 +2,7 @@ use color_eyre::Result;
 
 use crate::db::models::AuthUser;
 use crate::db::Db;
+use crate::email::ResendEmailSender;
 
 // ---------------------------------------------------------------------------
 // AuthRepository trait (DIP: service defines the abstraction it needs)
@@ -86,6 +87,28 @@ pub trait AuthRepository: Send + Sync {
 }
 
 // ---------------------------------------------------------------------------
+// EmailSender trait (DIP: service defines the abstraction it needs)
+// ---------------------------------------------------------------------------
+
+#[cfg_attr(test, mockall::automock)]
+pub trait EmailSender: Send + Sync {
+    /// Whether email sending is configured (false in dev mode).
+    fn is_enabled(&self) -> bool;
+
+    fn send_verification_email(
+        &self,
+        to_email: &str,
+        verification_url: &str,
+    ) -> impl std::future::Future<Output = Result<()>> + Send;
+
+    fn send_password_reset_email(
+        &self,
+        to_email: &str,
+        reset_url: &str,
+    ) -> impl std::future::Future<Output = Result<()>> + Send;
+}
+
+// ---------------------------------------------------------------------------
 // Outcome enums
 // ---------------------------------------------------------------------------
 
@@ -94,6 +117,8 @@ pub enum RegisterOutcome {
     LoggedIn(String),
     /// Unverified user created, verification email sent (prod mode).
     VerificationSent(String),
+    /// Unverified user created, but verification email failed after retries.
+    VerificationEmailFailed(String),
     /// Required fields were empty.
     EmptyFields,
     /// Email already in use.
@@ -131,34 +156,34 @@ const MIN_PASSWORD_LENGTH: usize = 8;
 // AuthService
 // ---------------------------------------------------------------------------
 
-pub struct AuthService<R: AuthRepository = Db> {
+pub struct AuthService<R: AuthRepository = Db, E: EmailSender = ResendEmailSender> {
     repo: R,
-    resend_api_key: String,
+    email: E,
     base_url: String,
 }
 
-impl<R: AuthRepository + Clone> Clone for AuthService<R> {
+impl<R: AuthRepository + Clone, E: EmailSender + Clone> Clone for AuthService<R, E> {
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
-            resend_api_key: self.resend_api_key.clone(),
+            email: self.email.clone(),
             base_url: self.base_url.clone(),
         }
     }
 }
 
-impl<R: AuthRepository> AuthService<R> {
-    pub fn new(repo: R, resend_api_key: String, base_url: String) -> Self {
+impl<R: AuthRepository, E: EmailSender> AuthService<R, E> {
+    pub fn new(repo: R, email: E, base_url: String) -> Self {
         Self {
             repo,
-            resend_api_key,
+            email,
             base_url,
         }
     }
 
     /// Whether email verification is enabled (production mode).
     pub fn email_enabled(&self) -> bool {
-        !self.resend_api_key.is_empty()
+        self.email.is_enabled()
     }
 
     pub async fn login(&self, email: &str, password: &str) -> Result<LoginOutcome> {
@@ -219,11 +244,13 @@ impl<R: AuthRepository> AuthService<R> {
 
         let verification_url = format!("{}/verify-email/{}", self.base_url, token);
 
-        if let Err(e) =
-            crate::email::send_verification_email(&self.resend_api_key, email, &verification_url)
-                .await
+        if let Err(e) = self
+            .email
+            .send_verification_email(email, &verification_url)
+            .await
         {
             tracing::error!("failed to send verification email to {email}: {e}");
+            return Ok(RegisterOutcome::VerificationEmailFailed(email.to_string()));
         }
 
         Ok(RegisterOutcome::VerificationSent(email.to_string()))
@@ -242,15 +269,9 @@ impl<R: AuthRepository> AuthService<R> {
 
         if let Some(token) = token {
             let verification_url = format!("{}/verify-email/{}", self.base_url, token);
-            if let Err(e) = crate::email::send_verification_email(
-                &self.resend_api_key,
-                email,
-                &verification_url,
-            )
-            .await
-            {
-                tracing::error!("failed to resend verification email: {e}");
-            }
+            self.email
+                .send_verification_email(email, &verification_url)
+                .await?;
         }
 
         Ok(())
@@ -265,10 +286,12 @@ impl<R: AuthRepository> AuthService<R> {
 
         if let Some(token) = token {
             let reset_url = format!("{}/reset-password/{}", self.base_url, token);
-            if let Err(e) =
-                crate::email::send_password_reset_email(&self.resend_api_key, email, &reset_url)
-                    .await
+            if let Err(e) = self
+                .email
+                .send_password_reset_email(email, &reset_url)
+                .await
             {
+                // Swallow error to avoid leaking whether the email exists.
                 tracing::error!("failed to send password reset email to {email}: {e}");
             }
         }
@@ -342,16 +365,37 @@ impl<R: AuthRepository> AuthService<R> {
 mod tests {
     use super::*;
 
-    fn service(mock: MockAuthRepository) -> AuthService<MockAuthRepository> {
-        AuthService::new(mock, String::new(), "http://localhost".to_string())
+    fn service(mock_repo: MockAuthRepository) -> AuthService<MockAuthRepository, MockEmailSender> {
+        let mut mock_email = MockEmailSender::new();
+        mock_email.expect_is_enabled().returning(|| false);
+        AuthService::new(mock_repo, mock_email, "http://localhost".to_string())
     }
 
-    fn service_with_email(mock: MockAuthRepository) -> AuthService<MockAuthRepository> {
-        AuthService::new(
-            mock,
-            "test-api-key".to_string(),
-            "http://localhost".to_string(),
-        )
+    fn service_with_email(
+        mock_repo: MockAuthRepository,
+        mock_email: MockEmailSender,
+    ) -> AuthService<MockAuthRepository, MockEmailSender> {
+        AuthService::new(mock_repo, mock_email, "http://localhost".to_string())
+    }
+
+    fn mock_email_ok() -> MockEmailSender {
+        let mut mock = MockEmailSender::new();
+        mock.expect_is_enabled().returning(|| true);
+        mock.expect_send_verification_email()
+            .returning(|_, _| Box::pin(async { Ok(()) }));
+        mock.expect_send_password_reset_email()
+            .returning(|_, _| Box::pin(async { Ok(()) }));
+        mock
+    }
+
+    fn mock_email_fail() -> MockEmailSender {
+        let mut mock = MockEmailSender::new();
+        mock.expect_is_enabled().returning(|| true);
+        mock.expect_send_verification_email()
+            .returning(|_, _| Box::pin(async { Err(color_eyre::eyre::eyre!("send failed")) }));
+        mock.expect_send_password_reset_email()
+            .returning(|_, _| Box::pin(async { Err(color_eyre::eyre::eyre!("send failed")) }));
+        mock
     }
 
     // ----- login tests -----
@@ -399,8 +443,8 @@ mod tests {
         mock.expect_is_email_verified()
             .returning(|_| Box::pin(async { Ok(false) }));
 
-        // email_enabled=true (service_with_email has non-empty API key)
-        let svc = service_with_email(mock);
+        // email_enabled=true
+        let svc = service_with_email(mock, mock_email_ok());
         let outcome = svc.login("test@example.com", "password").await.unwrap();
 
         assert!(matches!(outcome, LoginOutcome::EmailNotVerified));
@@ -452,7 +496,7 @@ mod tests {
         mock.expect_create_user_session()
             .returning(|_| Box::pin(async { Ok("session-abc".to_string()) }));
 
-        // service() has empty API key → dev mode
+        // service() has email disabled → dev mode
         let svc = service(mock);
         let outcome = svc
             .register("new@example.com", "password123", "Name")
@@ -470,8 +514,7 @@ mod tests {
         mock.expect_create_unverified_user()
             .returning(|_, _, _| Box::pin(async { Ok((1, "token-xyz".to_string())) }));
 
-        // service_with_email() has non-empty API key → prod mode
-        let svc = service_with_email(mock);
+        let svc = service_with_email(mock, mock_email_ok());
         let outcome = svc
             .register("new@example.com", "password123", "Name")
             .await
@@ -479,6 +522,25 @@ mod tests {
 
         assert!(
             matches!(outcome, RegisterOutcome::VerificationSent(ref e) if e == "new@example.com")
+        );
+    }
+
+    #[tokio::test]
+    async fn register_prod_mode_email_failure_returns_verification_email_failed() {
+        let mut mock = MockAuthRepository::new();
+        mock.expect_email_exists()
+            .returning(|_| Box::pin(async { Ok(false) }));
+        mock.expect_create_unverified_user()
+            .returning(|_, _, _| Box::pin(async { Ok((1, "token-xyz".to_string())) }));
+
+        let svc = service_with_email(mock, mock_email_fail());
+        let outcome = svc
+            .register("new@example.com", "password123", "Name")
+            .await
+            .unwrap();
+
+        assert!(
+            matches!(outcome, RegisterOutcome::VerificationEmailFailed(ref e) if e == "new@example.com")
         );
     }
 
@@ -572,12 +634,33 @@ mod tests {
         svc.resend_verification("test@example.com").await.unwrap();
     }
 
+    #[tokio::test]
+    async fn resend_verification_sends_email_on_token() {
+        let mut mock = MockAuthRepository::new();
+        mock.expect_regenerate_verification_token()
+            .returning(|_| Box::pin(async { Ok(Some("new-token".to_string())) }));
+
+        let svc = service_with_email(mock, mock_email_ok());
+        svc.resend_verification("test@example.com").await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn resend_verification_email_failure_returns_error() {
+        let mut mock = MockAuthRepository::new();
+        mock.expect_regenerate_verification_token()
+            .returning(|_| Box::pin(async { Ok(Some("new-token".to_string())) }));
+
+        let svc = service_with_email(mock, mock_email_fail());
+        let result = svc.resend_verification("test@example.com").await;
+        assert!(result.is_err());
+    }
+
     // ----- forgot_password tests -----
 
     #[tokio::test]
     async fn forgot_password_not_configured_returns_false() {
         let mock = MockAuthRepository::new();
-        // service() has empty API key → email not configured
+        // service() has email disabled → not configured
         let svc = service(mock);
         assert!(!svc.forgot_password("test@example.com").await.unwrap());
     }
@@ -588,7 +671,18 @@ mod tests {
         mock.expect_create_password_reset_token()
             .returning(|_| Box::pin(async { Ok(None) }));
 
-        let svc = service_with_email(mock);
+        let svc = service_with_email(mock, mock_email_ok());
+        assert!(svc.forgot_password("test@example.com").await.unwrap());
+    }
+
+    #[tokio::test]
+    async fn forgot_password_email_failure_still_returns_true() {
+        let mut mock = MockAuthRepository::new();
+        mock.expect_create_password_reset_token()
+            .returning(|_| Box::pin(async { Ok(Some("reset-token".to_string())) }));
+
+        // Email fails, but forgot_password should swallow the error for security
+        let svc = service_with_email(mock, mock_email_fail());
         assert!(svc.forgot_password("test@example.com").await.unwrap());
     }
 

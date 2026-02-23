@@ -1,5 +1,5 @@
 use clap::Parser;
-use quizinart::{db::Db, services::auth::AuthService, AppState};
+use quizinart::{db::Db, email::ResendEmailSender, services::auth::AuthService, AppState};
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -58,7 +58,8 @@ async fn run() -> color_eyre::Result<()> {
     if secure_cookies && !args.secure_cookies {
         tracing::info!("secure_cookies auto-enabled because base_url uses HTTPS");
     }
-    let auth = AuthService::new(db.clone(), args.resend_api_key, args.base_url);
+    let email_sender = ResendEmailSender::new(args.resend_api_key);
+    let auth = AuthService::new(db.clone(), email_sender, args.base_url);
     let state = AppState {
         db,
         auth,

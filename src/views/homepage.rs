@@ -244,6 +244,29 @@ pub fn check_email(email: &str, locale: &str) -> Markup {
     }
 }
 
+pub fn email_send_failed(email: &str, locale: &str) -> Markup {
+    html! {
+        h1 { (t!("homepage.email_failed_title", locale = locale)) }
+        p { (t!("homepage.email_failed_desc", locale = locale)) }
+        p { strong { (email) } }
+        p { (t!("homepage.email_failed_hint", locale = locale)) }
+        article style="width: fit-content;" {
+            form hx-post=(names::RESEND_VERIFICATION_URL)
+                 hx-ext="json-enc"
+                 hx-target="main"
+                 hx-swap="innerHTML" {
+                input type="hidden" name="email" value=(email);
+                button type="submit" class="outline" {
+                    (t!("homepage.resend_email", locale = locale))
+                }
+            }
+            p {
+                a href=(names::LOGIN_URL) { (t!("homepage.back_to_login", locale = locale)) }
+            }
+        }
+    }
+}
+
 pub fn email_verified(locale: &str) -> Markup {
     html! {
         h1 { (t!("homepage.email_verified_title", locale = locale)) }
