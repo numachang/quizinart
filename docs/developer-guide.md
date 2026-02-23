@@ -295,7 +295,7 @@ Triggered on all pull requests and pushes to `main`. Runs on `ubuntu-latest` wit
 |------|---------|
 | Biome lint | `npx biome ci static/` |
 | Format check | `cargo fmt --all -- --check` |
-| DB migrations | Shell loop: `psql -f` for each `migrations/V*__*.sql` |
+| DB migrations | `sqlx migrate run` (via sqlx-cli) |
 | sqlx cache check | `cargo sqlx prepare --check` |
 | Clippy | `cargo clippy --all-targets --all-features` |
 | Unit tests | `cargo test --all-targets --all-features` |
@@ -330,7 +330,7 @@ src/
 │   ├── account.rs   — Account management
 │   └── quiz/        — Quiz session, questions, dashboard
 ├── db/              — Data layer: all SQL queries
-│   ├── migrations.rs — Custom migration runner
+│   ├── migrations.rs — sqlx standard migration runner (sqlx::migrate!)
 │   ├── models.rs     — Return types (plain structs)
 │   ├── quiz.rs       — Quiz CRUD
 │   ├── session.rs    — Session lifecycle

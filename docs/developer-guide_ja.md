@@ -295,7 +295,7 @@ E2E データベース（`quizinart_e2e`）は開発用データベース（`qui
 |----------|---------|
 | Biome lint | `npx biome ci static/` |
 | フォーマットチェック | `cargo fmt --all -- --check` |
-| DB マイグレーション | シェルループ: `psql -f` で各 `migrations/V*__*.sql` を適用 |
+| DB マイグレーション | `sqlx migrate run`（sqlx-cli 経由） |
 | sqlx キャッシュチェック | `cargo sqlx prepare --check` |
 | Clippy | `cargo clippy --all-targets --all-features` |
 | ユニットテスト | `cargo test --all-targets --all-features` |
@@ -330,7 +330,7 @@ src/
 │   ├── account.rs   — アカウント管理
 │   └── quiz/        — クイズセッション、問題、ダッシュボード
 ├── db/              — データ層：全 SQL クエリ
-│   ├── migrations.rs — カスタムマイグレーションランナー
+│   ├── migrations.rs — sqlx 標準マイグレーションランナー（sqlx::migrate!）
 │   ├── models.rs     — 戻り値の型（プレーン構造体）
 │   ├── quiz.rs       — クイズ CRUD
 │   ├── session.rs    — セッションライフサイクル
