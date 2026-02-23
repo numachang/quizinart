@@ -227,9 +227,10 @@ async fn submit_answer(
 
     use axum::response::IntoResponse;
     if is_final {
-        let cookie = utils::clear_cookie(names::QUIZ_SESSION_COOKIE_NAME, state.secure_cookies);
+        let cookie = utils::clear_cookie(names::QUIZ_SESSION_COOKIE_NAME, state.secure_cookies)
+            .reject("could not build clear-session cookie")?;
         let mut headers = HeaderMap::new();
-        headers.insert(SET_COOKIE, cookie.parse().unwrap());
+        headers.insert(SET_COOKIE, cookie);
         Ok((headers, page).into_response())
     } else {
         Ok(page.into_response())

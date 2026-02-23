@@ -107,7 +107,9 @@ pub(crate) async fn add_to_library(
             let mut headers = HeaderMap::new();
             headers.insert(
                 "HX-Push-Url",
-                names::quiz_dashboard_url(&public_id).parse().unwrap(),
+                names::quiz_dashboard_url(&public_id)
+                    .parse()
+                    .reject("could not build dashboard URL header")?,
             );
 
             Ok((

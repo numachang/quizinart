@@ -144,11 +144,12 @@ async fn register_post(
                 names::USER_SESSION_COOKIE_NAME,
                 &session_token,
                 state.secure_cookies,
-            );
+            )
+            .reject("could not build session cookie")?;
             Ok((
                 StatusCode::SEE_OTHER,
                 [
-                    (SET_COOKIE, cookie.parse::<HeaderValue>().unwrap()),
+                    (SET_COOKIE, cookie),
                     (LOCATION, HeaderValue::from_static("/")),
                 ],
                 "",
@@ -206,11 +207,12 @@ async fn login_post(
                 names::USER_SESSION_COOKIE_NAME,
                 &session_token,
                 state.secure_cookies,
-            );
+            )
+            .reject("could not build session cookie")?;
             Ok((
                 StatusCode::SEE_OTHER,
                 [
-                    (SET_COOKIE, cookie.parse::<HeaderValue>().unwrap()),
+                    (SET_COOKIE, cookie),
                     (LOCATION, HeaderValue::from_static("/")),
                 ],
                 "",
@@ -232,7 +234,10 @@ async fn login_post(
     }
 }
 
-async fn logout_post(jar: CookieJar, State(state): State<AppState>) -> impl IntoResponse {
+async fn logout_post(
+    jar: CookieJar,
+    State(state): State<AppState>,
+) -> Result<impl IntoResponse, AppError> {
     if let Some(session_id) = jar
         .get(names::USER_SESSION_COOKIE_NAME)
         .map(|c| c.value().to_string())
@@ -241,14 +246,16 @@ async fn logout_post(jar: CookieJar, State(state): State<AppState>) -> impl Into
     }
 
     // Clear both new and legacy session cookies
-    let clear_user = utils::clear_cookie(names::USER_SESSION_COOKIE_NAME, state.secure_cookies);
-    let clear_admin = utils::clear_cookie(names::ADMIN_SESSION_COOKIE_NAME, state.secure_cookies);
+    let clear_user = utils::clear_cookie(names::USER_SESSION_COOKIE_NAME, state.secure_cookies)
+        .reject("could not build clear-user cookie")?;
+    let clear_admin = utils::clear_cookie(names::ADMIN_SESSION_COOKIE_NAME, state.secure_cookies)
+        .reject("could not build clear-admin cookie")?;
     let mut headers = HeaderMap::new();
-    headers.insert(SET_COOKIE, clear_user.parse().unwrap());
-    headers.append(SET_COOKIE, clear_admin.parse().unwrap());
-    headers.insert("HX-Redirect", names::LOGIN_URL.parse().unwrap());
+    headers.insert(SET_COOKIE, clear_user);
+    headers.append(SET_COOKIE, clear_admin);
+    headers.insert("HX-Redirect", HeaderValue::from_static(names::LOGIN_URL));
 
-    (headers, "")
+    Ok((headers, ""))
 }
 
 async fn verify_email(
@@ -434,10 +441,11 @@ async fn set_locale(
         "zh-TW" => "zh-TW",
         _ => "en",
     };
-    let cookie = utils::cookie(names::LOCALE_COOKIE_NAME, locale, state.secure_cookies);
+    let cookie = utils::cookie(names::LOCALE_COOKIE_NAME, locale, state.secure_cookies)
+        .reject("could not build locale cookie")?;
     let mut headers = HeaderMap::new();
-    headers.insert(SET_COOKIE, cookie.parse().unwrap());
-    headers.insert("HX-Refresh", "true".parse().unwrap());
+    headers.insert(SET_COOKIE, cookie);
+    headers.insert("HX-Refresh", HeaderValue::from_static("true"));
 
     Ok((headers, ""))
 }

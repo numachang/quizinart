@@ -90,9 +90,10 @@ pub(crate) async fn start_session(
         names::QUIZ_SESSION_COOKIE_NAME,
         &session_token,
         state.secure_cookies,
-    );
+    )
+    .reject("could not build session cookie")?;
     let mut headers = HeaderMap::new();
-    headers.insert(SET_COOKIE, cookie.parse().unwrap());
+    headers.insert(SET_COOKIE, cookie);
 
     Ok((headers, page).into_response())
 }
@@ -149,9 +150,10 @@ pub(crate) async fn resume_session(
         names::QUIZ_SESSION_COOKIE_NAME,
         &token,
         state.secure_cookies,
-    );
+    )
+    .reject("could not build session cookie")?;
     let mut headers = HeaderMap::new();
-    headers.insert(SET_COOKIE, cookie.parse().unwrap());
+    headers.insert(SET_COOKIE, cookie);
 
     Ok((headers, page))
 }
@@ -241,9 +243,10 @@ pub(crate) async fn retry_incorrect(
         names::QUIZ_SESSION_COOKIE_NAME,
         &token,
         state.secure_cookies,
-    );
+    )
+    .reject("could not build session cookie")?;
     let mut headers = HeaderMap::new();
-    headers.insert(SET_COOKIE, cookie.parse().unwrap());
+    headers.insert(SET_COOKIE, cookie);
 
     Ok((headers, page).into_response())
 }
@@ -333,9 +336,10 @@ pub(crate) async fn retry_bookmarked(
         names::QUIZ_SESSION_COOKIE_NAME,
         &token,
         state.secure_cookies,
-    );
+    )
+    .reject("could not build session cookie")?;
     let mut headers = HeaderMap::new();
-    headers.insert(SET_COOKIE, cookie.parse().unwrap());
+    headers.insert(SET_COOKIE, cookie);
 
     Ok((headers, page).into_response())
 }
@@ -448,12 +452,15 @@ pub(crate) async fn abandon_session(
         "Quiz Dashboard",
         super::dashboard::dashboard(&state.db, quiz_id, &public_id, &locale).await?,
     );
-    let cookie = utils::clear_cookie(names::QUIZ_SESSION_COOKIE_NAME, state.secure_cookies);
+    let cookie = utils::clear_cookie(names::QUIZ_SESSION_COOKIE_NAME, state.secure_cookies)
+        .reject("could not build clear-session cookie")?;
     let mut headers = HeaderMap::new();
-    headers.insert(SET_COOKIE, cookie.parse().unwrap());
+    headers.insert(SET_COOKIE, cookie);
     headers.insert(
         "HX-Push-Url",
-        names::quiz_dashboard_url(&public_id).parse().unwrap(),
+        names::quiz_dashboard_url(&public_id)
+            .parse()
+            .reject("could not build dashboard URL header")?,
     );
 
     Ok((headers, page))
