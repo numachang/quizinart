@@ -10,6 +10,7 @@ layout.menu_toggle: "切换菜单"
 layout.theme_light: "浅色"
 layout.theme_dark: "深色"
 layout.theme_system: "跟随系统"
+layout.my_quizzes: "我的测验"
 
 # Homepage - Register
 homepage.register_title: "创建账号"

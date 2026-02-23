@@ -10,6 +10,7 @@ layout.menu_toggle: "切換選單"
 layout.theme_light: "淺色"
 layout.theme_dark: "深色"
 layout.theme_system: "跟隨系統"
+layout.my_quizzes: "我的測驗"
 
 # Homepage - Register
 homepage.register_title: "建立帳號"

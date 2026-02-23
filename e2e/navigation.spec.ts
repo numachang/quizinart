@@ -93,6 +93,41 @@ test.describe("authenticated navigation", () => {
     await registerUser(page);
   });
 
+  test("My Quizzes link is visible and navigates to home", async ({
+    page,
+    jsErrors,
+  }) => {
+    // Navigate away first
+    await page.click('a[href="/account"]');
+    await expect(page.locator("h1")).toContainText("Account");
+
+    // Click "My Quizzes" nav link to go back
+    const myQuizzesLink = page.locator('nav a[href="/"]', {
+      hasText: "My Quizzes",
+    });
+    await expect(myQuizzesLink).toBeVisible();
+    await myQuizzesLink.click();
+    await expect(page.locator("h1")).toContainText("My Quizzes");
+  });
+
+  test("My Quizzes link is not visible for unauthenticated users", async ({
+    page,
+    jsErrors,
+  }) => {
+    // Log out first
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/logout")),
+      page.click("text=Log Out"),
+    ]);
+    await expect(page.locator("h1")).toContainText("Welcome back");
+
+    // "My Quizzes" nav link should not be in the navbar
+    const myQuizzesLink = page.locator('nav a[href="/"]', {
+      hasText: "My Quizzes",
+    });
+    await expect(myQuizzesLink).toHaveCount(0);
+  });
+
   test("account link works without JS errors", async ({
     page,
     jsErrors,

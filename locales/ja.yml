@@ -10,6 +10,7 @@ layout.menu_toggle: "メニュー切替"
 layout.theme_light: "ライト"
 layout.theme_dark: "ダーク"
 layout.theme_system: "システム"
+layout.my_quizzes: "クイズ一覧"
 
 # Homepage - Register
 homepage.register_title: "アカウントを作成"

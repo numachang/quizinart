@@ -10,6 +10,7 @@ layout.menu_toggle: "Toggle menu"
 layout.theme_light: "Light"
 layout.theme_dark: "Dark"
 layout.theme_system: "System"
+layout.my_quizzes: "My Quizzes"
 
 # Homepage - Register
 homepage.register_title: "Create your account"

@@ -330,6 +330,13 @@ button.htmx-request {
   background: color-mix(in srgb, var(--pico-color) 10%, transparent);
 }
 
+/* Feature nav links — hide on mobile (shown in hamburger menu) */
+@media (max-width: 767px) {
+  .nav-feature-link {
+    display: none;
+  }
+}
+
 /* Mobile breakpoint */
 @media (max-width: 767px) {
   /* Show the hamburger button */

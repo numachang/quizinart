@@ -50,6 +50,14 @@ fn header(locale: &str, user_name: Option<&str>) -> Markup {
                             strong { "Quizinart" }
                         }
                     }
+                    @if user_name.is_some() {
+                        li."secondary"."nav-feature-link" {
+                            (super::components::nav_link(
+                                "/",
+                                html! { (t!("layout.my_quizzes", locale = locale)) },
+                            ))
+                        }
+                    }
                     li."secondary"."nav-toggle-item" {
                         button
                             id="nav-toggle"
