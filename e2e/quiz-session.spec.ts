@@ -199,7 +199,7 @@ test.describe("quiz session", () => {
 
     // Session should appear in the table
     await expect(
-      page.locator("td", { hasText: sessionName })
+      page.locator("td", { hasText: sessionName }).first()
     ).toBeVisible();
   });
 
