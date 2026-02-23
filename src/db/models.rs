@@ -13,6 +13,8 @@ pub struct Quiz {
     pub name: String,
     pub count: i64,
     pub last_session_id: Option<i32>,
+    pub is_shared: bool,
+    pub is_owner: bool,
 }
 
 pub struct QuestionModel {

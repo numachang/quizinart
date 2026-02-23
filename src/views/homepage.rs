@@ -1,4 +1,4 @@
-use crate::{db::Quiz, names, views::components};
+use crate::{db::Quiz, names, views::components, views::quiz as quiz_views};
 use maud::{html, Markup};
 use rust_i18n::t;
 
@@ -385,7 +385,10 @@ pub fn quiz_list_with_error(quizzes: Vec<Quiz>, locale: &str, error: Option<&str
                         }
                     }
                     p { (quiz.count) (t!("homepage.questions_suffix", locale = locale)) }
-                    div."card-actions" style="display: flex; justify-content: flex-end;" {
+                    div."card-actions" style="display: flex; justify-content: flex-end; gap: 0.75rem;" {
+                        @if quiz.is_owner {
+                            (quiz_views::share_toggle_icon(&quiz.public_id, quiz.is_shared, locale))
+                        }
                         a."material-symbols-rounded"
                           hx-delete=(names::delete_quiz_url(&quiz.public_id))
                           hx-target="main"

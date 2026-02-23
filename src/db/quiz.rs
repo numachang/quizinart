@@ -116,7 +116,9 @@ impl Db {
               quizzes.public_id AS "public_id!",
               quizzes.name AS name,
               COUNT(DISTINCT questions.id) AS "count!",
-              MAX(qs.id) AS last_session_id
+              MAX(qs.id) AS last_session_id,
+              quizzes.is_shared AS "is_shared!",
+              (quizzes.owner_id = $1) AS "is_owner!"
             FROM
               user_quizzes
               JOIN quizzes ON quizzes.id = user_quizzes.quiz_id
@@ -125,7 +127,7 @@ impl Db {
             WHERE
               user_quizzes.user_id = $1
             GROUP BY
-              quizzes.id, quizzes.public_id, quizzes.name
+              quizzes.id, quizzes.public_id, quizzes.name, quizzes.is_shared, quizzes.owner_id
             ORDER BY
               last_session_id DESC NULLS LAST,
               quizzes.id DESC

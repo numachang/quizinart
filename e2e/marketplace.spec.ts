@@ -1,6 +1,21 @@
 import { test, expect } from "./fixtures";
 import { registerUser, createQuiz, loginUser } from "./helpers";
 
+/**
+ * Toggle the share state for a quiz from the quiz list page.
+ * Navigates to "/", finds the quiz card, and clicks the share toggle icon.
+ */
+async function toggleShare(page: import("@playwright/test").Page, quizName: string) {
+  await page.goto("/");
+  const card = page.locator("article", {
+    has: page.locator("h3", { hasText: quizName }),
+  });
+  await Promise.all([
+    page.waitForResponse((resp) => resp.url().includes("/toggle-share/")),
+    card.locator("[data-share-toggle]").click(),
+  ]);
+}
+
 test.describe("marketplace", () => {
   test("marketplace page shows shared quizzes", async ({ page, jsErrors }) => {
     // User A: create and share a quiz
@@ -8,11 +23,8 @@ test.describe("marketplace", () => {
     const quizName = `MktQuiz_${Date.now()}`;
     await createQuiz(page, quizName);
 
-    // Toggle sharing ON
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes("/toggle-share/")),
-      page.locator("button", { hasText: "Share" }).click(),
-    ]);
+    // Toggle sharing ON from quiz list
+    await toggleShare(page, quizName);
 
     // User B: visit marketplace
     const browser = page.context().browser()!;
@@ -59,10 +71,8 @@ test.describe("marketplace", () => {
     const quizName = `Import_${Date.now()}`;
     await createQuiz(page, quizName);
 
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes("/toggle-share/")),
-      page.locator("button", { hasText: "Share" }).click(),
-    ]);
+    // Toggle sharing ON from quiz list
+    await toggleShare(page, quizName);
 
     // User B: visit marketplace and import
     const browser = page.context().browser()!;
@@ -96,10 +106,11 @@ test.describe("marketplace", () => {
     const quizName = `Already_${Date.now()}`;
     await createQuiz(page, quizName);
 
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes("/toggle-share/")),
-      page.locator("button", { hasText: "Share" }).click(),
-    ]);
+    // Extract public_id from dashboard URL before navigating away
+    const publicId = page.url().match(/\/quiz\/([^/]+)\/dashboard/)![1];
+
+    // Toggle sharing ON from quiz list
+    await toggleShare(page, quizName);
 
     // User B: import via shared page, then check marketplace
     const browser = page.context().browser()!;
@@ -107,8 +118,6 @@ test.describe("marketplace", () => {
     const page2 = await context2.newPage();
     await registerUser(page2);
 
-    // Extract public_id from User A's dashboard URL
-    const publicId = page.url().match(/\/quiz\/([^/]+)\/dashboard/)![1];
     await page2.goto(`/shared/${publicId}`);
     await Promise.all([
       page2.waitForResponse((resp) =>
@@ -148,17 +157,11 @@ test.describe("marketplace search and filter", () => {
     const quizName2 = `SearchBeta_${Date.now()}`;
 
     await createQuiz(page, quizName1);
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes("/toggle-share/")),
-      page.locator("button", { hasText: "Share" }).click(),
-    ]);
+    await toggleShare(page, quizName1);
 
     await page.goto("/");
     await createQuiz(page, quizName2);
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes("/toggle-share/")),
-      page.locator("button", { hasText: "Share" }).click(),
-    ]);
+    await toggleShare(page, quizName2);
 
     // User B: search on marketplace
     const browser = page.context().browser()!;
@@ -199,10 +202,7 @@ test.describe("marketplace search and filter", () => {
     await registerUser(page);
     const quizName = `CatFilter_${Date.now()}`;
     await createQuiz(page, quizName);
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes("/toggle-share/")),
-      page.locator("button", { hasText: "Share" }).click(),
-    ]);
+    await toggleShare(page, quizName);
 
     // User B: filter by category on marketplace
     const browser = page.context().browser()!;

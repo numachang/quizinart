@@ -214,8 +214,6 @@ result.no_bookmarked: "リトライするブックマークはありません。
 # Quiz - Sharing
 share.share_btn: "共有"
 share.shared_label: "このクイズは共有されています"
-share.copy_link: "リンクをコピー"
-share.stop_sharing: "共有を停止"
 share.shared_by: "共有者: "
 share.questions_suffix: " 問"
 share.already_in_library: "このクイズはすでにライブラリに追加されています。"

@@ -214,8 +214,6 @@ result.no_bookmarked: "没有需要重试的收藏题。"
 # Quiz - Sharing
 share.share_btn: "分享"
 share.shared_label: "此测验已分享"
-share.copy_link: "复制链接"
-share.stop_sharing: "停止分享"
 share.shared_by: "分享者："
 share.questions_suffix: " 题"
 share.already_in_library: "此测验已在您的资料库中。"

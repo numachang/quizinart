@@ -1,6 +1,21 @@
 import { test, expect } from "./fixtures";
 import { registerUser, createQuiz, loginUser } from "./helpers";
 
+/**
+ * Toggle the share state for a quiz from the quiz list page.
+ * Navigates to "/", finds the quiz card, and clicks the share toggle icon.
+ */
+async function toggleShare(page: import("@playwright/test").Page, quizName: string) {
+  await page.goto("/");
+  const card = page.locator("article", {
+    has: page.locator("h3", { hasText: quizName }),
+  });
+  await Promise.all([
+    page.waitForResponse((resp) => resp.url().includes("/toggle-share/")),
+    card.locator("[data-share-toggle]").click(),
+  ]);
+}
+
 test.describe("quiz sharing", () => {
   let quizName: string;
 
@@ -17,40 +32,44 @@ test.describe("quiz sharing", () => {
     return match[1];
   }
 
-  test("share toggle shows share link and can be toggled off", async ({
+  test("share toggle icon works on quiz list card", async ({
     page,
     jsErrors,
   }) => {
-    // Should be on quiz dashboard after createQuiz
-    await expect(page.locator("h1")).toContainText(quizName);
+    // Navigate to quiz list
+    await page.goto("/");
+    await expect(page.locator("h1")).toContainText("My Quizzes");
 
-    // Click "Share" button
+    // Find the quiz card
+    const quizCard = page.locator("article", {
+      has: page.locator("h3", { hasText: quizName }),
+    });
+
+    // Should show public_off icon (not shared by default)
+    const shareToggle = quizCard.locator("[data-share-toggle]");
+    await expect(shareToggle).toBeVisible();
+    await expect(shareToggle).toContainText("public_off");
+
+    // Toggle ON
     await Promise.all([
       page.waitForResponse((resp) => resp.url().includes("/toggle-share/")),
-      page.locator("button", { hasText: "Share" }).click(),
+      shareToggle.click(),
     ]);
 
-    // Share link should be visible
-    const shareUrl = page.locator("#share-url");
-    await expect(shareUrl).toBeVisible();
-    await expect(shareUrl).toHaveAttribute("readonly", "");
-
-    // "Stop Sharing" button should be visible
-    await expect(
-      page.locator("button", { hasText: "Stop Sharing" })
-    ).toBeVisible();
+    // Should now show public icon (not public_off)
+    const updatedToggle = quizCard.locator("[data-share-toggle]");
+    await expect(updatedToggle).toContainText("public");
+    await expect(updatedToggle).not.toContainText("public_off");
 
     // Toggle OFF
     await Promise.all([
       page.waitForResponse((resp) => resp.url().includes("/toggle-share/")),
-      page.locator("button", { hasText: "Stop Sharing" }).click(),
+      updatedToggle.click(),
     ]);
 
-    // Share link should disappear, "Share" button should be back
-    await expect(page.locator("#share-url")).not.toBeVisible();
-    await expect(
-      page.locator("button", { hasText: "Share" })
-    ).toBeVisible();
+    // Should be back to public_off
+    const finalToggle = quizCard.locator("[data-share-toggle]");
+    await expect(finalToggle).toContainText("public_off");
   });
 
   test("shared quiz page is accessible by another user", async ({
@@ -59,12 +78,8 @@ test.describe("quiz sharing", () => {
   }) => {
     const publicId = extractPublicId(page.url());
 
-    // Toggle sharing ON
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes("/toggle-share/")),
-      page.locator("button", { hasText: "Share" }).click(),
-    ]);
-    await expect(page.locator("#share-url")).toBeVisible();
+    // Toggle sharing ON from quiz list
+    await toggleShare(page, quizName);
 
     // User B: new context
     const browser = page.context().browser()!;
@@ -106,11 +121,8 @@ test.describe("quiz sharing", () => {
   test("user can add shared quiz to library", async ({ page, jsErrors }) => {
     const publicId = extractPublicId(page.url());
 
-    // Toggle sharing ON
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes("/toggle-share/")),
-      page.locator("button", { hasText: "Share" }).click(),
-    ]);
+    // Toggle sharing ON from quiz list
+    await toggleShare(page, quizName);
 
     // User B: new context
     const browser = page.context().browser()!;
@@ -148,11 +160,8 @@ test.describe("quiz sharing", () => {
   }) => {
     const publicId = extractPublicId(page.url());
 
-    // Toggle sharing ON
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes("/toggle-share/")),
-      page.locator("button", { hasText: "Share" }).click(),
-    ]);
+    // Toggle sharing ON from quiz list
+    await toggleShare(page, quizName);
 
     // User B: new context
     const browser = page.context().browser()!;
@@ -172,7 +181,7 @@ test.describe("quiz sharing", () => {
     // Start a session from the dashboard
     await expect(page2.locator("h1")).toContainText(quizName);
 
-    // Navigate to quiz start page directly (HTMX buttons don't work reliably in separate contexts)
+    // Navigate to quiz start page directly
     await page2.goto(`/quiz/${publicId}`);
     await expect(page2.locator('input[name="question_count"]')).toBeVisible();
     await page2.fill('input[name="question_count"]', "5");
@@ -193,11 +202,8 @@ test.describe("quiz sharing", () => {
   }) => {
     const publicId = extractPublicId(page.url());
 
-    // Toggle sharing ON
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes("/toggle-share/")),
-      page.locator("button", { hasText: "Share" }).click(),
-    ]);
+    // Toggle sharing ON from quiz list
+    await toggleShare(page, quizName);
 
     // User B: add to library
     const browser = page.context().browser()!;
@@ -241,11 +247,8 @@ test.describe("quiz sharing", () => {
   }) => {
     const publicId = extractPublicId(page.url());
 
-    // Toggle sharing ON
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes("/toggle-share/")),
-      page.locator("button", { hasText: "Share" }).click(),
-    ]);
+    // Toggle sharing ON from quiz list
+    await toggleShare(page, quizName);
 
     // User B: add to library
     const browser = page.context().browser()!;
@@ -268,6 +271,39 @@ test.describe("quiz sharing", () => {
     await expect(
       page2.locator("button", { hasText: "Add to My Library" })
     ).not.toBeVisible();
+
+    await context2.close();
+  });
+
+  test("imported quiz does not show share toggle icon", async ({
+    page,
+    jsErrors,
+  }) => {
+    const publicId = extractPublicId(page.url());
+
+    // Toggle sharing ON from quiz list
+    await toggleShare(page, quizName);
+
+    // User B: import the quiz
+    const browser = page.context().browser()!;
+    const context2 = await browser.newContext();
+    const page2 = await context2.newPage();
+    await registerUser(page2);
+    await page2.goto(`/shared/${publicId}`);
+    await Promise.all([
+      page2.waitForResponse((resp) =>
+        resp.url().includes("/add-to-library/")
+      ),
+      page2.locator("button", { hasText: "Add to My Library" }).click(),
+    ]);
+
+    // User B goes to quiz list — imported quiz should NOT have share toggle
+    await page2.goto("/");
+    const quizCard = page2.locator("article", {
+      has: page2.locator("h3", { hasText: quizName }),
+    });
+    await expect(quizCard).toBeVisible();
+    await expect(quizCard.locator("[data-share-toggle]")).toHaveCount(0);
 
     await context2.close();
   });

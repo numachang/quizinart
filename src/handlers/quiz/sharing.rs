@@ -37,7 +37,9 @@ pub(crate) async fn toggle_share(
         .await
         .reject("could not toggle share")?;
 
-    Ok(quiz_views::share_section(&public_id, is_shared, &locale))
+    Ok(quiz_views::share_toggle_icon(
+        &public_id, is_shared, &locale,
+    ))
 }
 
 pub(crate) async fn shared_quiz_page(
@@ -112,8 +114,7 @@ pub(crate) async fn add_to_library(
                 headers,
                 views::titled(
                     "Quiz Dashboard",
-                    super::dashboard::dashboard(&state.db, info.id, &public_id, user.id, &locale)
-                        .await?,
+                    super::dashboard::dashboard(&state.db, info.id, &public_id, &locale).await?,
                 ),
             ))
         }

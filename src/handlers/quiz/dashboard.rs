@@ -25,7 +25,7 @@ pub(crate) async fn quiz_dashboard(
     Ok(views::render(
         is_htmx,
         "Quiz Dashboard",
-        dashboard(&state.db, quiz_id, &public_id, user.id, &locale).await?,
+        dashboard(&state.db, quiz_id, &public_id, &locale).await?,
         &locale,
         Some(&user.display_name),
     ))
@@ -120,20 +120,16 @@ pub async fn dashboard(
     db: &crate::db::Db,
     quiz_id: i32,
     quiz_public_id: &str,
-    user_id: i32,
     locale: &str,
 ) -> Result<Markup, AppError> {
-    let (quiz_name, sessions_count, overall, cat_stats, daily_accuracy, is_shared, is_owner) =
-        tokio::try_join!(
-            db.quiz_name(quiz_id),
-            db.sessions_count(quiz_id),
-            db.get_quiz_overall_stats(quiz_id),
-            db.get_quiz_category_stats(quiz_id),
-            db.get_daily_accuracy(quiz_id),
-            db.is_quiz_shared_by_id(quiz_id),
-            db.verify_quiz_owner(quiz_public_id, user_id),
-        )
-        .reject("could not get dashboard data")?;
+    let (quiz_name, sessions_count, overall, cat_stats, daily_accuracy) = tokio::try_join!(
+        db.quiz_name(quiz_id),
+        db.sessions_count(quiz_id),
+        db.get_quiz_overall_stats(quiz_id),
+        db.get_quiz_category_stats(quiz_id),
+        db.get_daily_accuracy(quiz_id),
+    )
+    .reject("could not get dashboard data")?;
 
     Ok(quiz_views::dashboard(
         quiz_views::DashboardData {
@@ -143,8 +139,6 @@ pub async fn dashboard(
             overall,
             cat_stats,
             daily_accuracy,
-            is_shared,
-            is_owner,
         },
         locale,
     ))

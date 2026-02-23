@@ -305,7 +305,7 @@ pub(crate) async fn retry_bookmarked(
 }
 
 pub(crate) async fn delete_session(
-    AuthGuard(user): AuthGuard,
+    AuthGuard(_user): AuthGuard,
     State(state): State<AppState>,
     Path(session_id): Path<i32>,
     Locale(locale): Locale,
@@ -331,12 +331,12 @@ pub(crate) async fn delete_session(
 
     Ok(views::titled(
         "Quiz Dashboard",
-        super::dashboard::dashboard(&state.db, quiz_id, &quiz_public_id, user.id, &locale).await?,
+        super::dashboard::dashboard(&state.db, quiz_id, &quiz_public_id, &locale).await?,
     ))
 }
 
 pub(crate) async fn rename_session(
-    AuthGuard(user): AuthGuard,
+    AuthGuard(_user): AuthGuard,
     State(state): State<AppState>,
     Path(session_id): Path<i32>,
     Locale(locale): Locale,
@@ -365,12 +365,12 @@ pub(crate) async fn rename_session(
 
     Ok(views::titled(
         "Quiz Dashboard",
-        super::dashboard::dashboard(&state.db, quiz_id, &quiz_public_id, user.id, &locale).await?,
+        super::dashboard::dashboard(&state.db, quiz_id, &quiz_public_id, &locale).await?,
     ))
 }
 
 pub(crate) async fn abandon_session(
-    AuthGuard(user): AuthGuard,
+    AuthGuard(_user): AuthGuard,
     State(state): State<AppState>,
     Path(public_id): Path<String>,
     Locale(locale): Locale,
@@ -383,7 +383,7 @@ pub(crate) async fn abandon_session(
 
     let page = views::titled(
         "Quiz Dashboard",
-        super::dashboard::dashboard(&state.db, quiz_id, &public_id, user.id, &locale).await?,
+        super::dashboard::dashboard(&state.db, quiz_id, &public_id, &locale).await?,
     );
     let cookie = utils::clear_cookie(names::QUIZ_SESSION_COOKIE_NAME, state.secure_cookies);
     let mut headers = HeaderMap::new();

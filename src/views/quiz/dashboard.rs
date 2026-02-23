@@ -16,8 +16,6 @@ pub struct DashboardData {
     pub overall: QuizOverallStats,
     pub cat_stats: Vec<QuizCategoryOverallStats>,
     pub daily_accuracy: Vec<DailyAccuracy>,
-    pub is_shared: bool,
-    pub is_owner: bool,
 }
 
 pub struct SessionHistoryData {
@@ -71,12 +69,6 @@ pub fn dashboard(data: DashboardData, locale: &str) -> Markup {
                    hx-target="main"
                    style="width: fit-content;" {
                 (t!("dashboard.open_session_history", locale = locale))
-            }
-        }
-
-        @if data.is_owner {
-            div id="share-section" {
-                (share_section(&data.quiz_id, data.is_shared, locale))
             }
         }
 
@@ -189,46 +181,6 @@ pub fn dashboard(data: DashboardData, locale: &str) -> Markup {
             }
         }
 
-    }
-}
-
-pub fn share_section(public_id: &str, is_shared: bool, locale: &str) -> Markup {
-    html! {
-        @if is_shared {
-            article style="background-color: var(--pico-ins-color, #d4edda); padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem;" {
-                div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;" {
-                    span."material-symbols-rounded" style="color: #28a745;" { "link" }
-                    strong { (t!("share.shared_label", locale = locale)) }
-                }
-                div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;" {
-                    input type="text"
-                          readonly
-                          value=(names::shared_quiz_url(public_id))
-                          id="share-url"
-                          style="flex: 1; min-width: 200px; margin-bottom: 0;"
-                          data-select-text="";
-                    button data-copy-url=""
-                           style="width: fit-content; white-space: nowrap; margin-bottom: 0;" {
-                        (t!("share.copy_link", locale = locale))
-                    }
-                }
-                button hx-post=(names::toggle_share_url(public_id))
-                       hx-target="#share-section"
-                       hx-swap="innerHTML"
-                       class="secondary"
-                       style="width: fit-content; margin-top: 0.5rem;" {
-                    (t!("share.stop_sharing", locale = locale))
-                }
-            }
-        } @else {
-            button hx-post=(names::toggle_share_url(public_id))
-                   hx-target="#share-section"
-                   hx-swap="innerHTML"
-                   style="width: fit-content; margin-bottom: 1rem;" {
-                span."material-symbols-rounded" style="font-size: 1rem; vertical-align: middle;" { "share" }
-                " " (t!("share.share_btn", locale = locale))
-            }
-        }
     }
 }
 

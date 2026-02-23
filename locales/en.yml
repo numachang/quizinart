@@ -214,8 +214,6 @@ result.no_bookmarked: "No bookmarked questions to retry."
 # Quiz - Sharing
 share.share_btn: "Share"
 share.shared_label: "This quiz is shared"
-share.copy_link: "Copy Link"
-share.stop_sharing: "Stop Sharing"
 share.shared_by: "Shared by "
 share.questions_suffix: " questions"
 share.already_in_library: "This quiz is already in your library."
