@@ -70,9 +70,12 @@ async fn run() -> color_eyre::Result<()> {
     let address = args.address.parse::<std::net::SocketAddr>()?;
     let listener = tokio::net::TcpListener::bind(address).await?;
     tracing::info!("listening on {}", address);
-    axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal())
-        .await?;
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<std::net::SocketAddr>(),
+    )
+    .with_graceful_shutdown(shutdown_signal())
+    .await?;
 
     tracing::info!("server shut down gracefully");
     Ok(())
