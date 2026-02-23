@@ -22,7 +22,7 @@ fn make_state(db: quizinart::db::Db) -> AppState {
 
 async fn app() -> axum::Router {
     let db = common::create_test_db().await;
-    router(make_state(db))
+    router(make_state(db), true)
 }
 
 #[tokio::test]
@@ -73,7 +73,7 @@ async fn protected_quiz_routes_accept_requests_with_valid_user_session() {
         .await
         .expect("create user session");
 
-    let app = router(make_state(db));
+    let app = router(make_state(db), true);
 
     let req = Request::builder()
         .method(Method::GET)
@@ -108,7 +108,7 @@ async fn protected_routes_accept_legacy_admin_session_with_migration_user() {
         .await
         .expect("create migration user");
 
-    let app = router(make_state(db));
+    let app = router(make_state(db), true);
 
     let req = Request::builder()
         .method(Method::GET)
