@@ -22,6 +22,10 @@ pub(crate) async fn quiz_dashboard(
         .await
         .reject("quiz not found")?;
 
+    if !state.db.user_has_quiz(user.id, quiz_id).await.reject("could not check access")? {
+        return Err(AppError::Forbidden);
+    }
+
     Ok(views::render(
         is_htmx,
         "Quiz Dashboard",
@@ -44,6 +48,10 @@ pub(crate) async fn quiz_session_history(
         .await
         .reject("quiz not found")?;
 
+    if !state.db.user_has_quiz(user.id, quiz_id).await.reject("could not check access")? {
+        return Err(AppError::Forbidden);
+    }
+
     Ok(views::render(
         is_htmx,
         "Session History",
@@ -60,6 +68,10 @@ pub(crate) async fn session_result(
     Path(session_id): Path<i32>,
     Locale(locale): Locale,
 ) -> Result<Markup, AppError> {
+    if !state.db.verify_session_owner(session_id, user.id).await.reject("could not verify session owner")? {
+        return Err(AppError::Forbidden);
+    }
+
     let session = state
         .db
         .get_session_by_id(session_id)

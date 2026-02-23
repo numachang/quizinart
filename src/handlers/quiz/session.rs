@@ -30,6 +30,10 @@ pub(crate) async fn start_session(
         .await
         .reject("quiz not found")?;
 
+    if !state.db.user_has_quiz(user.id, quiz_id).await.reject("could not check access")? {
+        return Err(AppError::Forbidden);
+    }
+
     let question_count = body
         .question_count
         .clamp(names::MIN_QUESTION_COUNT, names::MAX_QUESTION_COUNT);
@@ -89,12 +93,16 @@ pub(crate) async fn start_session(
 }
 
 pub(crate) async fn resume_session(
-    AuthGuard(_user): AuthGuard,
+    AuthGuard(user): AuthGuard,
     State(state): State<AppState>,
     Path((session_id, token)): Path<(i32, String)>,
     Locale(locale): Locale,
 ) -> Result<impl IntoResponse, AppError> {
     tracing::info!("Resuming session {} with token {}", session_id, token);
+
+    if !state.db.verify_session_owner(session_id, user.id).await.reject("could not verify session owner")? {
+        return Err(AppError::Forbidden);
+    }
 
     let session = state
         .db
@@ -144,6 +152,10 @@ pub(crate) async fn retry_incorrect(
     Path(session_id): Path<i32>,
     Locale(locale): Locale,
 ) -> Result<axum::response::Response, AppError> {
+    if !state.db.verify_session_owner(session_id, user.id).await.reject("could not verify session owner")? {
+        return Err(AppError::Forbidden);
+    }
+
     let session = state
         .db
         .get_session_by_id(session_id)
@@ -227,6 +239,10 @@ pub(crate) async fn retry_bookmarked(
     Path(session_id): Path<i32>,
     Locale(locale): Locale,
 ) -> Result<axum::response::Response, AppError> {
+    if !state.db.verify_session_owner(session_id, user.id).await.reject("could not verify session owner")? {
+        return Err(AppError::Forbidden);
+    }
+
     let session = state
         .db
         .get_session_by_id(session_id)
@@ -305,11 +321,15 @@ pub(crate) async fn retry_bookmarked(
 }
 
 pub(crate) async fn delete_session(
-    AuthGuard(_user): AuthGuard,
+    AuthGuard(user): AuthGuard,
     State(state): State<AppState>,
     Path(session_id): Path<i32>,
     Locale(locale): Locale,
 ) -> Result<Markup, AppError> {
+    if !state.db.verify_session_owner(session_id, user.id).await.reject("could not verify session owner")? {
+        return Err(AppError::Forbidden);
+    }
+
     let session = state
         .db
         .get_session_by_id(session_id)
@@ -336,12 +356,16 @@ pub(crate) async fn delete_session(
 }
 
 pub(crate) async fn rename_session(
-    AuthGuard(_user): AuthGuard,
+    AuthGuard(user): AuthGuard,
     State(state): State<AppState>,
     Path(session_id): Path<i32>,
     Locale(locale): Locale,
     Form(body): Form<super::RenameSessionBody>,
 ) -> Result<Markup, AppError> {
+    if !state.db.verify_session_owner(session_id, user.id).await.reject("could not verify session owner")? {
+        return Err(AppError::Forbidden);
+    }
+
     let session = state
         .db
         .get_session_by_id(session_id)
@@ -370,7 +394,7 @@ pub(crate) async fn rename_session(
 }
 
 pub(crate) async fn abandon_session(
-    AuthGuard(_user): AuthGuard,
+    AuthGuard(user): AuthGuard,
     State(state): State<AppState>,
     Path(public_id): Path<String>,
     Locale(locale): Locale,
@@ -380,6 +404,10 @@ pub(crate) async fn abandon_session(
         .resolve_quiz_id(&public_id)
         .await
         .reject("quiz not found")?;
+
+    if !state.db.user_has_quiz(user.id, quiz_id).await.reject("could not check access")? {
+        return Err(AppError::Forbidden);
+    }
 
     let page = views::titled(
         "Quiz Dashboard",

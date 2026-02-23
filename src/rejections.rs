@@ -11,6 +11,9 @@ pub enum AppError {
     #[error("unauthorized")]
     Unauthorized,
 
+    #[error("forbidden")]
+    Forbidden,
+
     #[error("{0}")]
     Input(&'static str),
 }
@@ -20,6 +23,7 @@ impl IntoResponse for AppError {
         let (status, message) = match &self {
             AppError::Internal(_) => (StatusCode::INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR"),
             AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "UNAUTHORIZED"),
+            AppError::Forbidden => (StatusCode::FORBIDDEN, "FORBIDDEN"),
             AppError::Input(_) => (StatusCode::BAD_REQUEST, "INPUT_ERROR"),
         };
         let body = views::page(

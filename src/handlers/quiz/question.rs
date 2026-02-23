@@ -29,6 +29,10 @@ pub(crate) async fn quiz_page(
         .await
         .reject("quiz not found")?;
 
+    if !state.db.user_has_quiz(user.id, quiz_id).await.reject("could not check access")? {
+        return Err(AppError::Forbidden);
+    }
+
     let token = jar
         .get(names::QUIZ_SESSION_COOKIE_NAME)
         .map(|c| c.value().to_string());
@@ -77,7 +81,7 @@ pub(crate) async fn quiz_page(
 }
 
 pub(crate) async fn submit_answer_raw(
-    AuthGuard(_user): AuthGuard,
+    AuthGuard(user): AuthGuard,
     State(state): State<AppState>,
     jar: CookieJar,
     Locale(locale): Locale,
@@ -114,13 +118,14 @@ pub(crate) async fn submit_answer_raw(
     tracing::info!("Received body: option={:?}, options={:?}", option, options);
 
     let body = SubmitAnswerBody { option, options };
-    submit_answer(state, token, body, &locale).await
+    submit_answer(state, token, body, user.id, &locale).await
 }
 
 async fn submit_answer(
     state: AppState,
     token: String,
     body: SubmitAnswerBody,
+    user_id: i32,
     locale: &str,
 ) -> Result<axum::response::Response, AppError> {
     let session = state
@@ -128,6 +133,10 @@ async fn submit_answer(
         .get_session(&token)
         .await
         .reject("could not get session")?;
+
+    if !state.db.verify_session_owner(session.id, user_id).await.reject("could not verify session owner")? {
+        return Err(AppError::Forbidden);
+    }
 
     let selected_ids: Vec<i32> = if !body.options.is_empty() {
         body.options
@@ -218,13 +227,17 @@ async fn submit_answer(
 }
 
 pub(crate) async fn navigate_question(
-    AuthGuard(_user): AuthGuard,
+    AuthGuard(user): AuthGuard,
     State(state): State<AppState>,
     IsHtmx(_is_htmx): IsHtmx,
     Path(session_id): Path<i32>,
     Query(query): Query<NavigateQuestionQuery>,
     Locale(locale): Locale,
 ) -> Result<Markup, AppError> {
+    if !state.db.verify_session_owner(session_id, user.id).await.reject("could not verify session owner")? {
+        return Err(AppError::Forbidden);
+    }
+
     let session = state
         .db
         .get_session_by_id(session_id)
@@ -283,11 +296,15 @@ pub(crate) async fn navigate_question(
 }
 
 pub(crate) async fn toggle_bookmark(
-    AuthGuard(_user): AuthGuard,
+    AuthGuard(user): AuthGuard,
     State(state): State<AppState>,
     Path((session_id, question_id)): Path<(i32, i32)>,
     Locale(locale): Locale,
 ) -> Result<Markup, AppError> {
+    if !state.db.verify_session_owner(session_id, user.id).await.reject("could not verify session owner")? {
+        return Err(AppError::Forbidden);
+    }
+
     let new_state = state
         .db
         .toggle_bookmark(session_id, question_id)
