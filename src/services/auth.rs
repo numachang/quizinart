@@ -148,6 +148,7 @@ pub enum ChangePasswordOutcome {
     EmptyFields,
     WeakPassword,
     IncorrectPassword,
+    DemoUser,
 }
 
 const MIN_PASSWORD_LENGTH: usize = 8;
@@ -332,9 +333,14 @@ impl<R: AuthRepository, E: EmailSender> AuthService<R, E> {
     pub async fn change_password(
         &self,
         user_id: i32,
+        is_demo: bool,
         current_password: &str,
         new_password: &str,
     ) -> Result<ChangePasswordOutcome> {
+        if is_demo {
+            return Ok(ChangePasswordOutcome::DemoUser);
+        }
+
         if current_password.is_empty() || new_password.is_empty() {
             return Ok(ChangePasswordOutcome::EmptyFields);
         }
@@ -411,6 +417,8 @@ mod tests {
                     id: 1,
                     email: "test@example.com".to_string(),
                     display_name: "Test".to_string(),
+                    is_admin: false,
+                    is_demo: false,
                 }))
             })
         });
@@ -563,12 +571,12 @@ mod tests {
     async fn change_password_empty_fields_returns_empty_fields() {
         let mock = MockAuthRepository::new();
         let svc = service(mock);
-        let outcome = svc.change_password(1, "", "new").await.unwrap();
+        let outcome = svc.change_password(1, false, "", "new").await.unwrap();
         assert!(matches!(outcome, ChangePasswordOutcome::EmptyFields));
 
         let mock = MockAuthRepository::new();
         let svc = service(mock);
-        let outcome = svc.change_password(1, "old", "").await.unwrap();
+        let outcome = svc.change_password(1, false, "old", "").await.unwrap();
         assert!(matches!(outcome, ChangePasswordOutcome::EmptyFields));
     }
 
@@ -580,7 +588,7 @@ mod tests {
 
         let svc = service(mock);
         let outcome = svc
-            .change_password(1, "oldpassword", "newpassword")
+            .change_password(1, false, "oldpassword", "newpassword")
             .await
             .unwrap();
         assert!(matches!(outcome, ChangePasswordOutcome::Success));
@@ -594,10 +602,21 @@ mod tests {
 
         let svc = service(mock);
         let outcome = svc
-            .change_password(1, "wrongpassword", "newpassword")
+            .change_password(1, false, "wrongpassword", "newpassword")
             .await
             .unwrap();
         assert!(matches!(outcome, ChangePasswordOutcome::IncorrectPassword));
+    }
+
+    #[tokio::test]
+    async fn change_password_demo_user_returns_demo_user() {
+        let mock = MockAuthRepository::new();
+        let svc = service(mock);
+        let outcome = svc
+            .change_password(1, true, "oldpassword", "newpassword")
+            .await
+            .unwrap();
+        assert!(matches!(outcome, ChangePasswordOutcome::DemoUser));
     }
 
     // ----- verify_email tests -----

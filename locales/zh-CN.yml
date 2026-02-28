@@ -80,6 +80,7 @@ account.incorrect_password: "当前密码不正确。"
 account.empty_fields: "请填写所有密码字段。"
 account.weak_password: "新密码至少需要8个字符。"
 account.password_changed: "密码修改成功。"
+account.demo_password_notice: "这是演示账户，无法更改密码。"
 
 # Homepage - Quiz List
 homepage.my_quizzes: "我的测验"

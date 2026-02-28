@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, email, display_name FROM users WHERE email = $1",
+  "query": "SELECT id, email, display_name, is_admin, is_demo FROM users WHERE email = $1",
   "describe": {
     "columns": [
       {
@@ -17,6 +17,16 @@
         "ordinal": 2,
         "name": "display_name",
         "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "is_admin",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 4,
+        "name": "is_demo",
+        "type_info": "Bool"
       }
     ],
     "parameters": {
@@ -27,8 +37,10 @@
     "nullable": [
       false,
       false,
+      false,
+      false,
       false
     ]
   },
-  "hash": "745ed236eda1dfe69655392161d0aae2daf678aa943e5df44fe20c86e032c763"
+  "hash": "5eb6b727b4fc0214611038995671d8e770d857b5f5e0b53c063a8a36ea5bc3d4"
 }

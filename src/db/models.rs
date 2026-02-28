@@ -5,6 +5,8 @@ pub struct AuthUser {
     pub id: i32,
     pub email: String,
     pub display_name: String,
+    pub is_admin: bool,
+    pub is_demo: bool,
 }
 
 pub struct Quiz {

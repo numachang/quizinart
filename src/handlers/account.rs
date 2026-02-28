@@ -50,7 +50,7 @@ async fn change_password_post(
 
     let outcome = state
         .auth
-        .change_password(user.id, &body.current_password, &body.new_password)
+        .change_password(user.id, user.is_demo, &body.current_password, &body.new_password)
         .await
         .reject("could not change password")?;
 
@@ -61,6 +61,7 @@ async fn change_password_post(
         ChangePasswordOutcome::IncorrectPassword => {
             account_views::ChangePasswordState::IncorrectPassword
         }
+        ChangePasswordOutcome::DemoUser => account_views::ChangePasswordState::DemoUser,
     };
 
     Ok(views::titled(

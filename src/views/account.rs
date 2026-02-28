@@ -8,6 +8,7 @@ pub enum ChangePasswordState {
     EmptyFields,
     WeakPassword,
     Success,
+    DemoUser,
 }
 
 pub fn account_page(user: &AuthUser, state: ChangePasswordState, locale: &str) -> Markup {
@@ -29,6 +30,7 @@ pub fn account_page(user: &AuthUser, state: ChangePasswordState, locale: &str) -
             None,
             Some(t!("account.password_changed", locale = locale).to_string()),
         ),
+        ChangePasswordState::DemoUser => (None, None),
     };
 
     html! {
@@ -47,45 +49,53 @@ pub fn account_page(user: &AuthUser, state: ChangePasswordState, locale: &str) -
 
         h2 { (t!("account.change_password_title", locale = locale)) }
 
-        @if let Some(ref msg) = success_msg {
-            p style="color: var(--pico-ins-color);" { (msg) }
-        }
+        @if user.is_demo {
+            article."article-narrow" {
+                p style="color: var(--color-muted);" {
+                    (t!("account.demo_password_notice", locale = locale))
+                }
+            }
+        } @else {
+            @if let Some(ref msg) = success_msg {
+                p style="color: var(--pico-ins-color);" { (msg) }
+            }
 
-        article."article-narrow" {
-            form hx-post=(names::CHANGE_PASSWORD_URL)
-                 hx-ext="json-enc"
-                 hx-target="main"
-                 hx-swap="innerHTML" {
-                label {
-                    (t!("account.current_password", locale = locale))
-                    @if let Some(ref msg) = error_msg {
-                        input name="current_password"
-                              type="password"
-                              autocomplete="current-password"
-                              required="true"
-                              placeholder=(t!("account.current_password", locale = locale))
-                              aria-invalid="true"
-                              aria-label=(t!("account.current_password", locale = locale));
-                        small { (msg) }
-                    } @else {
-                        input name="current_password"
-                              type="password"
-                              autocomplete="current-password"
-                              required="true"
-                              placeholder=(t!("account.current_password", locale = locale))
-                              aria-label=(t!("account.current_password", locale = locale));
+            article."article-narrow" {
+                form hx-post=(names::CHANGE_PASSWORD_URL)
+                     hx-ext="json-enc"
+                     hx-target="main"
+                     hx-swap="innerHTML" {
+                    label {
+                        (t!("account.current_password", locale = locale))
+                        @if let Some(ref msg) = error_msg {
+                            input name="current_password"
+                                  type="password"
+                                  autocomplete="current-password"
+                                  required="true"
+                                  placeholder=(t!("account.current_password", locale = locale))
+                                  aria-invalid="true"
+                                  aria-label=(t!("account.current_password", locale = locale));
+                            small { (msg) }
+                        } @else {
+                            input name="current_password"
+                                  type="password"
+                                  autocomplete="current-password"
+                                  required="true"
+                                  placeholder=(t!("account.current_password", locale = locale))
+                                  aria-label=(t!("account.current_password", locale = locale));
+                        }
                     }
+                    label {
+                        (t!("account.new_password", locale = locale))
+                        input name="new_password"
+                              type="password"
+                              autocomplete="new-password"
+                              required="true"
+                              placeholder=(t!("account.new_password", locale = locale))
+                              aria-label=(t!("account.new_password", locale = locale));
+                    }
+                    button type="submit" { (t!("account.change_password_btn", locale = locale)) }
                 }
-                label {
-                    (t!("account.new_password", locale = locale))
-                    input name="new_password"
-                          type="password"
-                          autocomplete="new-password"
-                          required="true"
-                          placeholder=(t!("account.new_password", locale = locale))
-                          aria-label=(t!("account.new_password", locale = locale));
-                }
-                button type="submit" { (t!("account.change_password_btn", locale = locale)) }
             }
         }
     }

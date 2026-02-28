@@ -80,6 +80,7 @@ account.incorrect_password: "目前密碼不正確。"
 account.empty_fields: "請填寫所有密碼欄位。"
 account.weak_password: "新密碼至少需要8個字元。"
 account.password_changed: "密碼變更成功。"
+account.demo_password_notice: "這是示範帳戶，無法變更密碼。"
 
 # Homepage - Quiz List
 homepage.my_quizzes: "我的測驗"

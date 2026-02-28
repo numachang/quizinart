@@ -80,6 +80,7 @@ account.incorrect_password: "Current password is incorrect."
 account.empty_fields: "Please fill in all password fields."
 account.weak_password: "New password must be at least 8 characters."
 account.password_changed: "Your password has been changed successfully."
+account.demo_password_notice: "This is a demo account. Password cannot be changed."
 
 # Homepage - Quiz List
 homepage.my_quizzes: "My Quizzes"

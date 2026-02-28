@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT email FROM users\n               WHERE password_reset_token = $1\n               AND password_reset_expires_at > NOW()",
+  "query": "SELECT email FROM users\n               WHERE password_reset_token = $1\n               AND password_reset_expires_at > NOW()\n               AND is_demo = FALSE",
   "describe": {
     "columns": [
       {
@@ -18,5 +18,5 @@
       false
     ]
   },
-  "hash": "ad124a56d00e43f5dff3912a125d34e8aa2fcc7898b19eca490b618234a2e083"
+  "hash": "e5cc5d72aefbc609772b8e430c9803d271f759554f139ae6f8cf475da3cd60fb"
 }

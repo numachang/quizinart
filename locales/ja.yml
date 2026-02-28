@@ -80,6 +80,7 @@ account.incorrect_password: "現在のパスワードが正しくありません
 account.empty_fields: "すべてのパスワード項目を入力してください。"
 account.weak_password: "新しいパスワードは8文字以上で入力してください。"
 account.password_changed: "パスワードが正常に変更されました。"
+account.demo_password_notice: "これはデモアカウントです。パスワードは変更できません。"
 
 # Homepage - Quiz List
 homepage.my_quizzes: "クイズ一覧"

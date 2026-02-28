@@ -104,7 +104,7 @@ impl Db {
     pub async fn find_user_by_email(&self, email: &str) -> Result<Option<AuthUser>> {
         let user = sqlx::query_as!(
             AuthUser,
-            "SELECT id, email, display_name FROM users WHERE email = $1",
+            "SELECT id, email, display_name, is_admin, is_demo FROM users WHERE email = $1",
             email
         )
         .fetch_optional(&self.pool)
@@ -147,7 +147,7 @@ impl Db {
         let user = sqlx::query_as!(
             AuthUser,
             r#"
-            SELECT u.id, u.email, u.display_name
+            SELECT u.id, u.email, u.display_name, u.is_admin, u.is_demo
             FROM user_sessions s
             JOIN users u ON u.id = s.user_id
             WHERE s.id = $1
@@ -259,7 +259,7 @@ impl Db {
         let result = sqlx::query!(
             r#"UPDATE users
                SET password_reset_token = $1, password_reset_expires_at = NOW() + INTERVAL '1 hour'
-               WHERE email = $2 AND email_verified = TRUE"#,
+               WHERE email = $2 AND email_verified = TRUE AND is_demo = FALSE"#,
             token,
             email
         )
@@ -278,7 +278,8 @@ impl Db {
         let email: Option<String> = sqlx::query_scalar!(
             r#"SELECT email FROM users
                WHERE password_reset_token = $1
-               AND password_reset_expires_at > NOW()"#,
+               AND password_reset_expires_at > NOW()
+               AND is_demo = FALSE"#,
             token
         )
         .fetch_optional(&self.pool)
@@ -295,7 +296,8 @@ impl Db {
             r#"UPDATE users
                SET password_hash = $1, password_reset_token = NULL, password_reset_expires_at = NULL
                WHERE password_reset_token = $2
-               AND password_reset_expires_at > NOW()"#,
+               AND password_reset_expires_at > NOW()
+               AND is_demo = FALSE"#,
             password_hash,
             token
         )
