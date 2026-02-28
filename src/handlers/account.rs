@@ -50,7 +50,12 @@ async fn change_password_post(
 
     let outcome = state
         .auth
-        .change_password(user.id, user.is_demo, &body.current_password, &body.new_password)
+        .change_password(
+            user.id,
+            user.is_demo,
+            &body.current_password,
+            &body.new_password,
+        )
         .await
         .reject("could not change password")?;
 
