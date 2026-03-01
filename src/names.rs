@@ -77,6 +77,9 @@ pub const DEFAULT_QUESTION_COUNT: i32 = 10;
 pub const DEFAULT_SELECTION_MODE: &str = "unanswered";
 pub const SELECTION_MODES: &[&str] = &["unanswered", "incorrect", "random"];
 
+// Admin
+pub const ADMIN_URL: &str = "/admin";
+
 // Marketplace
 pub const MARKETPLACE_URL: &str = "/marketplace";
 pub const MARKETPLACE_SEARCH_URL: &str = "/marketplace/search";

@@ -106,6 +106,15 @@ pub struct SharedQuizInfo {
     pub import_count: i64,
 }
 
+pub struct AdminUserStats {
+    pub id: i32,
+    pub display_name: String,
+    pub quiz_count: i64,
+    pub unique_asked: i64,
+    pub total_questions: i64,
+    pub total_study_time_ms: i64,
+}
+
 /// Combined question context from session_questions + questions + quizzes (single JOIN query)
 pub struct QuestionContext {
     pub quiz_name: String,

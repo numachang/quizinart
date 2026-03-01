@@ -36,6 +36,20 @@ pub fn account_page(user: &AuthUser, state: ChangePasswordState, locale: &str) -
     html! {
         h1 { (t!("account.title", locale = locale)) }
 
+        @if user.is_admin {
+            div style="margin-bottom: 1rem;" {
+                a hx-get=(names::ADMIN_URL)
+                  hx-push-url="true"
+                  hx-target="main"
+                  href="#"
+                  role="button"
+                  style="width: fit-content;" {
+                    span."material-symbols-rounded" style="font-size: 1rem; vertical-align: middle;" { "admin_panel_settings" }
+                    " " (t!("admin.go_to_admin", locale = locale))
+                }
+            }
+        }
+
         article."article-narrow" {
             label {
                 (t!("account.email_label", locale = locale))

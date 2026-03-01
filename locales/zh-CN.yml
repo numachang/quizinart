@@ -228,6 +228,14 @@ result.retry_bookmarked_btn_2: " 道收藏题"
 result.no_bookmarked: "没有需要重试的收藏题。"
 result.study_time: "学习时间: "
 
+# Admin
+admin.title: "管理员仪表板"
+admin.user: "用户"
+admin.quiz_count: "测验数"
+admin.progress: "进度"
+admin.study_time: "学习时间"
+admin.go_to_admin: "管理员仪表板"
+
 # Quiz - Sharing
 share.share_btn: "分享"
 share.shared_label: "此测验已分享"

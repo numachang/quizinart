@@ -1,0 +1,50 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                u.id,\n                u.display_name,\n                (SELECT COUNT(*) FROM user_quizzes uq WHERE uq.user_id = u.id) AS \"quiz_count!\",\n                (SELECT COUNT(DISTINCT sq.question_id)\n                 FROM session_questions sq\n                 JOIN quiz_sessions qs ON qs.id = sq.session_id\n                 WHERE qs.user_id = u.id AND sq.is_correct IS NOT NULL\n                ) AS \"unique_asked!\",\n                (SELECT COUNT(*)\n                 FROM questions q\n                 JOIN user_quizzes uq2 ON q.quiz_id = uq2.quiz_id\n                 WHERE uq2.user_id = u.id\n                ) AS \"total_questions!\",\n                COALESCE((\n                    SELECT SUM(ua.duration_ms)::BIGINT\n                    FROM user_answers ua\n                    JOIN quiz_sessions qs2 ON qs2.id = ua.session_id\n                    WHERE qs2.user_id = u.id\n                ), 0) AS \"total_study_time_ms!\"\n            FROM users u\n            ORDER BY u.id\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "display_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "quiz_count!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 3,
+        "name": "unique_asked!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 4,
+        "name": "total_questions!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 5,
+        "name": "total_study_time_ms!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "8ae4237fdd3a5ac33f259c7c37fb7f57a01e93f0fe7ac91267131db2ddc6a75f"
+}

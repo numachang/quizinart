@@ -228,6 +228,14 @@ result.retry_bookmarked_btn_2: " 問をリトライ"
 result.no_bookmarked: "リトライするブックマークはありません。"
 result.study_time: "学習時間: "
 
+# Admin
+admin.title: "管理者ダッシュボード"
+admin.user: "ユーザー"
+admin.quiz_count: "クイズ数"
+admin.progress: "進捗"
+admin.study_time: "学習時間"
+admin.go_to_admin: "管理者ダッシュボード"
+
 # Quiz - Sharing
 share.share_btn: "共有"
 share.shared_label: "このクイズは共有されています"

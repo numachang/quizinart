@@ -228,6 +228,14 @@ result.retry_bookmarked_btn_2: " Bookmarked Questions"
 result.no_bookmarked: "No bookmarked questions to retry."
 result.study_time: "Study Time: "
 
+# Admin
+admin.title: "Admin Dashboard"
+admin.user: "User"
+admin.quiz_count: "Quizzes"
+admin.progress: "Progress"
+admin.study_time: "Study Time"
+admin.go_to_admin: "Admin Dashboard"
+
 # Quiz - Sharing
 share.share_btn: "Share"
 share.shared_label: "This quiz is shared"

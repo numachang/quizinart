@@ -1,4 +1,5 @@
 pub mod account;
+pub mod admin;
 pub mod components;
 pub mod homepage;
 pub mod layout;

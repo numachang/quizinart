@@ -1,6 +1,7 @@
 use color_eyre::Result;
 use ulid::Ulid;
 
+use super::models::AdminUserStats;
 use super::Db;
 
 impl Db {
@@ -47,5 +48,40 @@ impl Db {
 
         tracing::info!("admin session {session:?} exists: {exists}");
         Ok(exists)
+    }
+
+    /// Get all users with their learning statistics for the admin dashboard.
+    pub async fn get_all_users_with_stats(&self) -> Result<Vec<AdminUserStats>> {
+        let stats = sqlx::query_as!(
+            AdminUserStats,
+            r#"
+            SELECT
+                u.id,
+                u.display_name,
+                (SELECT COUNT(*) FROM user_quizzes uq WHERE uq.user_id = u.id) AS "quiz_count!",
+                (SELECT COUNT(DISTINCT sq.question_id)
+                 FROM session_questions sq
+                 JOIN quiz_sessions qs ON qs.id = sq.session_id
+                 WHERE qs.user_id = u.id AND sq.is_correct IS NOT NULL
+                ) AS "unique_asked!",
+                (SELECT COUNT(*)
+                 FROM questions q
+                 JOIN user_quizzes uq2 ON q.quiz_id = uq2.quiz_id
+                 WHERE uq2.user_id = u.id
+                ) AS "total_questions!",
+                COALESCE((
+                    SELECT SUM(ua.duration_ms)::BIGINT
+                    FROM user_answers ua
+                    JOIN quiz_sessions qs2 ON qs2.id = ua.session_id
+                    WHERE qs2.user_id = u.id
+                ), 0) AS "total_study_time_ms!"
+            FROM users u
+            ORDER BY u.id
+            "#
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        Ok(stats)
     }
 }

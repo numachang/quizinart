@@ -47,6 +47,7 @@ pub fn router(state: AppState, disable_rate_limit: bool) -> Router {
         .merge(auth_routes)
         .merge(handlers::quiz::routes())
         .merge(handlers::account::routes())
+        .merge(handlers::admin::routes())
         .layer(middleware::from_fn_with_state(
             state.clone(),
             refresh_session_cookie,
