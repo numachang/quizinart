@@ -16,6 +16,7 @@ pub struct DashboardData {
     pub overall: QuizOverallStats,
     pub cat_stats: Vec<QuizCategoryOverallStats>,
     pub daily_accuracy: Vec<DailyAccuracy>,
+    pub study_time_ms: i64,
 }
 
 pub struct SessionHistoryData {
@@ -36,6 +37,7 @@ pub struct SessionResultData {
     pub correct_answers: i32,
     pub answers: Vec<AnswerModel>,
     pub category_stats: Vec<CategoryStats>,
+    pub study_time_ms: i64,
 }
 
 pub fn dashboard(data: DashboardData, locale: &str) -> Markup {
@@ -108,6 +110,29 @@ pub fn dashboard(data: DashboardData, locale: &str) -> Markup {
                             tr {
                                 td { (t!("dashboard.sessions", locale = locale)) }
                                 td { strong { (data.sessions_count) } }
+                            }
+                            @if data.study_time_ms > 0 {
+                                tr {
+                                    td { (t!("dashboard.study_time", locale = locale)) }
+                                    td { strong { (format_study_time(data.study_time_ms)) } }
+                                }
+                            }
+                            @let remaining = data.overall.total_questions - data.overall.unique_asked;
+                            tr {
+                                td { (t!("dashboard.est_remaining", locale = locale)) }
+                                td { strong {
+                                    @if remaining > 0 {
+                                        @let avg_ms = if data.overall.unique_asked > 0 && data.study_time_ms > 0 {
+                                            data.study_time_ms / data.overall.unique_asked
+                                        } else {
+                                            30_000
+                                        };
+                                        @let est_ms = avg_ms * remaining;
+                                        "~" (format_study_time(est_ms))
+                                    } @else {
+                                        (t!("dashboard.all_answered", locale = locale))
+                                    }
+                                } }
                             }
                         }
                     }
@@ -354,6 +379,18 @@ fn charts_data(
     }
 }
 
+pub fn format_study_time(ms: i64) -> String {
+    let total_secs = ms / 1000;
+    let hours = total_secs / 3600;
+    let minutes = (total_secs % 3600) / 60;
+    let seconds = total_secs % 60;
+    if hours > 0 {
+        format!("{hours}:{minutes:02}:{seconds:02}")
+    } else {
+        format!("{minutes}:{seconds:02}")
+    }
+}
+
 pub fn session_result(data: SessionResultData, locale: &str) -> Markup {
     let mode_label = selection_mode_label(&data.selection_mode, locale);
     let incorrect_count = data.answers.iter().filter(|a| !a.is_correct).count();
@@ -401,6 +438,12 @@ pub fn session_result(data: SessionResultData, locale: &str) -> Markup {
                     (t!("result.total_label", locale = locale)) mark { (data.questions_count) }
                 }
                 " (" mark { (format!("{:.0}%", percentage)) } ")"
+            }
+            @if data.study_time_ms > 0 {
+                p {
+                    (t!("result.study_time", locale = locale))
+                    mark { (format_study_time(data.study_time_ms)) }
+                }
             }
         }
 

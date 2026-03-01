@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT SUM(ua.duration_ms)::BIGINT FROM user_answers ua JOIN quiz_sessions qs ON qs.id = ua.session_id WHERE qs.quiz_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "sum",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "f7cf18e461cd1c578c633754b36c6aaca7bf7abccc74678b726270600678ccc4"
+}

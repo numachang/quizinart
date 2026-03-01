@@ -101,6 +101,7 @@ pub(crate) async fn session_result(
         quiz_name,
         category_stats,
         quiz_public_id,
+        study_time_ms,
     ) = tokio::try_join!(
         state.db.questions_count_for_session(session.id),
         state.db.current_question_index(session.id),
@@ -109,6 +110,7 @@ pub(crate) async fn session_result(
         state.db.quiz_name(session.quiz_id),
         state.db.get_category_stats(session.id),
         state.db.quiz_public_id(session.quiz_id),
+        state.db.session_study_time(session.id),
     )
     .reject("could not get session result data")?;
 
@@ -130,6 +132,7 @@ pub(crate) async fn session_result(
             correct_answers,
             answers,
             category_stats,
+            study_time_ms,
         },
         &locale,
     );
@@ -149,14 +152,16 @@ pub async fn dashboard(
     quiz_public_id: &str,
     locale: &str,
 ) -> Result<Markup, AppError> {
-    let (quiz_name, sessions_count, overall, cat_stats, daily_accuracy) = tokio::try_join!(
-        db.quiz_name(quiz_id),
-        db.sessions_count(quiz_id),
-        db.get_quiz_overall_stats(quiz_id),
-        db.get_quiz_category_stats(quiz_id),
-        db.get_daily_accuracy(quiz_id),
-    )
-    .reject("could not get dashboard data")?;
+    let (quiz_name, sessions_count, overall, cat_stats, daily_accuracy, study_time_ms) =
+        tokio::try_join!(
+            db.quiz_name(quiz_id),
+            db.sessions_count(quiz_id),
+            db.get_quiz_overall_stats(quiz_id),
+            db.get_quiz_category_stats(quiz_id),
+            db.get_daily_accuracy(quiz_id),
+            db.quiz_study_time(quiz_id),
+        )
+        .reject("could not get dashboard data")?;
 
     Ok(quiz_views::dashboard(
         quiz_views::DashboardData {
@@ -166,6 +171,7 @@ pub async fn dashboard(
             overall,
             cat_stats,
             daily_accuracy,
+            study_time_ms,
         },
         locale,
     ))

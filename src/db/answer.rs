@@ -39,13 +39,15 @@ impl Db {
         question_id: i32,
         option_id: i32,
         is_correct: bool,
+        duration_ms: i32,
     ) -> Result<()> {
         let result = sqlx::query!(
-            "INSERT INTO user_answers (is_correct, option_id, question_id, session_id) VALUES ($1, $2, $3, $4)",
+            "INSERT INTO user_answers (is_correct, option_id, question_id, session_id, duration_ms) VALUES ($1, $2, $3, $4, $5)",
             is_correct,
             option_id,
             question_id,
-            session_id
+            session_id,
+            duration_ms
         )
         .execute(&self.pool)
         .await?;
@@ -65,6 +67,7 @@ impl Db {
         question_id: i32,
         option_ids: &[i32],
         is_correct: bool,
+        duration_ms: i32,
     ) -> Result<()> {
         if option_ids.is_empty() {
             return Ok(());
@@ -72,14 +75,15 @@ impl Db {
 
         let result = sqlx::query!(
             r#"
-            INSERT INTO user_answers (is_correct, option_id, question_id, session_id)
-            SELECT $1, o, $3, $4
+            INSERT INTO user_answers (is_correct, option_id, question_id, session_id, duration_ms)
+            SELECT $1, o, $3, $4, $5
             FROM UNNEST($2::INT4[]) AS t(o)
             "#,
             is_correct,
             option_ids,
             question_id,
-            session_id
+            session_id,
+            duration_ms
         )
         .execute(&self.pool)
         .await?;
@@ -90,6 +94,28 @@ impl Db {
         );
 
         Ok(())
+    }
+
+    pub async fn quiz_study_time(&self, quiz_id: i32) -> Result<i64> {
+        let ms: Option<i64> = sqlx::query_scalar!(
+            "SELECT SUM(ua.duration_ms)::BIGINT FROM user_answers ua JOIN quiz_sessions qs ON qs.id = ua.session_id WHERE qs.quiz_id = $1",
+            quiz_id
+        )
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(ms.unwrap_or(0))
+    }
+
+    pub async fn session_study_time(&self, session_id: i32) -> Result<i64> {
+        let ms: Option<i64> = sqlx::query_scalar!(
+            "SELECT SUM(duration_ms)::BIGINT FROM user_answers WHERE session_id = $1",
+            session_id
+        )
+        .fetch_one(&self.pool)
+        .await?;
+
+        Ok(ms.unwrap_or(0))
     }
 
     /// session_questions の is_correct を更新

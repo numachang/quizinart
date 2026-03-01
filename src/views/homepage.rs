@@ -492,6 +492,12 @@ pub fn quiz_list_with_error(quizzes: Vec<Quiz>, locale: &str, error: Option<&str
                                 (quiz.owner_name)
                             }
                         }
+                        @if quiz.study_time_ms > 0 {
+                            span."quiz-meta-item" {
+                                span."material-symbols-rounded" style="font-size: 1rem;" { "timer" }
+                                " " (quiz_views::format_study_time(quiz.study_time_ms))
+                            }
+                        }
                     }
                     @if quiz.unique_asked > 0 {
                         @let pct = (quiz.unique_asked as f64 / quiz.count as f64 * 100.0) as u32;

@@ -63,6 +63,8 @@ struct SubmitAnswerBody {
     option: Option<String>,
     #[serde(default)]
     options: Vec<String>,
+    #[serde(default)]
+    duration_ms: i32,
 }
 
 #[derive(Deserialize)]

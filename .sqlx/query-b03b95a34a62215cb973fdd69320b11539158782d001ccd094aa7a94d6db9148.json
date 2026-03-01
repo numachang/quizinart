@@ -1,0 +1,88 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n              quizzes.id AS id,\n              quizzes.public_id AS \"public_id!\",\n              quizzes.name AS name,\n              COUNT(DISTINCT questions.id) AS \"count!\",\n              MAX(qs.id) AS last_session_id,\n              quizzes.is_shared AS \"is_shared!\",\n              (quizzes.owner_id = $1) AS \"is_owner!\",\n              users.display_name AS \"owner_name!\",\n              (SELECT COUNT(DISTINCT sq.question_id)\n               FROM session_questions sq\n               JOIN quiz_sessions s ON s.id = sq.session_id\n               WHERE s.quiz_id = quizzes.id AND s.user_id = $1\n                 AND sq.is_correct IS NOT NULL\n              ) AS \"unique_asked!\",\n              (SELECT COALESCE(SUM(CASE WHEN sq.is_correct THEN 1 ELSE 0 END), 0)\n               FROM session_questions sq\n               JOIN quiz_sessions s ON s.id = sq.session_id\n               WHERE s.quiz_id = quizzes.id AND s.user_id = $1\n                 AND sq.is_correct IS NOT NULL\n              ) AS \"total_correct!\",\n              (SELECT COUNT(*)\n               FROM session_questions sq\n               JOIN quiz_sessions s ON s.id = sq.session_id\n               WHERE s.quiz_id = quizzes.id AND s.user_id = $1\n                 AND sq.is_correct IS NOT NULL\n              ) AS \"total_answered!\",\n              COALESCE((\n                SELECT SUM(ua.duration_ms)::BIGINT\n                FROM user_answers ua\n                JOIN quiz_sessions qs2 ON qs2.id = ua.session_id\n                WHERE qs2.quiz_id = quizzes.id AND qs2.user_id = $1\n              ), 0) AS \"study_time_ms!\"\n            FROM\n              user_quizzes\n              JOIN quizzes ON quizzes.id = user_quizzes.quiz_id\n              JOIN users ON users.id = quizzes.owner_id\n              JOIN questions ON questions.quiz_id = quizzes.id\n              LEFT JOIN quiz_sessions qs ON qs.quiz_id = quizzes.id AND qs.user_id = $1\n            WHERE\n              user_quizzes.user_id = $1\n            GROUP BY\n              quizzes.id, quizzes.public_id, quizzes.name, quizzes.is_shared, quizzes.owner_id, users.display_name\n            ORDER BY\n              last_session_id DESC NULLS LAST,\n              quizzes.id DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "public_id!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "count!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 4,
+        "name": "last_session_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "is_shared!",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 6,
+        "name": "is_owner!",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "owner_name!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "unique_asked!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 9,
+        "name": "total_correct!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 10,
+        "name": "total_answered!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 11,
+        "name": "study_time_ms!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      null,
+      null,
+      false,
+      null,
+      false,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "b03b95a34a62215cb973fdd69320b11539158782d001ccd094aa7a94d6db9148"
+}

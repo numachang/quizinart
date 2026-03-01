@@ -137,7 +137,13 @@ impl Db {
                JOIN quiz_sessions s ON s.id = sq.session_id
                WHERE s.quiz_id = quizzes.id AND s.user_id = $1
                  AND sq.is_correct IS NOT NULL
-              ) AS "total_answered!"
+              ) AS "total_answered!",
+              COALESCE((
+                SELECT SUM(ua.duration_ms)::BIGINT
+                FROM user_answers ua
+                JOIN quiz_sessions qs2 ON qs2.id = ua.session_id
+                WHERE qs2.quiz_id = quizzes.id AND qs2.user_id = $1
+              ), 0) AS "study_time_ms!"
             FROM
               user_quizzes
               JOIN quizzes ON quizzes.id = user_quizzes.quiz_id

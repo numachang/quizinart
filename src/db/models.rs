@@ -21,6 +21,7 @@ pub struct Quiz {
     pub unique_asked: i64,
     pub total_correct: i64,
     pub total_answered: i64,
+    pub study_time_ms: i64,
 }
 
 pub struct QuestionModel {

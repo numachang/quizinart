@@ -167,6 +167,22 @@
     }
   })
 
+  // --- Question timing ---
+  let questionStartTime = 0
+
+  const initQuestionTimer = () => {
+    if (document.getElementById('question-form')) {
+      questionStartTime = Date.now()
+    }
+  }
+
+  document.addEventListener('htmx:configRequest', (e) => {
+    if (e.detail.elt?.id === 'question-form' && questionStartTime > 0) {
+      const duration = Date.now() - questionStartTime
+      e.detail.parameters.duration_ms = String(Math.min(duration, 300000))
+    }
+  })
+
   // --- Session name auto-generation ---
   const generateSessionName = () => {
     const el = document.getElementById('session-name')
@@ -407,6 +423,7 @@
   // Run on page load and HTMX content swaps
   const init = () => {
     generateSessionName()
+    initQuestionTimer()
     initCharts()
   }
 

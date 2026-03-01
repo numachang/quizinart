@@ -1,0 +1,1 @@
+ALTER TABLE user_answers ADD COLUMN duration_ms INTEGER NOT NULL DEFAULT 0;

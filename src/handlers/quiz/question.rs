@@ -102,6 +102,7 @@ pub(crate) async fn submit_answer_raw(
 
     let mut option: Option<String> = None;
     let mut options: Vec<String> = Vec::new();
+    let mut duration_ms: i32 = 0;
 
     for pair in body_str.split('&') {
         if let Some((key, value)) = pair.split_once('=') {
@@ -115,14 +116,21 @@ pub(crate) async fn submit_answer_raw(
             match key {
                 "option" => option = Some(decoded_value),
                 "options" => options.push(decoded_value),
+                "duration_ms" => duration_ms = decoded_value.parse().unwrap_or(0),
                 _ => {}
             }
         }
     }
 
+    duration_ms = duration_ms.clamp(0, 300_000);
+
     tracing::info!("Received body: option={:?}, options={:?}", option, options);
 
-    let body = SubmitAnswerBody { option, options };
+    let body = SubmitAnswerBody {
+        option,
+        options,
+        duration_ms,
+    };
     submit_answer(state, token, body, user.id, &locale).await
 }
 
@@ -202,9 +210,13 @@ async fn submit_answer(
 
     // Parallel: create_answers_batch + update_question_result (independent writes)
     tokio::try_join!(
-        state
-            .db
-            .create_answers_batch(session.id, question_id, &selected_ids, is_correct),
+        state.db.create_answers_batch(
+            session.id,
+            question_id,
+            &selected_ids,
+            is_correct,
+            body.duration_ms
+        ),
         state
             .db
             .update_question_result(session.id, question_id, is_correct),
