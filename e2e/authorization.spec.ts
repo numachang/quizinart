@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { registerUser, createQuiz } from "./helpers";
+import { registerUser, createQuiz, logoutUser } from "./helpers";
 
 /** Answer the current question by selecting the first option and submitting */
 async function answerCurrentQuestion(
@@ -94,11 +94,7 @@ test.describe("authorization - cross-user access denied", () => {
     sessionId = sessionMatch![1];
 
     // --- Logout and register User B ---
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes("/logout")),
-      page.click("text=Log Out"),
-    ]);
-    await page.waitForURL(/\/(login)?$/);
+    await logoutUser(page);
     await registerUser(page);
   });
 

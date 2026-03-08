@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures"
-import { registerUser, createQuiz } from "./helpers"
+import { registerUser, createQuiz, openSettingsMenu } from "./helpers"
 import { execSync } from "child_process"
 
 const E2E_DB_URL =
@@ -59,28 +59,29 @@ test.describe("admin dashboard", () => {
     await expect(rowsWithQuiz.first()).toBeVisible()
   })
 
-  test("account page shows admin link for admin user", async ({
+  test("settings dropdown shows admin link for admin user", async ({
     page,
     jsErrors,
   }) => {
     const email = await registerUser(page)
     setAdmin(email)
 
-    await page.goto("/account")
+    await page.goto("/")
+    await openSettingsMenu(page)
     await expect(
-      page.locator('a[href="/admin"], [hx-get="/admin"]'),
+      page.locator('#settings-menu a[href="/admin"], #settings-menu [hx-get="/admin"]'),
     ).toBeVisible()
   })
 
-  test("account page does not show admin link for non-admin user", async ({
+  test("settings dropdown does not show admin link for non-admin user", async ({
     page,
     jsErrors,
   }) => {
     await registerUser(page)
 
-    await page.goto("/account")
+    await openSettingsMenu(page)
     await expect(
-      page.locator('a[href="/admin"], [hx-get="/admin"]'),
+      page.locator('#settings-menu a[href="/admin"], #settings-menu [hx-get="/admin"]'),
     ).not.toBeVisible()
   })
 })

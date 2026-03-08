@@ -34,6 +34,27 @@ export async function loginUser(
 }
 
 /**
+ * Open the settings gear dropdown in the header.
+ */
+export async function openSettingsMenu(page: Page): Promise<void> {
+  const btn = page.locator("#settings-toggle");
+  await btn.click();
+  await expect(page.locator("#settings-menu")).toHaveClass(/open/);
+}
+
+/**
+ * Log out the current user via the settings dropdown.
+ */
+export async function logoutUser(page: Page): Promise<void> {
+  await openSettingsMenu(page);
+  await Promise.all([
+    page.waitForResponse((resp) => resp.url().includes("/logout")),
+    page.locator('#settings-menu a[hx-post="/logout"]').click(),
+  ]);
+  await expect(page.locator("h1")).toContainText("Welcome back");
+}
+
+/**
  * Create a quiz by uploading the test-quiz.json file.
  * Assumes the quiz list page is already visible.
  * Clicks the upload card to open the create dialog, fills in the form, and submits.

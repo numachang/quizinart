@@ -475,6 +475,8 @@ button.htmx-request {
 
 .settings-dropdown {
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .settings-toggle {

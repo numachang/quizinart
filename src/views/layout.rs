@@ -130,37 +130,35 @@ fn header(locale: &str, nav_user: Option<&NavUser<'_>>) -> Markup {
                             }
                         }
                     }
-                    @if let Some(user) = nav_user {
-                        li."secondary" {
-                            div."settings-dropdown" {
-                                button
-                                    id="settings-toggle"
-                                    class="settings-toggle"
-                                    aria-label=(t!("layout.settings_menu", locale = locale))
-                                    aria-expanded="false"
-                                    aria-controls="settings-menu" {
-                                    span."material-symbols-rounded" { "settings" }
-                                }
-                                div id="settings-menu" class="settings-menu" {
-                                    (super::components::nav_link(
-                                        names::ACCOUNT_URL,
-                                        html! { (user.display_name) },
-                                    ))
-                                    @if user.is_admin {
-                                        (super::components::nav_link(
-                                            names::ADMIN_URL,
-                                            html! {
-                                                span."material-symbols-rounded" style="font-size: 1rem; vertical-align: middle;" { "admin_panel_settings" }
-                                                " " (t!("admin.go_to_admin", locale = locale))
-                                            },
-                                        ))
-                                    }
-                                    a hx-post=(names::LOGOUT_URL)
-                                      hx-swap="none"
-                                      href="#" {
-                                        (t!("homepage.logout", locale = locale))
-                                    }
-                                }
+                }
+                @if let Some(user) = nav_user {
+                    div."settings-dropdown" {
+                        button
+                            id="settings-toggle"
+                            class="settings-toggle"
+                            aria-label=(t!("layout.settings_menu", locale = locale))
+                            aria-expanded="false"
+                            aria-controls="settings-menu" {
+                            span."material-symbols-rounded" { "settings" }
+                        }
+                        div id="settings-menu" class="settings-menu" {
+                            (super::components::nav_link(
+                                names::ACCOUNT_URL,
+                                html! { (user.display_name) },
+                            ))
+                            @if user.is_admin {
+                                (super::components::nav_link(
+                                    names::ADMIN_URL,
+                                    html! {
+                                        span."material-symbols-rounded" style="font-size: 1rem; vertical-align: middle;" { "admin_panel_settings" }
+                                        " " (t!("admin.go_to_admin", locale = locale))
+                                    },
+                                ))
+                            }
+                            a hx-post=(names::LOGOUT_URL)
+                              hx-swap="none"
+                              href="#" {
+                                (t!("homepage.logout", locale = locale))
                             }
                         }
                     }

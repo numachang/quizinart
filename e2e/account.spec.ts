@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { registerUser, loginUser } from "./helpers";
+import { registerUser, loginUser, openSettingsMenu, logoutUser } from "./helpers";
 
 test.describe("account management", () => {
   test.beforeEach(async ({ page }) => {
@@ -7,7 +7,8 @@ test.describe("account management", () => {
   });
 
   test("account page shows user info", async ({ page, jsErrors }) => {
-    await page.click('a[href="/account"]');
+    await openSettingsMenu(page);
+    await page.click('#settings-menu a[href="/account"]');
     await expect(page.locator("h1")).toContainText("Account");
 
     // Email and display name inputs should be visible and disabled
@@ -24,7 +25,8 @@ test.describe("account management", () => {
     page,
     jsErrors,
   }) => {
-    await page.click('a[href="/account"]');
+    await openSettingsMenu(page);
+    await page.click('#settings-menu a[href="/account"]');
     await expect(page.locator("h1")).toContainText("Account");
 
     // Fill wrong current password
@@ -41,11 +43,9 @@ test.describe("account management", () => {
   });
 
   test("change password successfully", async ({ page, jsErrors }) => {
-    const email = await page
-      .locator('a[href="/account"]')
-      .evaluate(() => ""); // We need the email from registration
-    // Re-get email from the account page
-    await page.click('a[href="/account"]');
+    // Navigate to account page
+    await openSettingsMenu(page);
+    await page.click('#settings-menu a[href="/account"]');
     await expect(page.locator("h1")).toContainText("Account");
 
     const userEmail = await page
@@ -67,11 +67,7 @@ test.describe("account management", () => {
 
     // Logout and login with new password
     await page.goto("/");
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes("/logout")),
-      page.click("text=Log Out"),
-    ]);
-    await expect(page.locator("h1")).toContainText("Welcome back");
+    await logoutUser(page);
 
     await loginUser(page, userEmail, "newpass456");
     await expect(page.locator("h1")).toContainText("My Quizzes");

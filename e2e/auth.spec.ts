@@ -1,16 +1,12 @@
 import { test, expect } from "./fixtures";
-import { registerUser, loginUser } from "./helpers";
+import { registerUser, loginUser, logoutUser } from "./helpers";
 
 test.describe("authentication", () => {
   test("register and login roundtrip", async ({ page, jsErrors }) => {
     const email = await registerUser(page);
 
     // Logout
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes("/logout")),
-      page.click("text=Log Out"),
-    ]);
-    await expect(page.locator("h1")).toContainText("Welcome back");
+    await logoutUser(page);
 
     // Login with the same credentials
     await loginUser(page, email);
@@ -25,11 +21,7 @@ test.describe("authentication", () => {
     const email = await registerUser(page);
 
     // Logout
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes("/logout")),
-      page.click("text=Log Out"),
-    ]);
-    await expect(page.locator("h1")).toContainText("Welcome back");
+    await logoutUser(page);
 
     // Try to login with wrong password
     await page.fill('input[name="email"]', email);
@@ -51,11 +43,7 @@ test.describe("authentication", () => {
     const email = await registerUser(page);
 
     // Logout
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes("/logout")),
-      page.click("text=Log Out"),
-    ]);
-    await expect(page.locator("h1")).toContainText("Welcome back");
+    await logoutUser(page);
 
     // Try to register again with the same email
     await page.goto("/register");

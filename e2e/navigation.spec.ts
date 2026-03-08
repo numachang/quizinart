@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures";
-import { registerUser } from "./helpers";
+import { registerUser, openSettingsMenu, logoutUser } from "./helpers";
 
 test.describe("landing page", () => {
   test("landing page loads without JS errors", async ({ page, jsErrors }) => {
@@ -137,8 +137,9 @@ test.describe("authenticated navigation", () => {
   });
 
   test("logo navigates to home", async ({ page, jsErrors }) => {
-    // Navigate away first
-    await page.click('a[href="/account"]');
+    // Navigate away first via settings dropdown
+    await openSettingsMenu(page);
+    await page.click('#settings-menu a[href="/account"]');
     await expect(page.locator("h1")).toContainText("Account");
 
     // Click logo to go back
@@ -148,21 +149,17 @@ test.describe("authenticated navigation", () => {
     await expect(page.locator("h1")).toContainText("My Quizzes");
   });
 
-  test("account link works without JS errors", async ({
+  test("account link works via settings dropdown", async ({
     page,
     jsErrors,
   }) => {
-    await page.click('a[href="/account"]');
+    await openSettingsMenu(page);
+    await page.click('#settings-menu a[href="/account"]');
     await expect(page.locator("h1")).toContainText("Account");
   });
 
-  test("logout works without JS errors", async ({ page, jsErrors }) => {
-    // The logout button uses hx-post with HX-Redirect to /login
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes("/logout")),
-      page.click("text=Log Out"),
-    ]);
-    await expect(page.locator("h1")).toContainText("Welcome back");
+  test("logout works via settings dropdown", async ({ page, jsErrors }) => {
+    await logoutUser(page);
   });
 });
 
@@ -173,26 +170,20 @@ test.describe("mobile authenticated navigation", () => {
     await registerUser(page);
   });
 
-  test("account link works via hamburger menu", async ({
+  test("account link works via settings dropdown on mobile", async ({
     page,
     jsErrors,
   }) => {
-    const toggle = page.locator("#nav-toggle");
-    await toggle.click();
-
-    await page.click('a[href="/account"]');
+    await openSettingsMenu(page);
+    await page.click('#settings-menu a[href="/account"]');
     await expect(page.locator("h1")).toContainText("Account");
   });
 
-  test("logout works via hamburger menu", async ({ page, jsErrors }) => {
-    const toggle = page.locator("#nav-toggle");
-    await toggle.click();
-
-    await Promise.all([
-      page.waitForResponse((resp) => resp.url().includes("/logout")),
-      page.click("text=Log Out"),
-    ]);
-    await expect(page.locator("h1")).toContainText("Welcome back");
+  test("logout works via settings dropdown on mobile", async ({
+    page,
+    jsErrors,
+  }) => {
+    await logoutUser(page);
   });
 
   test("marketplace link works via hamburger menu", async ({
