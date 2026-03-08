@@ -556,7 +556,6 @@ nav .settings-menu a:focus-visible {
   background: color-mix(in srgb, var(--pico-color) 8%, transparent);
 }
 
-
 /* ── Global HTMX progress bar ──────────────────────────── */
 #htmx-progress {
   position: fixed;
