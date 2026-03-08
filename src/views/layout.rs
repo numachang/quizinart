@@ -3,6 +3,11 @@ use rust_i18n::t;
 
 use crate::names;
 
+pub struct NavUser<'a> {
+    pub display_name: &'a str,
+    pub is_admin: bool,
+}
+
 fn css() -> Markup {
     html! {
         link rel="stylesheet" href="/static/pico.min.css";
@@ -40,7 +45,7 @@ const THEMES: &[(&str, &str)] = &[
     ("system", "layout.theme_system"),
 ];
 
-fn header(locale: &str, user_name: Option<&str>) -> Markup {
+fn header(locale: &str, nav_user: Option<&NavUser<'_>>) -> Markup {
     html! {
         header {
             nav {
@@ -53,7 +58,7 @@ fn header(locale: &str, user_name: Option<&str>) -> Markup {
                             strong { "Quizinart" }
                         }
                     }
-                    @if user_name.is_some() {
+                    @if nav_user.is_some() {
                         li."secondary"."nav-feature-link" {
                             (super::components::nav_link(
                                 names::MARKETPLACE_URL,
@@ -73,12 +78,25 @@ fn header(locale: &str, user_name: Option<&str>) -> Markup {
                     }
                 }
                 ul id="nav-menu" {
-                    @if user_name.is_some() {
+                    @if nav_user.is_some() {
                         li."secondary"."nav-menu-mobile-only" {
                             (super::components::nav_link(
                                 names::MARKETPLACE_URL,
                                 html! { (t!("layout.marketplace", locale = locale)) },
                             ))
+                        }
+                    }
+                    @if let Some(user) = nav_user {
+                        @if user.is_admin {
+                            li."secondary"."nav-menu-mobile-only" {
+                                (super::components::nav_link(
+                                    names::ADMIN_URL,
+                                    html! {
+                                        span."material-symbols-rounded" style="font-size: 1rem; vertical-align: middle;" { "admin_panel_settings" }
+                                        " " (t!("admin.go_to_admin", locale = locale))
+                                    },
+                                ))
+                            }
                         }
                     }
                     li."secondary" {
@@ -112,20 +130,37 @@ fn header(locale: &str, user_name: Option<&str>) -> Markup {
                             }
                         }
                     }
-                    @if let Some(name) = user_name {
+                    @if let Some(user) = nav_user {
                         li."secondary" {
-                            (super::components::nav_link(
-                                names::ACCOUNT_URL,
-                                html! { (name) },
-                            ))
-                        }
-                        li."secondary" {
-                            a role="button"
-                              class="outline secondary"
-                              hx-post=(names::LOGOUT_URL)
-                              hx-swap="none"
-                              style="padding: 0.25rem 0.5rem; font-size: 0.85rem;" {
-                                (t!("homepage.logout", locale = locale))
+                            div."settings-dropdown" {
+                                button
+                                    id="settings-toggle"
+                                    class="settings-toggle"
+                                    aria-label=(t!("layout.settings_menu", locale = locale))
+                                    aria-expanded="false"
+                                    aria-controls="settings-menu" {
+                                    span."material-symbols-rounded" { "settings" }
+                                }
+                                div id="settings-menu" class="settings-menu" {
+                                    (super::components::nav_link(
+                                        names::ACCOUNT_URL,
+                                        html! { (user.display_name) },
+                                    ))
+                                    @if user.is_admin {
+                                        (super::components::nav_link(
+                                            names::ADMIN_URL,
+                                            html! {
+                                                span."material-symbols-rounded" style="font-size: 1rem; vertical-align: middle;" { "admin_panel_settings" }
+                                                " " (t!("admin.go_to_admin", locale = locale))
+                                            },
+                                        ))
+                                    }
+                                    a hx-post=(names::LOGOUT_URL)
+                                      hx-swap="none"
+                                      href="#" {
+                                        (t!("homepage.logout", locale = locale))
+                                    }
+                                }
                             }
                         }
                     }
@@ -163,7 +198,12 @@ pub fn page(title: &str, body: Markup, locale: &str) -> Markup {
     page_with_user(title, body, locale, None)
 }
 
-pub fn page_with_user(title: &str, body: Markup, locale: &str, user_name: Option<&str>) -> Markup {
+pub fn page_with_user(
+    title: &str,
+    body: Markup,
+    locale: &str,
+    nav_user: Option<&NavUser<'_>>,
+) -> Markup {
     html! {
         (DOCTYPE)
         head {
@@ -180,7 +220,7 @@ pub fn page_with_user(title: &str, body: Markup, locale: &str, user_name: Option
 
         body."container" {
             div id="htmx-progress" {}
-            (header(locale, user_name))
+            (header(locale, nav_user))
             (main(body))
             (confirm_dialog(locale))
         }
@@ -192,12 +232,12 @@ pub fn render(
     title: &str,
     body: Markup,
     locale: &str,
-    user_name: Option<&str>,
+    nav_user: Option<&NavUser<'_>>,
 ) -> Markup {
     if is_htmx {
         titled(title, body)
     } else {
-        page_with_user(title, body, locale, user_name)
+        page_with_user(title, body, locale, nav_user)
     }
 }
 

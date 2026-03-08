@@ -7,4 +7,4 @@ pub mod marketplace;
 pub mod quiz;
 
 // Re-export commonly used functions from layout
-pub use layout::{page, page_with_user, render, titled};
+pub use layout::{page, page_with_user, render, titled, NavUser};

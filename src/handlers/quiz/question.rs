@@ -76,12 +76,16 @@ pub(crate) async fn quiz_page(
         _ => super::session::page(&state.db, quiz_id, &public_id, &locale).await?,
     };
 
+    let nav_user = views::NavUser {
+        display_name: &user.display_name,
+        is_admin: user.is_admin,
+    };
     Ok(views::render(
         is_htmx,
         "Quiz",
         content,
         &locale,
-        Some(&user.display_name),
+        Some(&nav_user),
     ))
 }
 

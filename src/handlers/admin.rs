@@ -29,11 +29,15 @@ async fn admin_dashboard(
         .await
         .reject("could not get admin stats")?;
 
+    let nav_user = views::NavUser {
+        display_name: &user.display_name,
+        is_admin: user.is_admin,
+    };
     Ok(views::render(
         is_htmx,
         "Admin Dashboard",
         admin_views::dashboard(&users, &locale),
         &locale,
-        Some(&user.display_name),
+        Some(&nav_user),
     ))
 }

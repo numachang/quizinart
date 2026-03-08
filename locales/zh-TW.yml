@@ -11,6 +11,7 @@ layout.theme_light: "淺色"
 layout.theme_dark: "深色"
 layout.theme_system: "跟隨系統"
 layout.marketplace: "市場"
+layout.settings_menu: "設定"
 layout.cancel: "取消"
 layout.ok: "確定"
 

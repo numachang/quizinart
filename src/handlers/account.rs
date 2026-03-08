@@ -25,12 +25,16 @@ async fn account_page(
     IsHtmx(is_htmx): IsHtmx,
     Locale(locale): Locale,
 ) -> maud::Markup {
+    let nav_user = views::NavUser {
+        display_name: &user.display_name,
+        is_admin: user.is_admin,
+    };
     views::render(
         is_htmx,
         "Account",
         account_views::account_page(&user, account_views::ChangePasswordState::NoError, &locale),
         &locale,
-        Some(&user.display_name),
+        Some(&nav_user),
     )
 }
 

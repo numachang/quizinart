@@ -31,12 +31,16 @@ pub(crate) async fn quiz_dashboard(
         return Err(AppError::Forbidden);
     }
 
+    let nav_user = views::NavUser {
+        display_name: &user.display_name,
+        is_admin: user.is_admin,
+    };
     Ok(views::render(
         is_htmx,
         "Quiz Dashboard",
         dashboard(&state.db, quiz_id, &public_id, &locale).await?,
         &locale,
-        Some(&user.display_name),
+        Some(&nav_user),
     ))
 }
 
@@ -62,12 +66,16 @@ pub(crate) async fn quiz_session_history(
         return Err(AppError::Forbidden);
     }
 
+    let nav_user = views::NavUser {
+        display_name: &user.display_name,
+        is_admin: user.is_admin,
+    };
     Ok(views::render(
         is_htmx,
         "Session History",
         session_history(&state.db, quiz_id, &public_id, &locale).await?,
         &locale,
-        Some(&user.display_name),
+        Some(&nav_user),
     ))
 }
 
@@ -137,12 +145,16 @@ pub(crate) async fn session_result(
         &locale,
     );
 
+    let nav_user = views::NavUser {
+        display_name: &user.display_name,
+        is_admin: user.is_admin,
+    };
     Ok(views::render(
         is_htmx,
         "Results",
         page,
         &locale,
-        Some(&user.display_name),
+        Some(&nav_user),
     ))
 }
 

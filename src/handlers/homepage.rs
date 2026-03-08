@@ -69,12 +69,16 @@ async fn homepage(
                 .quizzes(user.id)
                 .await
                 .reject("could not get quizzes")?;
+            let nav_user = views::NavUser {
+                display_name: &user.display_name,
+                is_admin: user.is_admin,
+            };
             return Ok(views::render(
                 is_htmx,
                 "My Quizzes",
                 homepage_views::quiz_list(quizzes, &locale),
                 &locale,
-                Some(&user.display_name),
+                Some(&nav_user),
             )
             .into_response());
         }
@@ -97,12 +101,16 @@ async fn homepage(
                     .quizzes(user.id)
                     .await
                     .reject("could not get quizzes")?;
+                let nav_user = views::NavUser {
+                    display_name: &user.display_name,
+                    is_admin: user.is_admin,
+                };
                 return Ok(views::render(
                     is_htmx,
                     "My Quizzes",
                     homepage_views::quiz_list(quizzes, &locale),
                     &locale,
-                    Some(&user.display_name),
+                    Some(&nav_user),
                 )
                 .into_response());
             }

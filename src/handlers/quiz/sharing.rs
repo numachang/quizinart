@@ -63,22 +63,30 @@ pub(crate) async fn shared_quiz_page(
                 .await
                 .reject("could not check library")?;
 
+            let nav_user = views::NavUser {
+                display_name: &user.display_name,
+                is_admin: user.is_admin,
+            };
             Ok(views::render(
                 is_htmx,
                 &info.name,
                 quiz_views::shared_quiz_page(&info, already_in_library, &locale),
                 &locale,
-                Some(&user.display_name),
+                Some(&nav_user),
             ))
         }
         _ => {
             let title = t!("share.not_available_title", locale = &locale);
+            let nav_user = views::NavUser {
+                display_name: &user.display_name,
+                is_admin: user.is_admin,
+            };
             Ok(views::render(
                 is_htmx,
                 &title,
                 quiz_views::shared_quiz_not_available(&locale),
                 &locale,
-                Some(&user.display_name),
+                Some(&nav_user),
             ))
         }
     }

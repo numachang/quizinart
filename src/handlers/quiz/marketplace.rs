@@ -22,12 +22,16 @@ pub(crate) async fn marketplace_page(
     .reject("could not load marketplace data")?;
 
     let title = t!("marketplace.title", locale = &locale);
+    let nav_user = views::NavUser {
+        display_name: &user.display_name,
+        is_admin: user.is_admin,
+    };
     Ok(views::render(
         is_htmx,
         &title,
         views::marketplace::marketplace_page(&shared_quizzes, &user_quiz_ids, &locale),
         &locale,
-        Some(&user.display_name),
+        Some(&nav_user),
     ))
 }
 

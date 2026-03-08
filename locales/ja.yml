@@ -11,6 +11,7 @@ layout.theme_light: "ライト"
 layout.theme_dark: "ダーク"
 layout.theme_system: "システム"
 layout.marketplace: "マーケットプレース"
+layout.settings_menu: "設定"
 layout.cancel: "キャンセル"
 layout.ok: "OK"
 

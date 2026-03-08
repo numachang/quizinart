@@ -11,6 +11,7 @@ layout.theme_light: "Light"
 layout.theme_dark: "Dark"
 layout.theme_system: "System"
 layout.marketplace: "Marketplace"
+layout.settings_menu: "Settings"
 layout.cancel: "Cancel"
 layout.ok: "OK"
 
