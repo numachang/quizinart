@@ -16,12 +16,19 @@ main {
   animation: fade-in 0.18s ease-out;
 }
 
+header {
+  position: relative;
+  z-index: 100;
+}
+
 header nav {
   backdrop-filter: saturate(130%) blur(6px);
+  overflow: visible;
 }
 
 header nav ul {
   gap: 0.5rem;
+  overflow: visible;
 }
 
 @keyframes fade-in {
@@ -448,10 +455,14 @@ button.htmx-request {
   }
 
   #nav-menu.open {
-    max-height: 400px;
+    max-height: 500px;
     opacity: 1;
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 1rem;
     pointer-events: auto;
+  }
+
+  #nav-menu {
+    gap: 0.25rem;
   }
 
   /* Full-width items in mobile dropdown */
@@ -475,8 +486,17 @@ button.htmx-request {
 
 .settings-dropdown {
   position: relative;
-  display: flex;
-  align-items: center;
+}
+
+/* Hide gear dropdown on mobile — items are in hamburger instead */
+.settings-dropdown-item {
+  display: block;
+}
+
+@media (max-width: 767px) {
+  .settings-dropdown-item {
+    display: none !important;
+  }
 }
 
 .settings-toggle {
@@ -498,12 +518,12 @@ button.htmx-request {
   top: 100%;
   right: 0;
   z-index: 200;
-  min-width: 180px;
+  min-width: 200px;
   background: var(--pico-background-color);
   border: 1px solid var(--pico-muted-border-color);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  padding: 0.5rem;
+  padding: 0.75rem 0.6rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -519,26 +539,23 @@ button.htmx-request {
   transform: translateY(0);
 }
 
-.settings-menu a {
+nav .settings-menu a {
   display: block;
-  padding: 0.4rem 0.6rem;
-  border-radius: 4px;
+  padding: 0.6rem 0.75rem !important;
+  margin: 0 !important;
+  border-radius: 6px;
   text-decoration: none;
   font-size: 0.9rem;
   white-space: nowrap;
   color: var(--pico-color);
+  line-height: 1.4;
 }
 
-.settings-menu a:hover,
-.settings-menu a:focus-visible {
+nav .settings-menu a:hover,
+nav .settings-menu a:focus-visible {
   background: color-mix(in srgb, var(--pico-color) 8%, transparent);
 }
 
-@media (max-width: 767px) {
-  .settings-menu {
-    right: -0.5rem;
-  }
-}
 
 /* ── Global HTMX progress bar ──────────────────────────── */
 #htmx-progress {

@@ -170,20 +170,31 @@ test.describe("mobile authenticated navigation", () => {
     await registerUser(page);
   });
 
-  test("account link works via settings dropdown on mobile", async ({
+  test("account link works via hamburger menu on mobile", async ({
     page,
     jsErrors,
   }) => {
-    await openSettingsMenu(page);
-    await page.click('#settings-menu a[href="/account"]');
+    const toggle = page.locator("#nav-toggle");
+    await toggle.click();
+
+    const accountLink = page.locator('#nav-menu > .nav-menu-mobile-only > a[href="/account"]');
+    await expect(accountLink).toBeVisible();
+    await accountLink.click();
     await expect(page.locator("h1")).toContainText("Account");
   });
 
-  test("logout works via settings dropdown on mobile", async ({
+  test("logout works via hamburger menu on mobile", async ({
     page,
     jsErrors,
   }) => {
-    await logoutUser(page);
+    const toggle = page.locator("#nav-toggle");
+    await toggle.click();
+
+    await Promise.all([
+      page.waitForResponse((resp) => resp.url().includes("/logout")),
+      page.locator('#nav-menu > .nav-menu-mobile-only > a[hx-post="/logout"]').click(),
+    ]);
+    await expect(page.locator("h1")).toContainText("Welcome back");
   });
 
   test("marketplace link works via hamburger menu", async ({
