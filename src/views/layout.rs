@@ -2,6 +2,7 @@ use maud::{html, Markup, DOCTYPE};
 use rust_i18n::t;
 
 use crate::names;
+use crate::statics::asset_path;
 
 pub struct NavUser<'a> {
     pub display_name: &'a str,
@@ -10,25 +11,25 @@ pub struct NavUser<'a> {
 
 fn css() -> Markup {
     html! {
-        link rel="stylesheet" href="/static/pico.min.css";
-        link rel="stylesheet" href="/static/index.css";
+        link rel="stylesheet" href=(asset_path("pico.min.css"));
+        link rel="stylesheet" href=(asset_path("index.css"));
         link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap";
     }
 }
 
 fn js() -> Markup {
     html! {
-        script src="/static/theme.js" {}
-        script src="/static/menu.js" {}
-        script src="/static/htmx/htmx.min.js" {}
-        script src="/static/htmx/ext/json-enc.js" {}
-        script src="/static/app.js" {}
+        script src=(asset_path("theme.js")) {}
+        script src=(asset_path("menu.js")) {}
+        script src=(asset_path("htmx/htmx.min.js")) {}
+        script src=(asset_path("htmx/ext/json-enc.js")) {}
+        script src=(asset_path("app.js")) {}
     }
 }
 
 fn icon() -> Markup {
     html! {
-        link rel="icon" href="/static/img/icon.svg" type="image/svg+xml" {}
+        link rel="icon" href=(asset_path("img/icon.svg")) type="image/svg+xml" {}
     }
 }
 
