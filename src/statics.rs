@@ -45,10 +45,7 @@ fn build_asset_map(dir: &Dir, map: &mut HashMap<String, String>) {
         };
 
         let file_path = Path::new(&path);
-        let stem = file_path
-            .file_stem()
-            .unwrap_or_default()
-            .to_string_lossy();
+        let stem = file_path.file_stem().unwrap_or_default().to_string_lossy();
         let ext = file_path.extension().map(|e| e.to_string_lossy());
         let parent = file_path
             .parent()
@@ -101,10 +98,7 @@ async fn send_file(AxumPath(path): AxumPath<String>) -> Result<impl IntoResponse
     };
 
     Ok((
-        [
-            (CONTENT_TYPE, content_type),
-            (CACHE_CONTROL, cache_control),
-        ],
+        [(CONTENT_TYPE, content_type), (CACHE_CONTROL, cache_control)],
         file.contents(),
     ))
 }
