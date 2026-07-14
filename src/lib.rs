@@ -25,11 +25,14 @@ pub struct AppState {
     pub db: db::Db,
     pub auth: services::auth::AuthService,
     pub secure_cookies: bool,
+    /// Google OAuth client; None hides Google login entirely.
+    pub google: Option<services::google::GoogleOAuth>,
 }
 
 pub fn router(state: AppState, disable_rate_limit: bool) -> Router {
+    let auth_routes = handlers::homepage::auth_post_routes().merge(handlers::google::routes());
     let auth_routes = if disable_rate_limit {
-        handlers::homepage::auth_post_routes()
+        auth_routes
     } else {
         let governor_conf = GovernorConfigBuilder::default()
             .per_second(30)
@@ -39,7 +42,7 @@ pub fn router(state: AppState, disable_rate_limit: bool) -> Router {
             .finish()
             .expect("valid governor config");
 
-        handlers::homepage::auth_post_routes().layer(GovernorLayer::new(governor_conf))
+        auth_routes.layer(GovernorLayer::new(governor_conf))
     };
 
     Router::new()

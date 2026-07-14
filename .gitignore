@@ -37,3 +37,6 @@ node_modules/
 
 # Accidental files
 nul
+
+# Personal quiz data (not for the public repo)
+data/

@@ -1,6 +1,24 @@
 use crate::{db::Quiz, names, views::components, views::quiz as quiz_views};
-use maud::{html, Markup};
+use maud::{html, Markup, PreEscaped};
 use rust_i18n::t;
+
+/// Official multicolor Google "G" mark (brand guidelines require it on the button).
+const GOOGLE_ICON_SVG: &str = r##"<svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>"##;
+
+/// "Continue with Google" button followed by an "or" divider, shown above
+/// the email/password forms when Google login is configured.
+fn google_login_section(error: bool, locale: &str) -> Markup {
+    html! {
+        a role="button" class="outline google-login-btn" href=(names::GOOGLE_AUTH_URL) {
+            (PreEscaped(GOOGLE_ICON_SVG))
+            span { (t!("homepage.continue_with_google", locale = locale)) }
+        }
+        @if error {
+            p { small class="google-login-error" { (t!("homepage.google_login_failed", locale = locale)) } }
+        }
+        div class="auth-divider" { span { (t!("homepage.or", locale = locale)) } }
+    }
+}
 
 const JSON_EXAMPLE: &str = r#"[
   {
@@ -90,7 +108,7 @@ pub enum RegisterState {
     WeakPassword,
 }
 
-pub fn register(state: RegisterState, locale: &str) -> Markup {
+pub fn register(state: RegisterState, google_enabled: bool, locale: &str) -> Markup {
     let error_msg = match state {
         RegisterState::NoError => None,
         RegisterState::EmailTaken => Some(t!("homepage.email_taken", locale = locale).to_string()),
@@ -106,6 +124,9 @@ pub fn register(state: RegisterState, locale: &str) -> Markup {
         h1 { (t!("homepage.register_title", locale = locale)) }
         p { (t!("homepage.register_desc", locale = locale)) }
         article."article-narrow" {
+            @if google_enabled {
+                (google_login_section(false, locale))
+            }
             form action=(names::REGISTER_URL) method="post" {
                 label {
                     (t!("homepage.email", locale = locale))
@@ -160,15 +181,19 @@ pub enum LoginState {
     NoError,
     IncorrectPassword,
     EmailNotVerified,
+    GoogleError,
 }
 
-pub fn login(state: LoginState, locale: &str) -> Markup {
+pub fn login(state: LoginState, google_enabled: bool, locale: &str) -> Markup {
     html! {
         h1 { (t!("homepage.welcome_back", locale = locale)) }
         p {
             (t!("homepage.login_desc", locale = locale))
         }
         article."article-narrow" {
+            @if google_enabled {
+                (google_login_section(matches!(state, LoginState::GoogleError), locale))
+            }
             form action=(names::LOGIN_URL) method="post" {
                 label {
                     (t!("homepage.email", locale = locale))
@@ -180,7 +205,7 @@ pub fn login(state: LoginState, locale: &str) -> Markup {
                           aria-label=(t!("homepage.email", locale = locale));
                 }
                 @match state {
-                    LoginState::NoError => {
+                    LoginState::NoError | LoginState::GoogleError => {
                         label {
                             (t!("homepage.password", locale = locale))
                             input name="password"

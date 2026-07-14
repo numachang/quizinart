@@ -50,6 +50,11 @@ homepage.log_in: "ログイン"
 homepage.no_account: "アカウントをお持ちでないですか？"
 homepage.logout: "ログアウト"
 
+# Homepage - Google login
+homepage.continue_with_google: "Google で続行"
+homepage.or: "または"
+homepage.google_login_failed: "Google ログインに失敗しました。もう一度お試しください。"
+
 # Homepage - Forgot Password
 homepage.forgot_password: "パスワードをお忘れですか？"
 homepage.forgot_password_title: "パスワードをお忘れですか？"

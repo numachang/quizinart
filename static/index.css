@@ -864,6 +864,40 @@ nav .settings-menu a:focus-visible {
   }
 }
 
+/* ── Google login button + divider ─────────────────────── */
+
+.google-login-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.google-login-btn svg {
+  flex-shrink: 0;
+}
+
+.google-login-error {
+  color: var(--pico-del-color);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  color: var(--pico-muted-color);
+  font-size: 0.875rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--pico-muted-border-color);
+}
+
 /* Back navigation link */
 .back-link {
   display: inline-flex;

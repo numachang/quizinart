@@ -42,11 +42,19 @@ pub fn auth_post_routes() -> Router<AppState> {
         .route("/reset-password", post(reset_password_post))
 }
 
-async fn register_page(IsHtmx(is_htmx): IsHtmx, Locale(locale): Locale) -> maud::Markup {
+async fn register_page(
+    State(state): State<AppState>,
+    IsHtmx(is_htmx): IsHtmx,
+    Locale(locale): Locale,
+) -> maud::Markup {
     views::render(
         is_htmx,
         "Register",
-        homepage_views::register(homepage_views::RegisterState::NoError, &locale),
+        homepage_views::register(
+            homepage_views::RegisterState::NoError,
+            state.google.is_some(),
+            &locale,
+        ),
         &locale,
         None,
     )
@@ -128,11 +136,19 @@ async fn homepage(
     .into_response())
 }
 
-async fn login_page(IsHtmx(is_htmx): IsHtmx, Locale(locale): Locale) -> maud::Markup {
+async fn login_page(
+    State(state): State<AppState>,
+    IsHtmx(is_htmx): IsHtmx,
+    Locale(locale): Locale,
+) -> maud::Markup {
     views::render(
         is_htmx,
         "Log In",
-        homepage_views::login(homepage_views::LoginState::NoError, &locale),
+        homepage_views::login(
+            homepage_views::LoginState::NoError,
+            state.google.is_some(),
+            &locale,
+        ),
         &locale,
         None,
     )
@@ -183,19 +199,31 @@ async fn register_post(
         .into_response()),
         RegisterOutcome::EmptyFields => Ok(views::page(
             "Register",
-            homepage_views::register(homepage_views::RegisterState::EmptyFields, &locale),
+            homepage_views::register(
+                homepage_views::RegisterState::EmptyFields,
+                state.google.is_some(),
+                &locale,
+            ),
             &locale,
         )
         .into_response()),
         RegisterOutcome::EmailTaken => Ok(views::page(
             "Register",
-            homepage_views::register(homepage_views::RegisterState::EmailTaken, &locale),
+            homepage_views::register(
+                homepage_views::RegisterState::EmailTaken,
+                state.google.is_some(),
+                &locale,
+            ),
             &locale,
         )
         .into_response()),
         RegisterOutcome::WeakPassword => Ok(views::page(
             "Register",
-            homepage_views::register(homepage_views::RegisterState::WeakPassword, &locale),
+            homepage_views::register(
+                homepage_views::RegisterState::WeakPassword,
+                state.google.is_some(),
+                &locale,
+            ),
             &locale,
         )
         .into_response()),
@@ -246,13 +274,21 @@ async fn login_post(
         }
         LoginOutcome::InvalidCredentials => Ok(views::page(
             "Log In",
-            homepage_views::login(homepage_views::LoginState::IncorrectPassword, &locale),
+            homepage_views::login(
+                homepage_views::LoginState::IncorrectPassword,
+                state.google.is_some(),
+                &locale,
+            ),
             &locale,
         )
         .into_response()),
         LoginOutcome::EmailNotVerified => Ok(views::page(
             "Log In",
-            homepage_views::login(homepage_views::LoginState::EmailNotVerified, &locale),
+            homepage_views::login(
+                homepage_views::LoginState::EmailNotVerified,
+                state.google.is_some(),
+                &locale,
+            ),
             &locale,
         )
         .into_response()),

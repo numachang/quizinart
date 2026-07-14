@@ -84,6 +84,12 @@ pub trait AuthRepository: Send + Sync {
         current_password: &str,
         new_password: &str,
     ) -> impl std::future::Future<Output = Result<bool>> + Send;
+
+    fn find_or_create_google_user(
+        &self,
+        email: &str,
+        display_name: &str,
+    ) -> impl std::future::Future<Output = Result<i32>> + Send;
 }
 
 // ---------------------------------------------------------------------------
@@ -133,6 +139,13 @@ pub enum LoginOutcome {
     /// Password was incorrect (or email not found).
     InvalidCredentials,
     /// Credentials correct but email not yet verified.
+    EmailNotVerified,
+}
+
+pub enum GoogleLoginOutcome {
+    /// Login succeeded. Contains the session token.
+    Success(String),
+    /// Google reported the account's email address as unverified.
     EmailNotVerified,
 }
 
@@ -255,6 +268,23 @@ impl<R: AuthRepository, E: EmailSender> AuthService<R, E> {
         }
 
         Ok(RegisterOutcome::VerificationSent(email.to_string()))
+    }
+
+    pub async fn login_with_google(
+        &self,
+        user: &crate::services::google::GoogleUser,
+    ) -> Result<GoogleLoginOutcome> {
+        if !user.email_verified {
+            return Ok(GoogleLoginOutcome::EmailNotVerified);
+        }
+
+        let user_id = self
+            .repo
+            .find_or_create_google_user(&user.email, &user.display_name)
+            .await?;
+        let session_token = self.repo.create_user_session(user_id).await?;
+
+        Ok(GoogleLoginOutcome::Success(session_token))
     }
 
     pub async fn logout(&self, session_id: &str) -> Result<()> {
@@ -550,6 +580,43 @@ mod tests {
         assert!(
             matches!(outcome, RegisterOutcome::VerificationEmailFailed(ref e) if e == "new@example.com")
         );
+    }
+
+    // ----- login_with_google tests -----
+
+    fn google_user(email_verified: bool) -> crate::services::google::GoogleUser {
+        crate::services::google::GoogleUser {
+            email: "g@example.com".to_string(),
+            email_verified,
+            display_name: "Google User".to_string(),
+        }
+    }
+
+    #[tokio::test]
+    async fn google_login_verified_email_returns_session_token() {
+        let mut mock = MockAuthRepository::new();
+        mock.expect_find_or_create_google_user()
+            .withf(|email, name| email == "g@example.com" && name == "Google User")
+            .returning(|_, _| Box::pin(async { Ok(42) }));
+        mock.expect_create_user_session()
+            .withf(|user_id| *user_id == 42)
+            .returning(|_| Box::pin(async { Ok("google-session".to_string()) }));
+
+        let svc = service(mock);
+        let outcome = svc.login_with_google(&google_user(true)).await.unwrap();
+
+        assert!(matches!(outcome, GoogleLoginOutcome::Success(ref t) if t == "google-session"));
+    }
+
+    #[tokio::test]
+    async fn google_login_unverified_email_is_rejected() {
+        // No repo expectations: nothing may be created for an unverified address.
+        let mock = MockAuthRepository::new();
+
+        let svc = service(mock);
+        let outcome = svc.login_with_google(&google_user(false)).await.unwrap();
+
+        assert!(matches!(outcome, GoogleLoginOutcome::EmailNotVerified));
     }
 
     // ----- logout tests -----

@@ -183,6 +183,23 @@ cargo run --manifest-path quizinart/Cargo.toml
 
 ---
 
+## Google ログイン（オプション）
+
+OAuth 認証情報が設定されていない場合、Google ログインは表示されません。
+
+1. [Google Cloud Console](https://console.cloud.google.com/apis/credentials) で **OAuth 2.0 クライアント ID**（アプリケーションの種類: *ウェブ アプリケーション*）を作成します。
+2. **承認済みのリダイレクト URI** に `<BASE_URL>/auth/google/callback` を追加します。例: ローカル開発では `http://127.0.0.1:1414/auth/google/callback`、本番では `https://your-domain.example/auth/google/callback`。
+3. 認証情報を `.env`（またはホストの環境変数）に設定します:
+
+```bash
+GOOGLE_CLIENT_ID=xxxxxxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=xxxxxxxx
+```
+
+設定すると、ログインページと登録ページに「Google で続行」ボタンが表示されます。アカウントはメールアドレスで紐付けられます。既存アカウントと同じメールアドレスの Google アカウントでサインインするとそのアカウントにログインし、新しいメールアドレスの場合は新規アカウントが作成されます（パスワードなし。必要なら後から「パスワードをお忘れですか？」で設定できます）。
+
+---
+
 ## トラブルシューティング
 
 | 症状 | 原因 | 対処 |

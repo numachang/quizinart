@@ -14,6 +14,11 @@ pub const RESET_PASSWORD_URL: &str = "/reset-password";
 pub const ACCOUNT_URL: &str = "/account";
 pub const CHANGE_PASSWORD_URL: &str = "/change-password";
 
+// Google OAuth
+pub const GOOGLE_AUTH_URL: &str = "/auth/google";
+pub const GOOGLE_CALLBACK_URL: &str = "/auth/google/callback";
+pub const OAUTH_STATE_COOKIE_NAME: &str = "oauth_state";
+
 pub fn quiz_dashboard_url(public_id: &str) -> String {
     format!("/quiz/{public_id}/dashboard")
 }

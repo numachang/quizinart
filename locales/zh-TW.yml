@@ -50,6 +50,11 @@ homepage.log_in: "登入"
 homepage.no_account: "還沒有帳號？"
 homepage.logout: "登出"
 
+# Homepage - Google login
+homepage.continue_with_google: "使用 Google 繼續"
+homepage.or: "或"
+homepage.google_login_failed: "Google 登入失敗，請重試。"
+
 # Homepage - Forgot Password
 homepage.forgot_password: "忘記密碼？"
 homepage.forgot_password_title: "忘記密碼？"

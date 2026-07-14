@@ -50,6 +50,11 @@ homepage.log_in: "Log In"
 homepage.no_account: "Don't have an account?"
 homepage.logout: "Log Out"
 
+# Homepage - Google login
+homepage.continue_with_google: "Continue with Google"
+homepage.or: "or"
+homepage.google_login_failed: "Google sign-in failed. Please try again."
+
 # Homepage - Forgot Password
 homepage.forgot_password: "Forgot password?"
 homepage.forgot_password_title: "Forgot your password?"

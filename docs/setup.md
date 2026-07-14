@@ -183,6 +183,23 @@ Open http://127.0.0.1:1414 in your browser.
 
 ---
 
+## Google login (optional)
+
+Google login is hidden unless OAuth credentials are configured.
+
+1. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials), create an **OAuth 2.0 Client ID** (application type: *Web application*).
+2. Add `<BASE_URL>/auth/google/callback` as an **Authorized redirect URI** — e.g. `http://127.0.0.1:1414/auth/google/callback` for local dev, `https://your-domain.example/auth/google/callback` for production.
+3. Set the credentials in `.env` (or as environment variables on your host):
+
+```bash
+GOOGLE_CLIENT_ID=xxxxxxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=xxxxxxxx
+```
+
+A "Continue with Google" button then appears on the login and register pages. Accounts are matched by email address: signing in with Google using the email of an existing account logs into that account, and new emails get a fresh account (no password; one can be set later via "Forgot password?").
+
+---
+
 ## Troubleshooting
 
 | Symptom | Cause | Fix |

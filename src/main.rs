@@ -1,5 +1,10 @@
 use clap::Parser;
-use quizinart::{db::Db, email::ResendEmailSender, services::auth::AuthService, AppState};
+use quizinart::{
+    db::Db,
+    email::ResendEmailSender,
+    services::{auth::AuthService, google::GoogleOAuth},
+    AppState,
+};
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -27,6 +32,14 @@ struct Args {
     /// Disable rate limiting on auth endpoints (for E2E testing).
     #[arg(long, env, default_value = "false")]
     disable_rate_limit: bool,
+
+    /// Google OAuth client ID. Leave empty to disable Google login.
+    #[arg(long, env, default_value = "")]
+    google_client_id: String,
+
+    /// Google OAuth client secret. Leave empty to disable Google login.
+    #[arg(long, env, default_value = "")]
+    google_client_secret: String,
 }
 
 fn main() -> color_eyre::Result<()> {
@@ -59,11 +72,23 @@ async fn run() -> color_eyre::Result<()> {
         tracing::info!("secure_cookies auto-enabled because base_url uses HTTPS");
     }
     let email_sender = ResendEmailSender::new(args.resend_api_key);
+    let google = if !args.google_client_id.is_empty() && !args.google_client_secret.is_empty() {
+        tracing::info!("google login enabled");
+        Some(GoogleOAuth::new(
+            args.google_client_id,
+            args.google_client_secret,
+            &args.base_url,
+        ))
+    } else {
+        tracing::info!("google login disabled (no client id/secret)");
+        None
+    };
     let auth = AuthService::new(db.clone(), email_sender, args.base_url);
     let state = AppState {
         db,
         auth,
         secure_cookies,
+        google,
     };
     let app = quizinart::router(state, args.disable_rate_limit);
 

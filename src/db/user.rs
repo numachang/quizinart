@@ -9,6 +9,11 @@ use super::models::AuthUser;
 use super::Db;
 use crate::services::auth::AuthRepository;
 
+/// Sentinel stored in `password_hash` for accounts controlled via Google OAuth.
+/// It never parses as a valid argon2 hash, so password login always fails until
+/// the user sets a real password through the forgot-password flow.
+const OAUTH_PASSWORD_SENTINEL: &str = "!oauth:google";
+
 impl AuthRepository for Db {
     async fn email_exists(&self, email: &str) -> Result<bool> {
         self.email_exists(email).await
@@ -76,6 +81,10 @@ impl AuthRepository for Db {
     ) -> Result<bool> {
         self.change_password(user_id, current_password, new_password)
             .await
+    }
+
+    async fn find_or_create_google_user(&self, email: &str, display_name: &str) -> Result<i32> {
+        self.find_or_create_google_user(email, display_name).await
     }
 }
 
@@ -338,6 +347,53 @@ impl Db {
         .await?;
 
         Ok(true)
+    }
+
+    /// Find a user by email or create one from a verified Google sign-in.
+    /// Returns the user id.
+    // Runtime queries: regenerating the sqlx offline cache needs a live database.
+    pub async fn find_or_create_google_user(&self, email: &str, display_name: &str) -> Result<i32> {
+        let existing: Option<(i32, bool)> =
+            sqlx::query_as("SELECT id, email_verified FROM users WHERE email = $1")
+                .bind(email)
+                .fetch_optional(&self.pool)
+                .await?;
+
+        if let Some((user_id, email_verified)) = existing {
+            if !email_verified {
+                // Google proved ownership of this address, but the local account never
+                // verified it — it may have been registered by someone else. Disable
+                // password login so the registrant can't share access to this account.
+                sqlx::query(
+                    r#"UPDATE users
+                       SET email_verified = TRUE, verification_token = NULL,
+                           token_expires_at = NULL, password_hash = $1
+                       WHERE id = $2"#,
+                )
+                .bind(OAUTH_PASSWORD_SENTINEL)
+                .bind(user_id)
+                .execute(&self.pool)
+                .await?;
+                tracing::info!(
+                    "google login linked to unverified account: id={user_id}, email={email}; password login disabled"
+                );
+            }
+            return Ok(user_id);
+        }
+
+        let user_id: i32 = sqlx::query_scalar(
+            r#"INSERT INTO users (email, password_hash, display_name, provider, email_verified)
+               VALUES ($1, $2, $3, 'google', TRUE)
+               RETURNING id"#,
+        )
+        .bind(email)
+        .bind(OAUTH_PASSWORD_SENTINEL)
+        .bind(display_name)
+        .fetch_one(&self.pool)
+        .await?;
+
+        tracing::info!("new google user created: id={user_id}, email={email}");
+        Ok(user_id)
     }
 
     /// Create a user with a pre-hashed password (for migration from admin table)

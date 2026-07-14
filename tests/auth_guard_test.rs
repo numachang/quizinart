@@ -18,6 +18,7 @@ fn make_state(db: quizinart::db::Db) -> AppState {
         db,
         auth,
         secure_cookies: false,
+        google: None,
     }
 }
 
