@@ -1,6 +1,6 @@
 # Stage 1: cargo-chef — 依存クレートのキャッシュ用レシピ生成
-FROM rust:1.88-bookworm AS chef
-RUN cargo install cargo-chef
+FROM rust:1.93-bookworm AS chef
+RUN cargo install cargo-chef --locked
 WORKDIR /app
 
 FROM chef AS planner
