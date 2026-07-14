@@ -893,7 +893,7 @@ nav .settings-menu a:focus-visible {
 
 .auth-divider::before,
 .auth-divider::after {
-  content: "";
+  content: '';
   flex: 1;
   border-top: 1px solid var(--pico-muted-border-color);
 }
